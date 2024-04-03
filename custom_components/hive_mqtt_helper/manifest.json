@@ -5,7 +5,9 @@
     "@andrew-codechimp"
   ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": [
+    "mqtt"
+  ],
   "documentation": "https://github.com/andrew-codechimp/HA_Hive_MQTT_Helper",
   "integration_type": "helper",
   "iot_class": "calculated",

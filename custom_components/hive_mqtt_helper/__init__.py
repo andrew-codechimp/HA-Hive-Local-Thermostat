@@ -6,6 +6,7 @@ https://github.com/andrew-codechimp/HA_Hive_MQTT_Helper
 
 from __future__ import annotations
 
+import json
 from awesomeversion.awesomeversion import AwesomeVersion
 
 from homeassistant.config_entries import ConfigEntry
@@ -16,8 +17,15 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers import config_validation as cv
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.const import __version__ as HA_VERSION  # noqa: N812
+from homeassistant.components.mqtt import valid_subscribe_topic
+from homeassistant.components.mqtt import client as mqtt_client
 
-from .const import DOMAIN, LOGGER, MIN_HA_VERSION, CONFIG_VERSION
+from .const import (
+    DOMAIN,
+    LOGGER,
+    MIN_HA_VERSION,
+    CONF_MQTT_TOPIC,
+)
 
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
@@ -48,8 +56,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
 
+    topic = entry.data[CONF_MQTT_TOPIC]
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    LOGGER.debug(f"Started listening to topic {topic}")
+
+    await mqtt_client.async_subscribe(hass, topic=topic, msg_callback=handle_message)
+
+    # await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
@@ -73,6 +87,35 @@ async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update options."""
     await hass.config_entries.async_reload(entry.entry_id)
 
+def handle_message(msg):
+    """Handle MQTT messages."""
+
+    data = json.loads(msg.payload)
+
+    print(json.dumps(data, indent=4))
+
+    # entity_state = self.hass.states.get(self.entity_id)
+
+    # if entity_state is None:
+    #     LOGGER.warning("Entity doesn't exist")
+    #     return True
+
+    # if "IrReceived" in data:
+    #     if "IRHVAC" in data["IrReceived"]:
+    #         if "manufacturer" in entity_state.attributes:
+    #             if (
+    #                 data["IrReceived"]["IRHVAC"]["Vendor"].casefold()
+    #                 == entity_state.attributes["manufacturer"].casefold()
+    #             ):
+    #                 self.sync_climate(data["IrReceived"]["IRHVAC"])
+    #             else:
+    #                 LOGGER.debug(
+    #                     'IRHVAC vendor doesn"t match climate entity"s manufacturer'
+    #                 )
+    #         else:
+    #             LOGGER.warning("Entity has no manufacturer data")
+    #     else:
+    #         LOGGER.debug("IR data received has no IRHVAC attribute")
 
 # import logging
 
