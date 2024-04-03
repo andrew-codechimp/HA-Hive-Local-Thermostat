@@ -1,0 +1,15 @@
+{
+  "domain": "hive_mqtt_helper",
+  "name": "Hive MQTT Helper",
+  "codeowners": [
+    "@andrew-codechimp"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/andrew-codechimp/HA_Hive_MQTT_Helper",
+  "integration_type": "helper",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/andrew-codechimp/HA_Hive_MQTT_Helper/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

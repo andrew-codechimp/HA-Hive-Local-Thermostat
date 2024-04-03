@@ -1,0 +1,35 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Hive MQTT Helper",
+                "description": "Enter the entity name and configure parameters.",
+                "data": {
+                    "name": "Friendly name",
+                    "mqtt_topic": "MQTT topic"
+                }
+            }
+        },
+        "error": {
+            "value": "Invalid value. Please check your input!",
+            "icon": "Icons should be specified in the form 'prefix:name'."
+        },
+        "abort": {
+            "single_instance_allowed": "Only a single configuration of Holidays is allowed."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Hive MQTT Helper",
+                "description": "Enter the entity name and configure parameters.",
+                "data": {
+                    "mqtt_topic": "MQTT topic"
+                }
+            }
+        },
+        "error": {
+            "value": "Invalid value. Please check your input!"
+        }
+    }
+}
