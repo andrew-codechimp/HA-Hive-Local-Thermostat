@@ -9,7 +9,7 @@
     "mqtt"
   ],
   "documentation": "https://github.com/andrew-codechimp/HA_Hive_MQTT_Orchestrator",
-  "integration_type": "integration",
+  "integration_type": "device",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/andrew-codechimp/HA_Hive_MQTT_Orchestrator/issues",
   "requirements": [],
