@@ -5,15 +5,23 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.mqtt import client as mqtt_client
+from homeassistant.components.mqtt.models import ReceiveMessage
+from homeassistant.core import callback
+
 from homeassistant.const import (
     UnitOfInformation,
     CONF_NAME,
 )
 
-from .const import DOMAIN
 from .coordinator import HiveDataUpdateCoordinator
 from .entity import HiveEntity, HiveEntityDescription
 
+from .const import (
+    DOMAIN,
+    LOGGER,
+    CONF_MQTT_TOPIC
+)
 
 @dataclass
 class HiveSensorEntityDescription(
@@ -48,6 +56,25 @@ async def async_setup_entry(hass, entry, async_add_devices):
             entity_description=entity_description,
         )
         for entity_description in ENTITY_DESCRIPTIONS
+    )
+
+    @callback
+    async def mqtt_message_received(message: ReceiveMessage):
+        """Handle received MQTT message."""
+        topic = message.topic
+        payload = message.payload
+        device_id = topic.split("/")[1]
+        if (device_mac == '+' or device_id == device_mac):
+            updateGroups = await async_get_device_groups(deviceUpdateGroups, async_add_entities, device_id)
+            LOGGER.debug("Received message: %s", topic)
+            LOGGER.debug("  Payload: %s", payload)
+            for updateGroup in updateGroups:
+                updateGroup.process_update(message)
+
+    topic=entry.options[CONF_MQTT_TOPIC]
+
+    await mqtt_client.async_subscribe(
+        hass, topic, mqtt_message_received, 1
     )
 
 class HiveSensor(HiveEntity, SensorEntity):
