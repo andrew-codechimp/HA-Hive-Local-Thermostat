@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from homeassistant.helpers.entity import DeviceInfo, EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, DOMAIN, NAME, VERSION, MANUFACTURER
+from .const import DOMAIN, NAME, VERSION, MANUFACTURER
 from .coordinator import HiveDataUpdateCoordinator
 
 
@@ -16,13 +16,10 @@ class HiveEntityDescription(EntityDescription):
     """Defines a base Hive entity description."""
 
     entity_id: str | None = None
-    api_field: str | None = None
 
 
 class HiveEntity(CoordinatorEntity):
     """HiveEntity class."""
-
-    _attr_attribution = ATTRIBUTION
 
     entity_description: HiveEntityDescription
     _attr_has_entity_name = True

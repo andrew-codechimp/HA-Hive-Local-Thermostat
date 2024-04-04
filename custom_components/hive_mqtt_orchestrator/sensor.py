@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.const import (
     UnitOfInformation,
+    CONF_NAME,
 )
 
 from .const import DOMAIN
@@ -24,20 +25,16 @@ class HiveSensorEntityDescription(
 
 ENTITY_DESCRIPTIONS = (
     HiveSensorEntityDescription(
-        key="monthly_quota_gb",
-        translation_key="monthly_quota",
-        entity_id="sensor.andrews_arnold_monthly_quota",
-        icon="mdi:counter",
-        native_unit_of_measurement=UnitOfInformation.GIGABYTES,
-        api_field="quota_monthly",
+        key="running_state_water",
+        translation_key="running_state_water",
+        # icon="mdi:counter",
+        # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
     ),
     HiveSensorEntityDescription(
-        key="quota_remaining_gb",
-        translation_key="quota_remaining",
-        entity_id="sensor.andrews_arnold_quota_remaining",
-        icon="mdi:counter",
-        native_unit_of_measurement=UnitOfInformation.GIGABYTES,
-        api_field="quota_remaining",
+        key="running_state_heat",
+        translation_key="running_state_heat",
+        # icon="mdi:counter",
+        # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
     ),
 )
 
@@ -53,7 +50,6 @@ async def async_setup_entry(hass, entry, async_add_devices):
         for entity_description in ENTITY_DESCRIPTIONS
     )
 
-
 class HiveSensor(HiveEntity, SensorEntity):
     """andrews_arnold_quota Sensor class."""
 
@@ -65,8 +61,16 @@ class HiveSensor(HiveEntity, SensorEntity):
         """Initialize the sensor class."""
         super().__init__(entity_description, coordinator)
 
+        # config = entry.options
+        # self.config_entry = entry
+        # self._attr_name: str = (
+        #     entry.title
+        #     if entry.title is not None
+        #     else entry.options.get(CONF_NAME)
+        # )
+
         self.entity_description = entity_description
-        self._attr_unique_id = f"andrews_arnold_quota_{entity_description.key}".lower()
+        self._attr_unique_id = f"{DOMAIN}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
 
     @property
@@ -74,14 +78,7 @@ class HiveSensor(HiveEntity, SensorEntity):
         """Return the native value of the sensor."""
         if (
             self.coordinator.data
-            and "quota" in self.coordinator.data
-            and self.entity_description.api_field in self.coordinator.data["quota"][0]
+            and self.entity_description.key in self.coordinator.data
         ):
-            return round(
-                int(
-                    self.coordinator.data["quota"][0][self.entity_description.api_field]
-                )
-                / 1000000000,
-                1,
-            )
+            return self.coordinator.data[self.entity_description.key]
         return None

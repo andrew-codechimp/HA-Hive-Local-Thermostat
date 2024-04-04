@@ -2,7 +2,7 @@
     "config": {
         "step": {
             "user": {
-                "title": "Hive MQTT Helper",
+                "title": "Hive MQTT Orchestrator",
                 "description": "Enter the entity name and configure parameters.",
                 "data": {
                     "name": "Friendly name",
@@ -21,7 +21,7 @@
     "options": {
         "step": {
             "init": {
-                "title": "Hive MQTT Helper",
+                "title": "Hive MQTT Orchestrator",
                 "description": "Enter the entity name and configure parameters.",
                 "data": {
                     "mqtt_topic": "MQTT topic"
@@ -30,6 +30,16 @@
         },
         "error": {
             "value": "Invalid value. Please check your input!"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "running_state_water": {
+                "name": "Running State Water"
+            },
+            "running_state_heat": {
+                "name": "Running State Heat"
+            }
         }
     }
 }

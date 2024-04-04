@@ -5,7 +5,7 @@ default_config:
 logger:
   default: warning
   logs:
-    custom_components.hive_mqtt_helper: debug
+    custom_components.hive_mqtt_orchestrator: debug
 
 debugpy:
    start: true

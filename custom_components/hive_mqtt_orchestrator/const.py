@@ -1,4 +1,4 @@
-"""Constants for hive_mqtt_helper."""
+"""Constants for hive_mqtt_orchestrator."""
 
 import json
 from logging import Logger, getLogger
