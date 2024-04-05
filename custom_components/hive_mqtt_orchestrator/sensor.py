@@ -1,4 +1,4 @@
-"""Sensor platform for andrews_arnold_quota."""
+"""Sensor platform for hive_mqtt_orchestrator."""
 
 from __future__ import annotations
 
@@ -18,7 +18,6 @@ from homeassistant.const import (
     CONF_ENTITIES,
 )
 
-from .coordinator import HiveDataUpdateCoordinator
 from .entity import HiveEntity, HiveEntityDescription
 
 from .const import (

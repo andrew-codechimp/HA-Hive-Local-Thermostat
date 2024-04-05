@@ -20,3 +20,5 @@ MANUFACTURER = "@Andrew-CodeChimp"
 CONFIG_VERSION = 1
 
 CONF_MQTT_TOPIC = "mqtt_topic"
+
+PRESET_MANUAL = "Manual"

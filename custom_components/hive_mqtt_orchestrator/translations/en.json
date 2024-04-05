@@ -40,6 +40,11 @@
             "running_state_heat": {
                 "name": "Running State Heat"
             }
+        },
+        "climate": {
+            "climate": {
+                "name": "Climate"
+            }
         }
     }
 }
