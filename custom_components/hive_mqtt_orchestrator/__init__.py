@@ -77,8 +77,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         parsed_data = json.loads(payload)
 
-        for entity in hass.data[DOMAIN][entry.entry_id][CONF_ENTITIES]:
-            entity.process_update(parsed_data)
+        for platform in PLATFORMS:
+            for entity in hass.data[DOMAIN][entry.entry_id][platform]:
+                entity.process_update(parsed_data)
 
     topic=entry.options[CONF_MQTT_TOPIC]
 

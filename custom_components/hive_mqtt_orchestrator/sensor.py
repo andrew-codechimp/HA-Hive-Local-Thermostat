@@ -11,8 +11,8 @@ from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.core import callback
 from homeassistant.util import slugify
-
 from homeassistant.const import (
+    Platform,
     UnitOfInformation,
     CONF_NAME,
     CONF_ENTITIES,
@@ -66,7 +66,7 @@ async def async_setup_entry(
         [sensorEntity for sensorEntity in _sensors],
     )
 
-    hass.data[DOMAIN][config_entry.entry_id][CONF_ENTITIES] = _sensors
+    hass.data[DOMAIN][config_entry.entry_id][Platform.SENSOR] = _sensors
 
 class HiveSensor(HiveEntity, SensorEntity):
     """andrews_arnold_quota Sensor class."""
