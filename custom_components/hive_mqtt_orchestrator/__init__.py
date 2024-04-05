@@ -19,7 +19,7 @@ from homeassistant.const import __version__ as HA_VERSION  # noqa: N812
 from homeassistant.components.mqtt import valid_subscribe_topic
 from homeassistant.components.mqtt import client as mqtt_client
 
-from .coordinator import HiveDataUpdateCoordinator
+from homeassistant.const import CONF_ENTITIES
 
 from .const import (
     DOMAIN,
@@ -57,18 +57,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
 
-    hass.data[DOMAIN][entry.entry_id] = coordinator = (
-        HiveDataUpdateCoordinator(
-            hass=hass,
-            topic=entry.options[CONF_MQTT_TOPIC]
-        )
-    )
+    hass.data[DOMAIN][entry.entry_id][CONF_ENTITIES] = {}
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
-    await coordinator.async_config_entry_first_refresh()
 
     return True
 

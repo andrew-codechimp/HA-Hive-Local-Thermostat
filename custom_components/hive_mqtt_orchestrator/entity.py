@@ -18,7 +18,7 @@ class HiveEntityDescription(EntityDescription):
     entity_id: str | None = None
 
 
-class HiveEntity(CoordinatorEntity):
+class HiveEntity():
     """HiveEntity class."""
 
     entity_description: HiveEntityDescription
@@ -27,11 +27,9 @@ class HiveEntity(CoordinatorEntity):
     def __init__(
         self,
         description: HiveEntityDescription,
-        coordinator: HiveDataUpdateCoordinator,
     ) -> None:
         """Initialize."""
-        super().__init__(coordinator)
-        self._attr_unique_id = coordinator.config_entry.entry_id
+        super().__init__()
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self.unique_id)},
             name=NAME,

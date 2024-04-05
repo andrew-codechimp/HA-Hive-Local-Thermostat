@@ -6,16 +6,20 @@ import json
 from dataclasses import dataclass
 from typing import Iterable
 
+from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
 from homeassistant.core import callback
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.util import slugify
 
 from homeassistant.const import (
     UnitOfInformation,
     CONF_NAME,
+    CONF_ENTITIES,
 )
 
 from .coordinator import HiveDataUpdateCoordinator
@@ -51,18 +55,22 @@ ENTITY_DESCRIPTIONS = (
 )
 
 
-async def async_setup_entry(hass, entry, async_add_devices):
+async def async_setup_entry(
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        async_add_entities: AddEntitiesCallback
+    ):
     """Set up the sensor platform."""
     deviceUpdateGroups = {}
 
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_devices(
+    async_add_entities(
         HiveSensor(
-            coordinator=coordinator,
             entity_description=entity_description,
         )
         for entity_description in ENTITY_DESCRIPTIONS
     )
+
+    hass.data[DOMAIN][config_entry.entry_id][CONF_ENTITIES][]
 
     @callback
     async def mqtt_message_received(message: ReceiveMessage):
@@ -77,7 +85,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
             for updateGroup in updateGroups:
                 updateGroup.process_update(message)
 
-    topic=entry.options[CONF_MQTT_TOPIC]
+    topic=config_entry.options[CONF_MQTT_TOPIC]
 
     await mqtt_client.async_subscribe(
         hass, topic, mqtt_message_received, 1
@@ -128,11 +136,10 @@ class HiveSensor(HiveEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: HiveDataUpdateCoordinator,
         entity_description: HiveSensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(entity_description, coordinator)
+        super().__init__(entity_description)
 
         # config = entry.options
         # self.config_entry = entry
