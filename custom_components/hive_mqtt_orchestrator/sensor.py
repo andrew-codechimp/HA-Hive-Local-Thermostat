@@ -45,53 +45,55 @@ ENTITY_DESCRIPTIONS = (
         translation_key="running_state_water",
         # icon="mdi:counter",
         # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
+        func=lambda js: js["running_state_water"],
     ),
     HiveSensorEntityDescription(
         key="running_state_heat",
         translation_key="running_state_heat",
         # icon="mdi:counter",
         # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
+        func=lambda js: js["running_state_heat"],
     ),
 )
 
-STATE_SENSORS = [
-  {
-    "name": "Smart Meter IHD Software Version",
-    "device_class": None,
-    "unit_of_measurement": None,
-    "state_class": None,
-    "entity_category": EntityCategory.DIAGNOSTIC,
-    "icon": "mdi:information-outline",
-    "func": lambda js: js["software"],
-  },
-  {
-    "name": "Smart Meter IHD Hardware",
-    "device_class": None,
-    "unit_of_measurement": None,
-    "state_class": None,
-    "entity_category": EntityCategory.DIAGNOSTIC,
-    "icon": "mdi:information-outline",
-    "func": lambda js: js["hardware"],
-  },
-  {
-    "name": "Smart Meter IHD HAN RSSI",
-    "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
-    "unit_of_measurement": SIGNAL_STRENGTH_DECIBELS,
-    "state_class": SensorStateClass.MEASUREMENT,
-    "entity_category": EntityCategory.DIAGNOSTIC,
-    "icon": "mdi:wifi-strength-outline",
-    "func": lambda js: js["han"]["rssi"]
-  },
-  {
-    "name": "Smart Meter IHD HAN LQI",
-    "device_class": None,
-    "unit_of_measurement": None,
-    "state_class": SensorStateClass.MEASUREMENT,
-    "entity_category": EntityCategory.DIAGNOSTIC,
-    "icon": "mdi:wifi-strength-outline",
-    "func": lambda js: js["han"]["lqi"]
-  }
-]
+# STATE_SENSORS = [
+#   {
+#     "name": "Smart Meter IHD Software Version",
+#     "device_class": None,
+#     "unit_of_measurement": None,
+#     "state_class": None,
+#     "entity_category": EntityCategory.DIAGNOSTIC,
+#     "icon": "mdi:information-outline",
+#     "func": lambda js: js["software"],
+#   },
+#   {
+#     "name": "Smart Meter IHD Hardware",
+#     "device_class": None,
+#     "unit_of_measurement": None,
+#     "state_class": None,
+#     "entity_category": EntityCategory.DIAGNOSTIC,
+#     "icon": "mdi:information-outline",
+#     "func": lambda js: js["hardware"],
+#   },
+#   {
+#     "name": "Smart Meter IHD HAN RSSI",
+#     "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
+#     "unit_of_measurement": SIGNAL_STRENGTH_DECIBELS,
+#     "state_class": SensorStateClass.MEASUREMENT,
+#     "entity_category": EntityCategory.DIAGNOSTIC,
+#     "icon": "mdi:wifi-strength-outline",
+#     "func": lambda js: js["han"]["rssi"]
+#   },
+#   {
+#     "name": "Smart Meter IHD HAN LQI",
+#     "device_class": None,
+#     "unit_of_measurement": None,
+#     "state_class": SensorStateClass.MEASUREMENT,
+#     "entity_category": EntityCategory.DIAGNOSTIC,
+#     "icon": "mdi:wifi-strength-outline",
+#     "func": lambda js: js["han"]["lqi"]
+#   }
+# ]
 
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -99,29 +101,27 @@ async def async_setup_entry(
         async_add_entities: AddEntitiesCallback
     ):
     """Set up the sensor platform."""
-    deviceUpdateGroups = {}
+    _sensors = {}
+
+    _sensors = [HiveSensor(entity_description=entity_description,) for entity_description in ENTITY_DESCRIPTIONS]
 
     async_add_entities(
-        HiveSensor(
-            entity_description=entity_description,
-        )
-        for entity_description in ENTITY_DESCRIPTIONS
+        [sensorEntity for sensorEntity in _sensors],
     )
 
-    hass.data[DOMAIN][config_entry.entry_id][CONF_ENTITIES][]
+    # hass.data[DOMAIN][config_entry.entry_id][CONF_ENTITIES][_sensors]
 
     @callback
     async def mqtt_message_received(message: ReceiveMessage):
         """Handle received MQTT message."""
         topic = message.topic
         payload = message.payload
-        device_id = topic.split("/")[1]
-        if (device_mac == '+' or device_id == device_mac):
-            updateGroups = await async_get_device_groups(deviceUpdateGroups, async_add_entities, device_id)
-            LOGGER.debug("Received message: %s", topic)
-            LOGGER.debug("  Payload: %s", payload)
-            for updateGroup in updateGroups:
-                updateGroup.process_update(message)
+        LOGGER.debug("Received message: %s", topic)
+        LOGGER.debug("  Payload: %s", payload)
+
+        parsed_data = json.loads(payload)
+        for sensor in _sensors:
+            sensor.process_update(parsed_data)
 
     topic=config_entry.options[CONF_MQTT_TOPIC]
 
@@ -129,20 +129,20 @@ async def async_setup_entry(
         hass, topic, mqtt_message_received, 1
     )
 
-async def async_get_device_groups(deviceUpdateGroups, async_add_entities, device_id):
-    #add to update groups if not already there
-    if device_id not in deviceUpdateGroups:
-        LOGGER.debug("New device found: %s", device_id)
-        groups = [
-            HiveSensorUpdateGroup(device_id, "STATE", STATE_SENSORS),
-        ]
-        async_add_entities(
-            [sensorEntity for updateGroup in groups for sensorEntity in updateGroup.all_sensors],
-            #True
-        )
-        deviceUpdateGroups[device_id] = groups
+# async def async_get_device_groups(deviceUpdateGroups, async_add_entities, device_id):
+#     #add to update groups if not already there
+#     if device_id not in deviceUpdateGroups:
+#         LOGGER.debug("New device found: %s", device_id)
+#         groups = [
+#             HiveSensorUpdateGroup(device_id, "STATE", STATE_SENSORS),
+#         ]
+#         async_add_entities(
+#             [sensorEntity for updateGroup in groups for sensorEntity in updateGroup.all_sensors],
+#             #True
+#         )
+#         deviceUpdateGroups[device_id] = groups
 
-    return deviceUpdateGroups[device_id]
+#     return deviceUpdateGroups[device_id]
 
 class HiveSensorUpdateGroup:
     """Representation of Hive Sensors that all get updated together."""
@@ -188,39 +188,40 @@ class HiveSensor(HiveEntity, SensorEntity):
         self.entity_description = entity_description
         self._attr_unique_id = f"{DOMAIN}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
+        self._func = entity_description.func
 
 
-    def __init__(self, device_id, name, icon, device_class, unit_of_measurement, state_class, func, entity_category = EntityCategory.CONFIG, ignore_zero_values = False) -> None:
-        """Initialize the sensor."""
-        self._device_id = device_id
-        self._ignore_zero_values = ignore_zero_values
-        self._attr_name = name
-        self._attr_unique_id = slugify(device_id + "_" + name)
-        self._attr_icon = icon
-        if (device_class):
-          self._attr_device_class = device_class
-        if (unit_of_measurement):
-          self._attr_native_unit_of_measurement = unit_of_measurement
-        if (state_class):
-          self._attr_state_class = state_class
-        self._attr_entity_category = entity_category
-        self._attr_should_poll = False
+    # def __init__(self, device_id, name, icon, device_class, unit_of_measurement, state_class, func, entity_category = EntityCategory.CONFIG, ignore_zero_values = False) -> None:
+    #     """Initialize the sensor."""
+    #     self._device_id = device_id
+    #     self._ignore_zero_values = ignore_zero_values
+    #     self._attr_name = name
+    #     self._attr_unique_id = slugify(device_id + "_" + name)
+    #     self._attr_icon = icon
+    #     if (device_class):
+    #       self._attr_device_class = device_class
+    #     if (unit_of_measurement):
+    #       self._attr_native_unit_of_measurement = unit_of_measurement
+    #     if (state_class):
+    #       self._attr_state_class = state_class
+    #     self._attr_entity_category = entity_category
+    #     self._attr_should_poll = False
 
-        self._func = func
-        self._attr_device_info = DeviceInfo(
-            connections={("mac", device_id)},
-            manufacturer="Hildebrand Technology Limited",
-            model="Glow Smart Meter IHD",
-            name=f"Glow Smart Meter {device_id}",
-        )
-        self._attr_native_value = None
+    #     self._func = func
+    #     self._attr_device_info = DeviceInfo(
+    #         connections={("mac", device_id)},
+    #         manufacturer="Hildebrand Technology Limited",
+    #         model="Glow Smart Meter IHD",
+    #         name=f"Glow Smart Meter {device_id}",
+    #     )
+    #     self._attr_native_value = None
 
     def process_update(self, mqtt_data) -> None:
         """Update the state of the sensor."""
         new_value = self._func(mqtt_data)
-        if (self._ignore_zero_values and new_value == 0):
-            LOGGER.debug("Ignored new value of %s on %s.", new_value, self._attr_unique_id)
-            return
+        # if (self._ignore_zero_values and new_value == 0):
+        #     LOGGER.debug("Ignored new value of %s on %s.", new_value, self._attr_unique_id)
+        #     return
         self._attr_native_value = new_value
         if (self.hass is not None): # this is a hack to get around the fact that the entity is not yet initialized at first
             self.async_schedule_update_ha_state()

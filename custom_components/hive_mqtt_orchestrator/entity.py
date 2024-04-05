@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import abc
+
 from dataclasses import dataclass
 
 from homeassistant.helpers.entity import DeviceInfo, EntityDescription
@@ -16,6 +18,7 @@ class HiveEntityDescription(EntityDescription):
     """Defines a base Hive entity description."""
 
     entity_id: str | None = None
+    func: any | None = None
 
 
 class HiveEntity():
@@ -39,3 +42,7 @@ class HiveEntity():
         self.entity_description = description
         if description.entity_id:
             self.entity_id = description.entity_id
+
+    @abc.abstractmethod
+    def process_update(self, mqtt_data) -> None:
+        raise NotImplementedError('users must define process_update to use this base class')
