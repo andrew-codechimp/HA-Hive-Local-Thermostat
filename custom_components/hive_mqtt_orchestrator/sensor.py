@@ -9,7 +9,7 @@ from typing import Iterable
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
@@ -54,6 +54,44 @@ ENTITY_DESCRIPTIONS = (
     ),
 )
 
+STATE_SENSORS = [
+  {
+    "name": "Smart Meter IHD Software Version",
+    "device_class": None,
+    "unit_of_measurement": None,
+    "state_class": None,
+    "entity_category": EntityCategory.DIAGNOSTIC,
+    "icon": "mdi:information-outline",
+    "func": lambda js: js["software"],
+  },
+  {
+    "name": "Smart Meter IHD Hardware",
+    "device_class": None,
+    "unit_of_measurement": None,
+    "state_class": None,
+    "entity_category": EntityCategory.DIAGNOSTIC,
+    "icon": "mdi:information-outline",
+    "func": lambda js: js["hardware"],
+  },
+  {
+    "name": "Smart Meter IHD HAN RSSI",
+    "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
+    "unit_of_measurement": SIGNAL_STRENGTH_DECIBELS,
+    "state_class": SensorStateClass.MEASUREMENT,
+    "entity_category": EntityCategory.DIAGNOSTIC,
+    "icon": "mdi:wifi-strength-outline",
+    "func": lambda js: js["han"]["rssi"]
+  },
+  {
+    "name": "Smart Meter IHD HAN LQI",
+    "device_class": None,
+    "unit_of_measurement": None,
+    "state_class": SensorStateClass.MEASUREMENT,
+    "entity_category": EntityCategory.DIAGNOSTIC,
+    "icon": "mdi:wifi-strength-outline",
+    "func": lambda js: js["han"]["lqi"]
+  }
+]
 
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -97,8 +135,6 @@ async def async_get_device_groups(deviceUpdateGroups, async_add_entities, device
         LOGGER.debug("New device found: %s", device_id)
         groups = [
             HiveSensorUpdateGroup(device_id, "STATE", STATE_SENSORS),
-            HiveSensorUpdateGroup(device_id, "electricitymeter", ELECTRICITY_SENSORS),
-            HiveSensorUpdateGroup(device_id, "gasmeter", GAS_SENSORS)
         ]
         async_add_entities(
             [sensorEntity for updateGroup in groups for sensorEntity in updateGroup.all_sensors],
