@@ -2,17 +2,13 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
-from typing import Iterable
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
-from homeassistant.components.mqtt import client as mqtt_client
-from homeassistant.components.mqtt.models import ReceiveMessage
 from homeassistant.core import callback
 from homeassistant.util import slugify
 
@@ -56,45 +52,6 @@ ENTITY_DESCRIPTIONS = (
     ),
 )
 
-# STATE_SENSORS = [
-#   {
-#     "name": "Smart Meter IHD Software Version",
-#     "device_class": None,
-#     "unit_of_measurement": None,
-#     "state_class": None,
-#     "entity_category": EntityCategory.DIAGNOSTIC,
-#     "icon": "mdi:information-outline",
-#     "func": lambda js: js["software"],
-#   },
-#   {
-#     "name": "Smart Meter IHD Hardware",
-#     "device_class": None,
-#     "unit_of_measurement": None,
-#     "state_class": None,
-#     "entity_category": EntityCategory.DIAGNOSTIC,
-#     "icon": "mdi:information-outline",
-#     "func": lambda js: js["hardware"],
-#   },
-#   {
-#     "name": "Smart Meter IHD HAN RSSI",
-#     "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
-#     "unit_of_measurement": SIGNAL_STRENGTH_DECIBELS,
-#     "state_class": SensorStateClass.MEASUREMENT,
-#     "entity_category": EntityCategory.DIAGNOSTIC,
-#     "icon": "mdi:wifi-strength-outline",
-#     "func": lambda js: js["han"]["rssi"]
-#   },
-#   {
-#     "name": "Smart Meter IHD HAN LQI",
-#     "device_class": None,
-#     "unit_of_measurement": None,
-#     "state_class": SensorStateClass.MEASUREMENT,
-#     "entity_category": EntityCategory.DIAGNOSTIC,
-#     "icon": "mdi:wifi-strength-outline",
-#     "func": lambda js: js["han"]["lqi"]
-#   }
-# ]
-
 async def async_setup_entry(
         hass: HomeAssistant,
         config_entry: ConfigEntry,
@@ -109,63 +66,7 @@ async def async_setup_entry(
         [sensorEntity for sensorEntity in _sensors],
     )
 
-    # hass.data[DOMAIN][config_entry.entry_id][CONF_ENTITIES][_sensors]
-
-    @callback
-    async def mqtt_message_received(message: ReceiveMessage):
-        """Handle received MQTT message."""
-        topic = message.topic
-        payload = message.payload
-        LOGGER.debug("Received message: %s", topic)
-        LOGGER.debug("  Payload: %s", payload)
-
-        parsed_data = json.loads(payload)
-        for sensor in _sensors:
-            sensor.process_update(parsed_data)
-
-    topic=config_entry.options[CONF_MQTT_TOPIC]
-
-    await mqtt_client.async_subscribe(
-        hass, topic, mqtt_message_received, 1
-    )
-
-# async def async_get_device_groups(deviceUpdateGroups, async_add_entities, device_id):
-#     #add to update groups if not already there
-#     if device_id not in deviceUpdateGroups:
-#         LOGGER.debug("New device found: %s", device_id)
-#         groups = [
-#             HiveSensorUpdateGroup(device_id, "STATE", STATE_SENSORS),
-#         ]
-#         async_add_entities(
-#             [sensorEntity for updateGroup in groups for sensorEntity in updateGroup.all_sensors],
-#             #True
-#         )
-#         deviceUpdateGroups[device_id] = groups
-
-#     return deviceUpdateGroups[device_id]
-
-class HiveSensorUpdateGroup:
-    """Representation of Hive Sensors that all get updated together."""
-
-    def __init__(self, device_id: str, topic_regex: str, meters: Iterable) -> None:
-        """Initialize the sensor collection."""
-        self._topic_regex = re.compile(topic_regex)
-        self._sensors = [HiveSensor(device_id = device_id, **meter) for meter in meters]
-
-    def process_update(self, message: ReceiveMessage) -> None:
-        """Process an update from the MQTT broker."""
-        topic = message.topic
-        payload = message.payload
-        if (self._topic_regex.search(topic)):
-            LOGGER.debug("Matched on %s", self._topic_regex.pattern)
-            parsed_data = json.loads(payload)
-            for sensor in self._sensors:
-                sensor.process_update(parsed_data)
-
-    @property
-    def all_sensors(self) -> Iterable[HiveSensor]:
-        """Return all meters."""
-        return self._sensors
+    hass.data[DOMAIN][config_entry.entry_id][CONF_ENTITIES] = _sensors
 
 class HiveSensor(HiveEntity, SensorEntity):
     """andrews_arnold_quota Sensor class."""
