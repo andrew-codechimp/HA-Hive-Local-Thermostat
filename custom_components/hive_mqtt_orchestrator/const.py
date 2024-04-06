@@ -21,4 +21,4 @@ CONFIG_VERSION = 1
 
 CONF_MQTT_TOPIC = "mqtt_topic"
 
-PRESET_MANUAL = "Manual"
+HIVE_BOOST = "emergency_heat"

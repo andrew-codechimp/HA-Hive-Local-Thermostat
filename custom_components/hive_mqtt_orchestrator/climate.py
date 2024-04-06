@@ -31,10 +31,7 @@ from homeassistant.const import (
 
 from .const import (
     DOMAIN,
-    PRESET_MANUAL,
-    # PRESET_SMART,
-    # PRESET_TIMER,
-    # COORDINATORS,
+    HIVE_BOOST,
     # ATTR_TEMPERATURE_LOW,
     # ATTR_TEMPERATURE_HIGH,
     # ATTR_TEMPERATURE_AVERAGE,
@@ -44,8 +41,8 @@ from .const import (
 )
 
 PRESET_MAP = {
-    PRESET_MANUAL: "Manual",
-    PRESET_BOOST: "Boost",
+    PRESET_NONE: "",
+    PRESET_BOOST: HIVE_BOOST,
 }
 
 from .entity import HiveEntity, HiveEntityDescription
@@ -97,7 +94,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._func = entity_description.func
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
-        self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT]
+        self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.AUTO]
 
         # Setting the new TURN_ON / TURN_OFF features isn't enough to make stop the
         # warning message about not setting them
@@ -121,8 +118,17 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
     @property
     def hvac_mode(self):
-        # return HVACMode.HEAT if self._tsmart.power else HVACMode.OFF
-        return HVACMode.OFF
+        if not self._mqtt_data:
+            return
+
+        if self._mqtt_data["system_mode_heat"] == "heat" and self._mqtt_data["temperature_setpoint_hold_duration_heat"] !=65535:
+            return HVACMode.AUTO
+        if self._mqtt_data["system_mode_heat"] == "emergency_heating":
+            return HVACMode.HEAT
+        if self._mqtt_data["system_mode_heat"] == "heat" and self._mqtt_data["temperature_setpoint_hold_duration_heat"] ==65535:
+            return HVACMode.HEAT
+        if self._mqtt_data["system_mode_heat"] == "off":
+            return HVACMode.OFF
 
     # async def async_set_hvac_mode(self, hvac_mode):
     #     await self._tsmart.async_control_set(
@@ -152,12 +158,15 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
     #     )
     #     await self.coordinator.async_request_refresh()
 
-    # def _climate_preset(self, tsmart_mode):
-    #     return next((k for k, v in PRESET_MAP.items() if v == tsmart_mode), None)
+    def _climate_preset(self, mode):
+        return next((k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE])
 
-    # @property
-    # def preset_mode(self):
-    #     return self._climate_preset(self._tsmart.mode)
+    @property
+    def preset_mode(self):
+        if not self._mqtt_data:
+            return
+        if "system_mode_heat" in self._mqtt_data:
+            return self._climate_preset(self._mqtt_data["system_mode_heat"])
 
     # async def async_set_preset_mode(self, preset_mode):
     #     await self._tsmart.async_control_set(
