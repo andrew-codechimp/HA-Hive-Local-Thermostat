@@ -132,14 +132,18 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if self._mqtt_data["system_mode_heat"] == "off":
             return HVACMode.OFF
 
-    # async def async_set_hvac_mode(self, hvac_mode):
-        # mqtt_client.async_publish(self._topic + '/set', {"occupied_heating_setpoint_heat": VALUE})
-    #     await self._tsmart.async_control_set(
-    #         hvac_mode == HVACMode.HEAT,
-    #         PRESET_MAP[self.preset_mode],
-    #         self.target_temperature,
-    #     )
-    #     await self.coordinator.async_request_refresh()
+    async def async_set_hvac_mode(self, hvac_mode):
+        if hvac_mode == HVACMode.AUTO:
+            mode = "auto"
+        elif hvac_mode == HVACMode.HEAT:
+            mode = "heat"
+        elif hvac_mode == HVACMode.OFF:
+            mode = "off"
+        else:
+            return
+
+        payload = r'{"system_mode_heat":"' + mode + r'"}'
+        await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
     @property
     def hvac_action(self):
