@@ -70,7 +70,7 @@ async def async_setup_entry(
     hive_climate_entity_description = HiveClimateEntityDescription(
         key="climate",
         translation_key="climate",
-        icon="mdi:radiator",
+        # icon="mdi:radiator",
         # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
         func=None,
         topic=config_entry.options[CONF_MQTT_TOPIC]
@@ -114,7 +114,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._attr_preset_modes = list(PRESET_MAP.keys())
         self._attr_max_temp = 70
         self._attr_min_temp = 15
-        self._attr_target_temperature_step = 5
+        self._attr_target_temperature_step = 0.5
 
         self._mqtt_data = None
 
@@ -132,8 +132,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if self._mqtt_data["system_mode_heat"] == "off":
             return HVACMode.OFF
 
-    async def async_set_hvac_mode(self, hvac_mode):
-        # mqtt_client.async_publish
+    # async def async_set_hvac_mode(self, hvac_mode):
+        # mqtt_client.async_publish(self._topic + '/set', {"occupied_heating_setpoint_heat": VALUE})
     #     await self._tsmart.async_control_set(
     #         hvac_mode == HVACMode.HEAT,
     #         PRESET_MAP[self.preset_mode],
@@ -169,11 +169,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if "occupied_heating_setpoint_heat" in self._mqtt_data:
             return self._mqtt_data["occupied_heating_setpoint_heat"]
 
-    # async def async_set_temperature(self, temperature, **kwargs):
-    #     await self._tsmart.async_control_set(
-    #         self.hvac_mode == HVACMode.HEAT, PRESET_MAP[self.preset_mode], temperature
-    #     )
-    #     await self.coordinator.async_request_refresh()
+    async def async_set_temperature(self, temperature, **kwargs):
+        payload = r'{"occupied_heating_setpoint_heat":' + str(temperature) + r'}'
+        await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
     def _climate_preset(self, mode):
         return next((k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE])
