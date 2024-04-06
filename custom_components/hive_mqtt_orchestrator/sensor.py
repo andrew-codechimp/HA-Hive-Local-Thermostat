@@ -33,42 +33,44 @@ class HiveSensorEntityDescription(
 ):
     """Class describing Hive sensor entities."""
 
-
-ENTITY_DESCRIPTIONS = (
-    HiveSensorEntityDescription(
-        key="running_state_water",
-        translation_key="running_state_water",
-        # icon="mdi:counter",
-        # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
-        func=lambda js: js["running_state_water"],
-    ),
-    HiveSensorEntityDescription(
-        key="running_state_heat",
-        translation_key="running_state_heat",
-        # icon="mdi:counter",
-        # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
-        func=lambda js: js["running_state_heat"],
-    ),
-)
-
 async def async_setup_entry(
         hass: HomeAssistant,
         config_entry: ConfigEntry,
         async_add_entities: AddEntitiesCallback
     ):
     """Set up the sensor platform."""
-    _sensors = {}
 
-    _sensors = [HiveSensor(entity_description=entity_description,) for entity_description in ENTITY_DESCRIPTIONS]
-
-    async_add_entities(
-        [sensorEntity for sensorEntity in _sensors],
+    ENTITY_DESCRIPTIONS = (
+        HiveSensorEntityDescription(
+            key="running_state_water",
+            translation_key="running_state_water",
+            icon="mdi:water-boiler",
+            # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
+            func=lambda js: js["running_state_water"],
+            topic=config_entry.options[CONF_MQTT_TOPIC]
+        ),
+        HiveSensorEntityDescription(
+            key="running_state_heat",
+            translation_key="running_state_heat",
+            icon="mdi:radiator",
+            # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
+            func=lambda js: js["running_state_heat"],
+            topic=config_entry.options[CONF_MQTT_TOPIC]
+        ),
     )
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.SENSOR] = _sensors
+    _entities = {}
+
+    _entities = [HiveSensor(entity_description=entity_description,) for entity_description in ENTITY_DESCRIPTIONS]
+
+    async_add_entities(
+        [sensorEntity for sensorEntity in _entities],
+    )
+
+    hass.data[DOMAIN][config_entry.entry_id][Platform.SENSOR] = _entities
 
 class HiveSensor(HiveEntity, SensorEntity):
-    """andrews_arnold_quota Sensor class."""
+    """hive_mqtt_orchestrator Sensor class."""
 
     def __init__(
         self,
@@ -89,6 +91,7 @@ class HiveSensor(HiveEntity, SensorEntity):
         self._attr_unique_id = f"{DOMAIN}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
         self._func = entity_description.func
+        self._topic = entity_description.topic
 
 
     # def __init__(self, device_id, name, icon, device_class, unit_of_measurement, state_class, func, entity_category = EntityCategory.CONFIG, ignore_zero_values = False) -> None:

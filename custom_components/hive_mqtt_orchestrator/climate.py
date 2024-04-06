@@ -12,6 +12,7 @@ from homeassistant.const import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.climate import (
     ATTR_HVAC_MODE,
     PRESET_AWAY,
@@ -21,6 +22,7 @@ from homeassistant.components.climate import (
     PRESET_NONE,
     ClimateEntity,
     HVACMode,
+    HVACAction,
     ClimateEntityFeature,
     ClimateEntityDescription,
 )
@@ -32,6 +34,7 @@ from homeassistant.const import (
 from .const import (
     DOMAIN,
     HIVE_BOOST,
+    CONF_MQTT_TOPIC,
     # ATTR_TEMPERATURE_LOW,
     # ATTR_TEMPERATURE_HIGH,
     # ATTR_TEMPERATURE_AVERAGE,
@@ -62,25 +65,27 @@ async def async_setup_entry(
         async_add_entities: AddEntitiesCallback
     ):
     """Set up the sensor platform."""
-    _sensors = {}
+    _entities = {}
 
     hive_climate_entity_description = HiveClimateEntityDescription(
         key="climate",
         translation_key="climate",
-        # icon="mdi:counter",
+        icon="mdi:radiator",
         # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
-        func=None
+        func=None,
+        topic=config_entry.options[CONF_MQTT_TOPIC]
     )
 
-    _sensors = [HiveClimateEntity(entity_description=hive_climate_entity_description) ]
+    _entities = [HiveClimateEntity(entity_description=hive_climate_entity_description) ]
 
     async_add_entities(
-        [sensorEntity for sensorEntity in _sensors],
+        [climateEntity for climateEntity in _entities],
     )
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.CLIMATE] = _sensors
+    hass.data[DOMAIN][config_entry.entry_id][Platform.CLIMATE] = _entities
 
 class HiveClimateEntity(HiveEntity, ClimateEntity):
+    """hive_mqtt_orchestrator Climate class."""
 
     def __init__(
         self,
@@ -92,6 +97,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._attr_unique_id = f"{DOMAIN}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
         self._func = entity_description.func
+        self._topic = entity_description.topic
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.AUTO]
@@ -106,15 +112,11 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             | ClimateEntityFeature.PRESET_MODE
         )
         self._attr_preset_modes = list(PRESET_MAP.keys())
-        self._attr_icon = "mdi:water-boiler"
         self._attr_max_temp = 70
         self._attr_min_temp = 15
         self._attr_target_temperature_step = 5
 
         self._mqtt_data = None
-
-    # async def async_update(self):
-    #     await self._tsmart._async_get_status()
 
     @property
     def hvac_mode(self):
@@ -130,13 +132,28 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if self._mqtt_data["system_mode_heat"] == "off":
             return HVACMode.OFF
 
-    # async def async_set_hvac_mode(self, hvac_mode):
+    async def async_set_hvac_mode(self, hvac_mode):
+        # mqtt_client.async_publish
     #     await self._tsmart.async_control_set(
     #         hvac_mode == HVACMode.HEAT,
     #         PRESET_MAP[self.preset_mode],
     #         self.target_temperature,
     #     )
     #     await self.coordinator.async_request_refresh()
+
+    @property
+    def hvac_action(self):
+        if not self._mqtt_data:
+            return
+
+        if self._mqtt_data["running_state_heat"] == "idle":
+            return HVACAction.IDLE
+        if self._mqtt_data["running_state_heat"] == "":
+            return HVACAction.PREHEATING
+        if self._mqtt_data["running_state_heat"] == "heat":
+            return HVACAction.HEATING
+        if self._mqtt_data["running_state_heat"] == "off":
+            return HVACAction.OFF
 
     @property
     def current_temperature(self):
