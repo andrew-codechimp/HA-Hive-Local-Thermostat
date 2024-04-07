@@ -42,8 +42,8 @@ class HiveNumberEntityDescription(
     HiveEntityDescription,
     NumberEntityDescription,
 ):
-    """Class describing Hive sensor entities."""
-
+    """Class describing Hive number entities."""
+    default_value: float | None = None
 
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -63,6 +63,7 @@ async def async_setup_entry(
             native_min_value=30,
             native_max_value=180,
             native_step=1,
+            default_value=120,
             mode=NumberMode.SLIDER,
         ),
         HiveNumberEntityDescription(
@@ -75,6 +76,7 @@ async def async_setup_entry(
             native_min_value=30,
             native_max_value=180,
             native_step=1,
+            default_value=60,
             mode=NumberMode.SLIDER,
         ),
         HiveNumberEntityDescription(
@@ -87,6 +89,7 @@ async def async_setup_entry(
             native_min_value=5,
             native_max_value=16,
             native_step=0.5,
+            default_value=12,
             mode=NumberMode.SLIDER,
         ),
     )
@@ -123,7 +126,6 @@ class HiveNumber(HiveEntity, RestoreNumber):
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         await super().async_added_to_hass()
-        self.restored_data = await self.async_get_last_number_data()
 
         if ((last_state := await self.async_get_last_state()) and
             (last_number_data := await self.async_get_last_number_data())
@@ -131,6 +133,10 @@ class HiveNumber(HiveEntity, RestoreNumber):
             self._attributes = dict_to_typed_dict(last_state.attributes, ["min", "max", "step"])
             if last_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
                 self._state = last_number_data.native_value
+            else:
+                self._state = self.entity_description.default_value
+        else:
+            self._state = self.entity_description.default_value
 
         LOGGER.debug(f'Restored {self.entity_description.key} state: {self._state}')
 
