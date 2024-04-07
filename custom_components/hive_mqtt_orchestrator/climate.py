@@ -34,6 +34,8 @@ from .const import (
     CONF_MQTT_TOPIC,
     DEFAULT_HEATING_TEMPERATURE,
     DEFAULT_FROST_TEMPERATURE,
+    DEFAULT_HEATING_BOOST_MINUTES,
+    DEFAULT_WATER_BOOST_MINUTES,
 )
 
 PRESET_MAP = {
@@ -203,13 +205,13 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if "system_mode_heat" in self._mqtt_data:
             return self._climate_preset(self._mqtt_data["system_mode_heat"])
 
-    # async def async_set_preset_mode(self, preset_mode):
-    #     await self._tsmart.async_control_set(
-    #         self.hvac_mode == HVACMode.HEAT,
-    #         PRESET_MAP[preset_mode],
-    #         self.target_temperature,
-    #     )
-    #     await self.coordinator.async_request_refresh()
+    async def async_set_preset_mode(self, preset_mode):
+        if preset_mode == "boost":
+            payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":' + str(int(self.get_entity_value("heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES))) + r',"temperature_setpoint_hold_heat":"1","occupied_heating_setpoint_heat":"25"}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        else:
+            payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":"0","temperature_setpoint_hold_heat":"1","occupied_heating_setpoint_heat":"25"}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
     # @property
     # def extra_state_attributes(self) -> dict[str, str] | None:
