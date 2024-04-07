@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import logging
-
 from dataclasses import dataclass
 
 from homeassistant.const import (
@@ -15,10 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.climate import (
     ATTR_HVAC_MODE,
-    PRESET_AWAY,
     PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_ECO,
     PRESET_NONE,
     ClimateEntity,
     HVACMode,
@@ -33,14 +28,9 @@ from homeassistant.const import (
 
 from .const import (
     DOMAIN,
+    LOGGER,
     HIVE_BOOST,
     CONF_MQTT_TOPIC,
-    # ATTR_TEMPERATURE_LOW,
-    # ATTR_TEMPERATURE_HIGH,
-    # ATTR_TEMPERATURE_AVERAGE,
-    # TEMPERATURE_MODE_HIGH,
-    # TEMPERATURE_MODE_LOW,
-    # TEMPERATURE_MODE_AVERAGE,
 )
 
 PRESET_MAP = {
@@ -133,16 +123,13 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             return HVACMode.OFF
 
     async def async_set_hvac_mode(self, hvac_mode):
-        if hvac_mode == HVACMode.AUTO:
-            mode = "auto"
-        elif hvac_mode == HVACMode.HEAT:
-            mode = "heat"
-        elif hvac_mode == HVACMode.OFF:
-            mode = "off"
+        if hvac_mode in self._attr_hvac_modes:
+            self._attr_hvac_mode = hvac_mode
         else:
+            LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)
             return
 
-        payload = r'{"system_mode_heat":"' + mode + r'"}'
+        payload = r'{"system_mode_heat":"' + hvac_mode + r'"}'
         await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
     @property

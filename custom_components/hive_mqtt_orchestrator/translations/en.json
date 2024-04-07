@@ -45,6 +45,22 @@
             "climate": {
                 "name": "Climate"
             }
+        },
+        "select": {
+            "system_mode_water": {
+                "name": "Water Mode"
+            }
+        },
+        "number": {
+            "heating_boost_duration": {
+                "name": "Heating Boost Duration"
+            },
+            "water_boost_duration": {
+                "name": "Water Boost Duration"
+            },
+            "heating_frost_prevention": {
+                "name": "Heating Frost Prevention"
+            }
         }
     }
 }
