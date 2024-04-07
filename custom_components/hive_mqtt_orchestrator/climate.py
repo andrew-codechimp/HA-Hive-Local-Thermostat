@@ -64,7 +64,8 @@ async def async_setup_entry(
         # icon="mdi:radiator",
         # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
         func=None,
-        topic=config_entry.options[CONF_MQTT_TOPIC]
+        topic=config_entry.options[CONF_MQTT_TOPIC],
+        entry_id=config_entry.entry_id,
     )
 
     _entities = [HiveClimateEntity(entity_description=hive_climate_entity_description) ]
@@ -142,14 +143,18 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
             sleep(0.5)
 
-            payload = r'{"occupied_heating_setpoint_heat":12,"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat:"65535"}'
+            payload = r'{"occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_frost_prevention")) + ',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat:"65535"}'
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         else:
             LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
             return
 
+    def get_entity_value(self, entity_key: str, default: float = None) -> float:
+        if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
+            return default
 
+        return self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default)
 
     @property
     def hvac_action(self):
@@ -177,6 +182,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if not self._mqtt_data:
             return
         if "occupied_heating_setpoint_heat" in self._mqtt_data:
+            if self._mqtt_data["occupied_heating_setpoint_heat"] == 1:
+                return self.get_entity_value("heating_frost_prevention")
             return self._mqtt_data["occupied_heating_setpoint_heat"]
 
     async def async_set_temperature(self, temperature, **kwargs):

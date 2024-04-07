@@ -18,6 +18,7 @@ class HiveEntityDescription(EntityDescription):
     entity_id: str | None = None
     func: any | None = None
     topic: str | None = None
+    entry_id: str | None = None
 
 
 class HiveEntity():

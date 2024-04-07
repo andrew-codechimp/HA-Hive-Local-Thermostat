@@ -66,6 +66,7 @@ async def async_setup_entry(
             native_step=1,
             default_value=120,
             mode=NumberMode.SLIDER,
+            entry_id=config_entry.entry_id,
         ),
         HiveNumberEntityDescription(
             key="water_boost_duration",
@@ -79,6 +80,7 @@ async def async_setup_entry(
             native_step=1,
             default_value=60,
             mode=NumberMode.SLIDER,
+            entry_id=config_entry.entry_id,
         ),
         HiveNumberEntityDescription(
             key="heating_frost_prevention",
@@ -93,6 +95,7 @@ async def async_setup_entry(
             native_step=0.5,
             default_value=12,
             mode=NumberMode.SLIDER,
+            entry_id=config_entry.entry_id,
         ),
     )
 
@@ -140,6 +143,11 @@ class HiveNumber(HiveEntity, RestoreNumber):
         else:
             self._state = self.entity_description.default_value
 
+        if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
+            self.hass.data[DOMAIN][self.entity_description.entry_id] = []
+
+        self.hass.data[DOMAIN][self.entity_description.entry_id][self.entity_description.key] = self._state
+
         LOGGER.debug(f'Restored {self.entity_description.key} state: {self._state}')
 
     @property
@@ -151,6 +159,12 @@ class HiveNumber(HiveEntity, RestoreNumber):
         """Set value."""
         self._state = value
         self._last_updated = utcnow()
+
+        if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
+            self.hass.data[DOMAIN][self.entity_description.entry_id] = []
+
+        self.hass.data[DOMAIN][self.entity_description.entry_id][self.entity_description.key] = value
+
         self.async_write_ha_state()
 
     @property
