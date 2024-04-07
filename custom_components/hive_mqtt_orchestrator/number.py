@@ -35,7 +35,10 @@ from .utils.attributes import dict_to_typed_dict
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_MQTT_TOPIC
+    DEFAULT_HEATING_TEMPERATURE,
+    DEFAULT_FROST_TEMPERATURE,
+    DEFAULT_HEATING_BOOST_MINUTES,
+    DEFAULT_WATER_BOOST_MINUTES,
 )
 
 @dataclass
@@ -57,6 +60,7 @@ async def async_setup_entry(
         HiveNumberEntityDescription(
             key="heating_boost_duration",
             translation_key="heating_boost_duration",
+            name=config_entry.title,
             icon="mdi:timer",
             func=None,
             topic=None,
@@ -64,13 +68,14 @@ async def async_setup_entry(
             native_min_value=30,
             native_max_value=180,
             native_step=1,
-            default_value=120,
-            mode=NumberMode.SLIDER,
+            default_value=DEFAULT_HEATING_BOOST_MINUTES,
+            mode=NumberMode.AUTO,
             entry_id=config_entry.entry_id,
         ),
         HiveNumberEntityDescription(
             key="water_boost_duration",
             translation_key="water_boost_duration",
+            name=config_entry.title,
             icon="mdi:timer",
             func=None,
             topic=None,
@@ -78,13 +83,13 @@ async def async_setup_entry(
             native_min_value=30,
             native_max_value=180,
             native_step=1,
-            default_value=60,
-            mode=NumberMode.SLIDER,
+            default_value=DEFAULT_WATER_BOOST_MINUTES,
             entry_id=config_entry.entry_id,
         ),
         HiveNumberEntityDescription(
             key="heating_frost_prevention",
             translation_key="heating_frost_prevention",
+            name=config_entry.title,
             icon="mdi:snowflake-thermometer",
             func=None,
             topic=None,
@@ -93,8 +98,22 @@ async def async_setup_entry(
             native_min_value=5,
             native_max_value=16,
             native_step=0.5,
-            default_value=12,
-            mode=NumberMode.SLIDER,
+            default_value=DEFAULT_FROST_TEMPERATURE,
+            entry_id=config_entry.entry_id,
+        ),
+        HiveNumberEntityDescription(
+            key="heating_default_temperature",
+            translation_key="heating_default_temperature",
+            name=config_entry.title,
+            icon="mdi:thermometer",
+            func=None,
+            topic=None,
+            entity_category=EntityCategory.CONFIG,
+            device_class=NumberDeviceClass.TEMPERATURE,
+            native_min_value=16,
+            native_max_value=22,
+            native_step=0.5,
+            default_value=DEFAULT_HEATING_TEMPERATURE,
             entry_id=config_entry.entry_id,
         ),
     )
@@ -117,16 +136,18 @@ class HiveNumber(HiveEntity, RestoreNumber):
         entity_description: HiveNumberEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(entity_description)
 
         self.entity_description = entity_description
-        self._attr_unique_id = f"{DOMAIN}_{entity_description.key}".lower()
+        self._attr_unique_id = f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
         self._func = entity_description.func
         self._topic = entity_description.topic
         self._state = None
         self._attributes = {}
         self._last_updated = None
+        self.mode = NumberMode.SLIDER
+
+        super().__init__(entity_description)
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""

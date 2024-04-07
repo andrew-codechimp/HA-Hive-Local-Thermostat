@@ -60,6 +60,9 @@
             },
             "heating_frost_prevention": {
                 "name": "Heating Frost Prevention"
+            },
+            "heating_default_temperature": {
+                "name": "Heating Default Temperature"
             }
         }
     }

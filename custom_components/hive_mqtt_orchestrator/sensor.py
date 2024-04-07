@@ -45,7 +45,7 @@ async def async_setup_entry(
             key="running_state_water",
             translation_key="running_state_water",
             icon="mdi:water-boiler",
-            # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
+            name=config_entry.title,
             func=lambda js: js["running_state_water"],
             topic=config_entry.options[CONF_MQTT_TOPIC],
             entry_id=config_entry.entry_id,
@@ -54,7 +54,7 @@ async def async_setup_entry(
             key="running_state_heat",
             translation_key="running_state_heat",
             icon="mdi:radiator",
-            # native_unit_of_measurement=UnitOfInformation.GIGABYTES,
+            name=config_entry.title,
             func=lambda js: js["running_state_heat"],
             topic=config_entry.options[CONF_MQTT_TOPIC],
             entry_id=config_entry.entry_id,
@@ -79,47 +79,14 @@ class HiveSensor(HiveEntity, SensorEntity):
         entity_description: HiveSensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(entity_description)
-
-        # config = entry.options
-        # self.config_entry = entry
-        # self._attr_name: str = (
-        #     entry.title
-        #     if entry.title is not None
-        #     else entry.options.get(CONF_NAME)
-        # )
 
         self.entity_description = entity_description
-        self._attr_unique_id = f"{DOMAIN}_{entity_description.key}".lower()
+        self._attr_unique_id = f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
         self._func = entity_description.func
         self._topic = entity_description.topic
 
-
-    # def __init__(self, device_id, name, icon, device_class, unit_of_measurement, state_class, func, entity_category = EntityCategory.CONFIG, ignore_zero_values = False) -> None:
-    #     """Initialize the sensor."""
-    #     self._device_id = device_id
-    #     self._ignore_zero_values = ignore_zero_values
-    #     self._attr_name = name
-    #     self._attr_unique_id = slugify(device_id + "_" + name)
-    #     self._attr_icon = icon
-    #     if (device_class):
-    #       self._attr_device_class = device_class
-    #     if (unit_of_measurement):
-    #       self._attr_native_unit_of_measurement = unit_of_measurement
-    #     if (state_class):
-    #       self._attr_state_class = state_class
-    #     self._attr_entity_category = entity_category
-    #     self._attr_should_poll = False
-
-    #     self._func = func
-    #     self._attr_device_info = DeviceInfo(
-    #         connections={("mac", device_id)},
-    #         manufacturer="Hildebrand Technology Limited",
-    #         model="Glow Smart Meter IHD",
-    #         name=f"Glow Smart Meter {device_id}",
-    #     )
-    #     self._attr_native_value = None
+        super().__init__(entity_description)
 
     def process_update(self, mqtt_data) -> None:
         """Update the state of the sensor."""

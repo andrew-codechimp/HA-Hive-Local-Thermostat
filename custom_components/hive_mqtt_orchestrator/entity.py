@@ -20,7 +20,6 @@ class HiveEntityDescription(EntityDescription):
     topic: str | None = None
     entry_id: str | None = None
 
-
 class HiveEntity():
     """HiveEntity class."""
 
@@ -34,8 +33,8 @@ class HiveEntity():
         """Initialize."""
         super().__init__()
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self.unique_id)},
-            name=NAME,
+            identifiers={(DOMAIN, self.entity_description.entry_id)},
+            name=self.entity_description.name,
             model=VERSION,
             manufacturer=MANUFACTURER,
         )
