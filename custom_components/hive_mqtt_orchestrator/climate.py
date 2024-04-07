@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from time import sleep
 
 from homeassistant.const import (
     UnitOfTemperature,
@@ -129,8 +130,26 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)
             return
 
-        payload = r'{"system_mode_heat":"' + hvac_mode + r'"}'
-        await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        if hvac_mode == HVACMode.AUTO:
+            payload = r'{"system_mode_heat":"heat","temperature_setpoint_hold_heat":"0","temperature_setpoint_hold_duration_heat":"0"}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        elif hvac_mode == HVACMode.HEAT:
+            payload = r'{"system_mode_heat":"heat","temperature_setpoint_hold_heat":"0","temperature_setpoint_hold_duration_heat":"0"}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        elif hvac_mode == HVACMode.OFF:
+            payload = r'{"system_mode_heat":"off","temperature_setpoint_hold_heat":"0"}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+
+            sleep(0.5)
+
+            payload = r'{"occupied_heating_setpoint_heat":12,"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat:"65535"}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+
+        else:
+            LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
+            return
+
+
 
     @property
     def hvac_action(self):

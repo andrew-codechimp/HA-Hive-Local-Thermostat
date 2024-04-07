@@ -14,6 +14,7 @@ from homeassistant.components.number import (
     NumberExtraStoredData,
     NumberMode,
     RestoreNumber,
+    NumberDeviceClass,
 )
 from homeassistant.core import callback
 from homeassistant.util import slugify
@@ -86,6 +87,7 @@ async def async_setup_entry(
             func=None,
             topic=None,
             entity_category=EntityCategory.CONFIG,
+            device_class=NumberDeviceClass.TEMPERATURE,
             native_min_value=5,
             native_max_value=16,
             native_step=0.5,
