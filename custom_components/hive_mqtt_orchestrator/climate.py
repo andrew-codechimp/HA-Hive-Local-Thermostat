@@ -207,10 +207,10 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
     async def async_set_preset_mode(self, preset_mode):
         if preset_mode == "boost":
-            payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":' + str(int(self.get_entity_value("heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES))) + r',"temperature_setpoint_hold_heat":"1","occupied_heating_setpoint_heat":"25"}'
+            payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":' + str(int(self.get_entity_value("heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES))) + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":25}'
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         else:
-            payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":"0","temperature_setpoint_hold_heat":"1","occupied_heating_setpoint_heat":"25"}'
+            payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":0,"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":25}'
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
     # @property
