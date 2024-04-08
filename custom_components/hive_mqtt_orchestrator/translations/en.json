@@ -7,6 +7,9 @@
                 "data": {
                     "name": "Friendly name",
                     "mqtt_topic": "MQTT topic"
+                },
+                "data_description": {
+                    "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver"
                 }
             }
         },
@@ -25,6 +28,9 @@
                 "description": "Enter the entity name and configure parameters.",
                 "data": {
                     "mqtt_topic": "MQTT topic"
+                },
+                "data_description": {
+                    "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver"
                 }
             }
         },
@@ -83,6 +89,14 @@
             },
             "heating_boost_temperature": {
                 "name": "Heating Boost Temperature"
+            }
+        },
+        "switch": {
+            "boost_water": {
+                "name": "Water boost"
+            },
+            "boost_heating": {
+                "name": "Heating boost"
             }
         }
     }

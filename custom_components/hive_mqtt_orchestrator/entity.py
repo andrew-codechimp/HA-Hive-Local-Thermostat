@@ -46,3 +46,9 @@ class HiveEntity():
     @abc.abstractmethod
     def process_update(self, mqtt_data) -> None:
         raise NotImplementedError('users must define process_update to use this base class')
+
+    def get_entity_value(self, entity_key: str, default: float = None) -> float:
+        if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
+            return default
+
+        return self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default)

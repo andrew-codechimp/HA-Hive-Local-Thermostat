@@ -162,12 +162,6 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
             return
 
-    def get_entity_value(self, entity_key: str, default: float = None) -> float:
-        if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
-            return default
-
-        return self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default)
-
     @property
     def hvac_action(self):
         if not self._mqtt_data:
