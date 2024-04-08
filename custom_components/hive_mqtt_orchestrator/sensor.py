@@ -23,7 +23,8 @@ from .entity import HiveEntity, HiveEntityDescription
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_MQTT_TOPIC
+    CONF_MQTT_TOPIC,
+    ICON_UNKNOWN,
 )
 
 @dataclass
@@ -45,6 +46,11 @@ async def async_setup_entry(
             key="running_state_water",
             translation_key="running_state_water",
             icon="mdi:water-boiler",
+            icons_by_state = {
+                "heat": "mdi:water-boiler",
+                "idle": "mdi:water-boiler-off",
+                "off": "mdi:water-boiler-off",
+            },
             name=config_entry.title,
             func=lambda js: js["running_state_water"],
             topic=config_entry.options[CONF_MQTT_TOPIC],
@@ -53,7 +59,13 @@ async def async_setup_entry(
         HiveSensorEntityDescription(
             key="running_state_heat",
             translation_key="running_state_heat",
-            icon="mdi:radiator",
+            icon="mdi:radiator-disabled",
+            icons_by_state = {
+                "heat": "mdi:radiator",
+                "idle": "mdi:radiator-off",
+                "off": "mdi:radiator-off",
+                "preheating": "mdi:radiator",
+            },
             name=config_entry.title,
             func=lambda js: js["running_state_heat"],
             topic=config_entry.options[CONF_MQTT_TOPIC],
@@ -94,6 +106,12 @@ class HiveSensor(HiveEntity, SensorEntity):
         # if (self._ignore_zero_values and new_value == 0):
         #     LOGGER.debug("Ignored new value of %s on %s.", new_value, self._attr_unique_id)
         #     return
+
+        if new_value == "":
+            new_value = "preheating"
+
+        self._attr_icon = self.entity_description.icons_by_state.get(new_value, ICON_UNKNOWN)
+
         self._attr_native_value = new_value
         if (self.hass is not None): # this is a hack to get around the fact that the entity is not yet initialized at first
             self.async_schedule_update_ha_state()

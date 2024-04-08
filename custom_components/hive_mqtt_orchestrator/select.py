@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.core import callback
 from homeassistant.util import slugify
@@ -23,11 +24,12 @@ from .entity import HiveEntity, HiveEntityDescription
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_MQTT_TOPIC
+    CONF_MQTT_TOPIC,
+    WATER_MODES,
 )
 
 @dataclass
-class HiveSensorEntityDescription(
+class HiveSelectEntityDescription(
     HiveEntityDescription,
     SelectEntityDescription,
 ):
@@ -42,12 +44,15 @@ async def async_setup_entry(
     """Set up the sensor platform."""
 
     ENTITY_DESCRIPTIONS = (
-        HiveSensorEntityDescription(
+        HiveSelectEntityDescription(
             key="system_mode_water",
             translation_key="system_mode_water",
+            name=config_entry.title,
             icon="mdi:water-boiler",
-            func=lambda js: js["system_mode_water"],
-            topic=config_entry.options[CONF_MQTT_TOPIC]
+            func=None,
+            topic=config_entry.options[CONF_MQTT_TOPIC],
+            entry_id=config_entry.entry_id,
+            options=WATER_MODES,
         ),
     )
 
@@ -61,42 +66,68 @@ async def async_setup_entry(
 
     hass.data[DOMAIN][config_entry.entry_id][Platform.SELECT] = _entities
 
-class HiveSelect(HiveEntity, SelectEntity):
+class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
     """hive_mqtt_orchestrator Select class."""
 
     def __init__(
         self,
-        entity_description: HiveSensorEntityDescription,
+        entity_description: HiveSelectEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(entity_description)
 
         self.entity_description = entity_description
-        self._attr_unique_id = f"{DOMAIN}_{entity_description.key}".lower()
+        self._attr_unique_id = f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
         self._func = entity_description.func
         self._topic = entity_description.topic
+        self._attr_options = entity_description.options
+        self._attr_current_option = None
+        self._mqtt_data = None
+
+        super().__init__(entity_description)
 
     def process_update(self, mqtt_data) -> None:
         """Update the state of the sensor."""
-        new_value = self._func(mqtt_data)
-        # if (self._ignore_zero_values and new_value == 0):
-        #     LOGGER.debug("Ignored new value of %s on %s.", new_value, self._attr_unique_id)
-        #     return
-        self._attr_native_value = new_value
+        self._mqtt_data = mqtt_data
+
+        if self._mqtt_data["system_mode_water"] == "heat" and self._mqtt_data["temperature_setpoint_hold_duration_water"] !=65535:
+            new_value = "auto"
+        if self._mqtt_data["system_mode_water"] == "emergency_heating":
+            new_value = "boost"
+        if self._mqtt_data["system_mode_water"] == "heat" and self._mqtt_data["temperature_setpoint_hold_duration_water"] ==65535:
+            new_value = "heat"
+        if self._mqtt_data["system_mode_water"] == "off":
+            new_value = "off"
+
+        if new_value not in self.options:
+            raise ValueError(f"Invalid option for {self.entity_id}: {new_value}")
+
+        self._attr_current_option = new_value
+        self.async_write_ha_state()
+
         if (self.hass is not None): # this is a hack to get around the fact that the entity is not yet initialized at first
             self.async_schedule_update_ha_state()
 
     @property
     def options(self):
         "Return the list of possible options."
-        return self._option_dps.values(self._device)
+        return self._attr_options
 
     @property
     def current_option(self):
         "Return the currently selected option"
-        return self._option_dps.get_value(self._device)
+        return self._attr_current_option
 
-    async def async_select_option(self, option):
-        "Set the option"
-        await self._option_dps.async_set_value(self._device, option)
+    async def async_added_to_hass(self) -> None:
+        """Restore last state when added."""
+        last_state = await self.async_get_last_state()
+        if last_state:
+            self._attr_current_option = last_state.state
+
+    async def async_select_option(self, option: str) -> None:
+        """Update the current selected option."""
+        if option not in self.options:
+            raise ValueError(f"Invalid option for {self.entity_id}: {option}")
+
+        self._attr_current_option = option
+        self.async_write_ha_state()

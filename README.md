@@ -4,7 +4,7 @@ Hive MQTT Orchestrator for Home Assistant
 Early dev, nothing to see yet
 
 
-Example received json
+Example received json from zigbee2mqtt/Z2mHiveReceiver
 ```
 {
     "last_seen": "2024-04-04T09:18:37+01:00",

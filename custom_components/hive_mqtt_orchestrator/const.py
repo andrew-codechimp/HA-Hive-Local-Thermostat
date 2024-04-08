@@ -3,6 +3,7 @@
 import json
 from logging import Logger, getLogger
 from pathlib import Path
+from typing import Final
 
 LOGGER: Logger = getLogger(__package__)
 
@@ -27,3 +28,7 @@ DEFAULT_HEATING_TEMPERATURE = 20
 DEFAULT_FROST_TEMPERATURE = 12
 DEFAULT_HEATING_BOOST_MINUTES = 120
 DEFAULT_WATER_BOOST_MINUTES = 60
+
+WATER_MODES: Final = ["auto", "heat", "off", "emergency_heat"]
+
+ICON_UNKNOWN = "mdi:help"

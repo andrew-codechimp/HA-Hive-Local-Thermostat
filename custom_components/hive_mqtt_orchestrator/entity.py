@@ -19,6 +19,7 @@ class HiveEntityDescription(EntityDescription):
     func: any | None = None
     topic: str | None = None
     entry_id: str | None = None
+    icons_by_state: dict | None = None
 
 class HiveEntity():
     """HiveEntity class."""

@@ -32,7 +32,7 @@ from .const import (
 )
 
 PLATFORMS: list[Platform] = [
-    Platform.SENSOR, Platform.CLIMATE, Platform.NUMBER,
+    Platform.SENSOR, Platform.CLIMATE, Platform.NUMBER, Platform.SELECT,
 ]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)

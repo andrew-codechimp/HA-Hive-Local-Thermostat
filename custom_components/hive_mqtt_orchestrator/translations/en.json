@@ -35,10 +35,21 @@
     "entity": {
         "sensor": {
             "running_state_water": {
-                "name": "Running State Water"
+                "name": "Running State Water",
+                "state": {
+                    "off": "Off",
+                    "idle": "Idle",
+                    "heat": "Heating"
+                }
             },
             "running_state_heat": {
-                "name": "Running State Heat"
+                "name": "Running State Heat",
+                "state": {
+                    "off": "Off",
+                    "idle": "Idle",
+                    "heat": "Heating",
+                    "preheating": "Preheating"
+                }
             }
         },
         "climate": {
@@ -48,7 +59,13 @@
         },
         "select": {
             "system_mode_water": {
-                "name": "Water Mode"
+                "name": "Water Mode",
+                "state": {
+                    "off": "Always Off",
+                    "auto": "Schedule",
+                    "heat": "Always On",
+                    "emergency_heat": "Boost"
+                }
             }
         },
         "number": {
