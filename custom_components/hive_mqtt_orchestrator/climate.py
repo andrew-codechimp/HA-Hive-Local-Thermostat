@@ -54,6 +54,7 @@ class HiveClimateEntityDescription(
 ):
     """Class describing Hive sensor entities."""
 
+
 async def async_setup_entry(
         hass: HomeAssistant,
         config_entry: ConfigEntry,
@@ -81,6 +82,7 @@ async def async_setup_entry(
 
 class HiveClimateEntity(HiveEntity, ClimateEntity):
     """hive_mqtt_orchestrator Climate class."""
+
 
     def __init__(
         self,
@@ -112,6 +114,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._attr_target_temperature_step = 0.5
 
         self._mqtt_data = None
+        self._pre_boost_hvac_mode = None
+        self._pre_boost_occupied_heating_setpoint_heat = None
 
         super().__init__(entity_description)
 
@@ -140,7 +144,10 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             payload = r'{"system_mode_heat":"heat","temperature_setpoint_hold_heat":"0","temperature_setpoint_hold_duration_heat":"0"}'
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         elif hvac_mode == HVACMode.HEAT:
-            payload = r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_default_temperature", DEFAULT_HEATING_TEMPERATURE)) + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
+            if self._pre_boost_occupied_heating_setpoint_heat:
+                payload = r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":' + str(self._pre_boost_occupied_heating_setpoint_heat) + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
+            else:
+                payload = r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_default_temperature", DEFAULT_HEATING_TEMPERATURE)) + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         elif hvac_mode == HVACMode.OFF:
             payload = r'{"system_mode_heat":"off","temperature_setpoint_hold_heat":"0"}'
@@ -207,11 +214,15 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
     async def async_set_preset_mode(self, preset_mode):
         if preset_mode == "boost":
+            self._pre_boost_hvac_mode = self.hvac_mode
+            self._pre_boost_occupied_heating_setpoint_heat = self.target_temperature
             payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":' + str(int(self.get_entity_value("heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES))) + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":25}'
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         else:
-            payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":0,"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":25}'
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            if self._mqtt_data["system_mode_heat"] == "emergency_heating":
+                await self.async_set_hvac_mode(self._pre_boost_hvac_mode)
+                self._pre_boost_hvac_mode = None
+                self._pre_boost_occupied_heating_setpoint_heat = None
 
     # @property
     # def extra_state_attributes(self) -> dict[str, str] | None:
