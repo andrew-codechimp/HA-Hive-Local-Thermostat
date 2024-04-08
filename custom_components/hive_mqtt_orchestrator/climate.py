@@ -35,7 +35,7 @@ from .const import (
     DEFAULT_HEATING_TEMPERATURE,
     DEFAULT_FROST_TEMPERATURE,
     DEFAULT_HEATING_BOOST_MINUTES,
-    DEFAULT_WATER_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
 
 PRESET_MAP = {
@@ -216,7 +216,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if preset_mode == "boost":
             self._pre_boost_hvac_mode = self.hvac_mode
             self._pre_boost_occupied_heating_setpoint_heat = self.target_temperature
-            payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":' + str(int(self.get_entity_value("heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES))) + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":25}'
+            payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":' + str(int(self.get_entity_value("heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES))) + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)) + r'}'
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         else:
             if self._mqtt_data["system_mode_heat"] == "emergency_heating":

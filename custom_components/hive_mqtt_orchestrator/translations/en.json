@@ -80,6 +80,9 @@
             },
             "heating_default_temperature": {
                 "name": "Heating Default Temperature"
+            },
+            "heating_boost_temperature": {
+                "name": "Heating Boost Temperature"
             }
         }
     }

@@ -38,6 +38,7 @@ from .const import (
     DEFAULT_HEATING_TEMPERATURE,
     DEFAULT_FROST_TEMPERATURE,
     DEFAULT_HEATING_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_TEMPERATURE,
     DEFAULT_WATER_BOOST_MINUTES,
 )
 
@@ -114,6 +115,21 @@ async def async_setup_entry(
             native_max_value=22,
             native_step=0.5,
             default_value=DEFAULT_HEATING_TEMPERATURE,
+            entry_id=config_entry.entry_id,
+        ),
+        HiveNumberEntityDescription(
+            key="heating_boost_temperature",
+            translation_key="heating_boost_temperature",
+            name=config_entry.title,
+            icon="mdi:thermometer",
+            func=None,
+            topic=None,
+            entity_category=EntityCategory.CONFIG,
+            device_class=NumberDeviceClass.TEMPERATURE,
+            native_min_value=12,
+            native_max_value=32,
+            native_step=0.5,
+            default_value=DEFAULT_HEATING_BOOST_TEMPERATURE,
             entry_id=config_entry.entry_id,
         ),
     )
