@@ -10,6 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
+from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.core import callback
 from homeassistant.util import slugify
 from homeassistant.const import (
@@ -26,6 +27,7 @@ from .const import (
     LOGGER,
     CONF_MQTT_TOPIC,
     WATER_MODES,
+    DEFAULT_WATER_BOOST_MINUTES,
 )
 
 @dataclass
@@ -129,5 +131,24 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         if option not in self.options:
             raise ValueError(f"Invalid option for {self.entity_id}: {option}")
 
+        if option == "auto":
+            payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        elif option == "heat":
+            payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        elif option == "emergency_heat":
+            payload = r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":' + str(self.get_entity_value("water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)) + r',"temperature_setpoint_hold_water":1}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        elif option == "off":
+            payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+
         self._attr_current_option = option
         self.async_write_ha_state()
+
+    def get_entity_value(self, entity_key: str, default: float = None) -> float:
+        if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
+            return default
+
+        return self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default)
