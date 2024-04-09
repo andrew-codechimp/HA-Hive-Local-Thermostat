@@ -4,9 +4,10 @@ from datetime import datetime
 attribute_keys_to_skip = ['mpan', 'mprn']
 
 def dict_to_typed_dict(data: dict, keys_to_ignore = []):
+  """Convert a dict to a typed dict."""
   if data is not None:
 
-    if isinstance(data, dict) == False:
+    if not isinstance(data, dict):
       return data
 
     new_data = data.copy()
@@ -31,14 +32,13 @@ def dict_to_typed_dict(data: dict, keys_to_ignore = []):
           continue
 
         # Check for dates
-        is_date = True
         try:
           data_as_datetime = datetime.fromisoformat(new_data[key].replace('Z', '+00:00'))
           new_data[key] = data_as_datetime
           continue
-        except:
+        except: # pylint: disable=E722
           # Do nothing
-          is_date = False
+          continue
 
       elif isinstance(new_data[key], dict):
         new_data[key] = dict_to_typed_dict(new_data[key])
@@ -50,5 +50,3 @@ def dict_to_typed_dict(data: dict, keys_to_ignore = []):
         new_data[key] = new_array
 
     return new_data
-
-  return None

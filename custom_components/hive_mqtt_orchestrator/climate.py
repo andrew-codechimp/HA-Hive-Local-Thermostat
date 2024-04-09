@@ -13,7 +13,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.climate import (
-    ATTR_HVAC_MODE,
     PRESET_BOOST,
     PRESET_NONE,
     ClimateEntity,
@@ -26,6 +25,8 @@ from homeassistant.components.climate import (
 from homeassistant.const import (
     Platform
 )
+
+from .entity import HiveEntity, HiveEntityDescription
 
 from .const import (
     DOMAIN,
@@ -43,10 +44,6 @@ PRESET_MAP = {
     PRESET_NONE: "",
     PRESET_BOOST: HIVE_BOOST,
 }
-
-from .entity import HiveEntity, HiveEntityDescription
-
-from datetime import timedelta
 
 @dataclass
 class HiveClimateEntityDescription(

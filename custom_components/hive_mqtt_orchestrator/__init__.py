@@ -13,12 +13,9 @@ import json
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers import config_validation as cv
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.const import __version__ as HA_VERSION  # noqa: N812
-from homeassistant.components.mqtt import valid_subscribe_topic
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
 

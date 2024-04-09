@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
 from dataclasses import dataclass
 
 from homeassistant.core import HomeAssistant
@@ -11,7 +10,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.components.number import (
     NumberEntityDescription,
-    NumberExtraStoredData,
     NumberMode,
     RestoreNumber,
     NumberDeviceClass,
@@ -21,9 +19,6 @@ from homeassistant.util import slugify
 from homeassistant.util.dt import utcnow
 from homeassistant.const import (
     Platform,
-    UnitOfInformation,
-    CONF_NAME,
-    CONF_ENTITIES,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
@@ -190,7 +185,7 @@ class HiveNumber(HiveEntity, RestoreNumber):
         else:
             self._state = self.entity_description.default_value
 
-        if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
+        if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             self.hass.data[DOMAIN][self.entity_description.entry_id] = []
 
         self.hass.data[DOMAIN][self.entity_description.entry_id][self.entity_description.key] = self._state
@@ -207,7 +202,7 @@ class HiveNumber(HiveEntity, RestoreNumber):
         self._state = value
         self._last_updated = utcnow()
 
-        if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
+        if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             self.hass.data[DOMAIN][self.entity_description.entry_id] = []
 
         self.hass.data[DOMAIN][self.entity_description.entry_id][self.entity_description.key] = value

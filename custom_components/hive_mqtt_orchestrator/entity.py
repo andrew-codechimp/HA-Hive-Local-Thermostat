@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 from homeassistant.helpers.entity import DeviceInfo, EntityDescription
 
-from .const import DOMAIN, NAME, VERSION, MANUFACTURER
+from .const import DOMAIN, VERSION, MANUFACTURER
 
 
 @dataclass
@@ -46,9 +46,11 @@ class HiveEntity():
 
     @abc.abstractmethod
     def process_update(self, mqtt_data) -> None:
+        """To be implemented by entities to process updates from MQTT."""
         raise NotImplementedError('users must define process_update to use this base class')
 
     def get_entity_value(self, entity_key: str, default: float = None) -> float:
+        """Get an entities value store in hass data."""
         if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
             return default
 

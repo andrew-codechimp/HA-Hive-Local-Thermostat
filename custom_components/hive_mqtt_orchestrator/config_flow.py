@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, Dict, cast
+from typing import Any, dict, cast
 
 import voluptuous as vol
 from homeassistant.const import CONF_NAME

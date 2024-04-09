@@ -7,17 +7,11 @@ from dataclasses import dataclass
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.components.mqtt import client as mqtt_client
-from homeassistant.core import callback
-from homeassistant.util import slugify
 from homeassistant.const import (
     Platform,
-    UnitOfInformation,
-    CONF_NAME,
-    CONF_ENTITIES,
 )
 
 from .entity import HiveEntity, HiveEntityDescription
@@ -30,7 +24,6 @@ from .const import (
     DEFAULT_WATER_BOOST_MINUTES,
     CONF_MODEL,
     MODEL_SLR1,
-    MODEL_SLR2,
 )
 
 @dataclass
@@ -119,12 +112,12 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
 
     @property
     def options(self):
-        "Return the list of possible options."
+        """Return the list of possible options."""
         return self._attr_options
 
     @property
     def current_option(self):
-        "Return the currently selected option"
+        """Return the currently selected option."""
         return self._attr_current_option
 
     async def async_added_to_hass(self) -> None:

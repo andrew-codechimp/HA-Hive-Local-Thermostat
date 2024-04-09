@@ -7,22 +7,15 @@ from dataclasses import dataclass
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
-from homeassistant.core import callback
-from homeassistant.util import slugify
 from homeassistant.const import (
     Platform,
-    UnitOfInformation,
-    CONF_NAME,
-    CONF_ENTITIES,
 )
 
 from .entity import HiveEntity, HiveEntityDescription
 
 from .const import (
     DOMAIN,
-    LOGGER,
     CONF_MQTT_TOPIC,
     ICON_UNKNOWN,
     CONF_MODEL,
