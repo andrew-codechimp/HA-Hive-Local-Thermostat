@@ -50,6 +50,13 @@ async def general_options_schema(
     return vol.Schema(
         {
             required(const.CONF_MQTT_TOPIC, handler.options): selector.TextSelector(),
+            required(const.CONF_MODEL, handler.options): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=const.MODELS,
+                        translation_key="model",
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    ),
+                ),
         }
     )
 
@@ -62,6 +69,13 @@ async def general_config_schema(
         {
             required(CONF_NAME, handler.options): selector.TextSelector(),
             required(const.CONF_MQTT_TOPIC, handler.options): selector.TextSelector(),
+            required(const.CONF_MODEL, handler.options): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=const.MODELS,
+                        translation_key="model",
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    ),
+                ),
         }
     )
 

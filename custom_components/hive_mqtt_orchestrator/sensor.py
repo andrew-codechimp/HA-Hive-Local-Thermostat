@@ -25,6 +25,8 @@ from .const import (
     LOGGER,
     CONF_MQTT_TOPIC,
     ICON_UNKNOWN,
+    CONF_MODEL,
+    MODEL_SLR2,
 )
 
 @dataclass
@@ -41,21 +43,7 @@ async def async_setup_entry(
     ):
     """Set up the sensor platform."""
 
-    ENTITY_DESCRIPTIONS = (
-        HiveSensorEntityDescription(
-            key="running_state_water",
-            translation_key="running_state_water",
-            icon="mdi:water-boiler",
-            icons_by_state = {
-                "heat": "mdi:water-boiler",
-                "idle": "mdi:water-boiler-off",
-                "off": "mdi:water-boiler-off",
-            },
-            name=config_entry.title,
-            func=lambda js: js["running_state_water"],
-            topic=config_entry.options[CONF_MQTT_TOPIC],
-            entry_id=config_entry.entry_id,
-        ),
+    entity_descriptions = [
         HiveSensorEntityDescription(
             key="running_state_heat",
             translation_key="running_state_heat",
@@ -71,11 +59,28 @@ async def async_setup_entry(
             topic=config_entry.options[CONF_MQTT_TOPIC],
             entry_id=config_entry.entry_id,
         ),
-    )
+    ]
+
+    if config_entry.options[CONF_MODEL] == MODEL_SLR2:
+        entity_descriptions.append(HiveSensorEntityDescription(
+                key="running_state_water",
+                translation_key="running_state_water",
+                icon="mdi:water-boiler",
+                icons_by_state = {
+                    "heat": "mdi:water-boiler",
+                    "idle": "mdi:water-boiler-off",
+                    "off": "mdi:water-boiler-off",
+                },
+                name=config_entry.title,
+                func=lambda js: js["running_state_water"],
+                topic=config_entry.options[CONF_MQTT_TOPIC],
+                entry_id=config_entry.entry_id,
+            )
+        )
 
     _entities = {}
 
-    _entities = [HiveSensor(entity_description=entity_description,) for entity_description in ENTITY_DESCRIPTIONS]
+    _entities = [HiveSensor(entity_description=entity_description,) for entity_description in entity_descriptions]
 
     async_add_entities(
         [sensorEntity for sensorEntity in _entities],

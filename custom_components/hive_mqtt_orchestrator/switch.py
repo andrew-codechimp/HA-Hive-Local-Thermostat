@@ -31,6 +31,8 @@ from .const import (
     DEFAULT_WATER_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
+    CONF_MODEL,
+    MODEL_SLR2,
 )
 
 @dataclass
@@ -47,16 +49,7 @@ async def async_setup_entry(
     ):
     """Set up the sensor platform."""
 
-    ENTITY_DESCRIPTIONS = (
-        HiveSwitchEntityDescription(
-            key="boost_water",
-            translation_key="boost_water",
-            icon="mdi:water-boiler",
-            name=config_entry.title,
-            func=lambda js: js["running_state_water"],
-            topic=config_entry.options[CONF_MQTT_TOPIC],
-            entry_id=config_entry.entry_id,
-        ),
+    entity_descriptions = [
         HiveSwitchEntityDescription(
             key="boost_heating",
             translation_key="boost_heating",
@@ -66,11 +59,23 @@ async def async_setup_entry(
             topic=config_entry.options[CONF_MQTT_TOPIC],
             entry_id=config_entry.entry_id,
         ),
-    )
+    ]
+
+    if config_entry.options[CONF_MODEL] == MODEL_SLR2:
+        entity_descriptions.append(HiveSwitchEntityDescription(
+            key="boost_water",
+            translation_key="boost_water",
+            icon="mdi:water-boiler",
+            name=config_entry.title,
+            func=lambda js: js["running_state_water"],
+            topic=config_entry.options[CONF_MQTT_TOPIC],
+            entry_id=config_entry.entry_id,
+            )
+        )
 
     _entities = {}
 
-    _entities = [HiveSwitch(entity_description=entity_description,) for entity_description in ENTITY_DESCRIPTIONS]
+    _entities = [HiveSwitch(entity_description=entity_description,) for entity_description in entity_descriptions]
 
     async_add_entities(
         [sensorEntity for sensorEntity in _entities],

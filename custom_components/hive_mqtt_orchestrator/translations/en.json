@@ -6,7 +6,8 @@
                 "description": "Enter the entity name and configure parameters.",
                 "data": {
                     "name": "Friendly name",
-                    "mqtt_topic": "MQTT topic"
+                    "mqtt_topic": "MQTT topic",
+                    "model": "Model"
                 },
                 "data_description": {
                     "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver"
@@ -27,7 +28,8 @@
                 "title": "Hive MQTT Orchestrator",
                 "description": "Enter the entity name and configure parameters.",
                 "data": {
-                    "mqtt_topic": "MQTT topic"
+                    "mqtt_topic": "MQTT topic",
+                    "model": "Model"
                 },
                 "data_description": {
                     "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver"

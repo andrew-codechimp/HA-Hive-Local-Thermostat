@@ -28,6 +28,9 @@ from .const import (
     CONF_MQTT_TOPIC,
     WATER_MODES,
     DEFAULT_WATER_BOOST_MINUTES,
+    CONF_MODEL,
+    MODEL_SLR1,
+    MODEL_SLR2,
 )
 
 @dataclass
@@ -44,6 +47,9 @@ async def async_setup_entry(
         async_add_entities: AddEntitiesCallback
     ):
     """Set up the sensor platform."""
+
+    if config_entry.options[CONF_MODEL] == MODEL_SLR1:
+        return
 
     ENTITY_DESCRIPTIONS = (
         HiveSelectEntityDescription(

@@ -40,6 +40,8 @@ from .const import (
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
     DEFAULT_WATER_BOOST_MINUTES,
+    CONF_MODEL,
+    MODEL_SLR2,
 )
 
 @dataclass
@@ -57,7 +59,7 @@ async def async_setup_entry(
     ):
     """Set up the sensor platform."""
 
-    ENTITY_DESCRIPTIONS = (
+    entity_descriptions = [
         HiveNumberEntityDescription(
             key="heating_boost_duration",
             translation_key="heating_boost_duration",
@@ -71,20 +73,6 @@ async def async_setup_entry(
             native_step=1,
             default_value=DEFAULT_HEATING_BOOST_MINUTES,
             mode=NumberMode.AUTO,
-            entry_id=config_entry.entry_id,
-        ),
-        HiveNumberEntityDescription(
-            key="water_boost_duration",
-            translation_key="water_boost_duration",
-            name=config_entry.title,
-            icon="mdi:timer",
-            func=None,
-            topic=None,
-            entity_category=EntityCategory.CONFIG,
-            native_min_value=30,
-            native_max_value=180,
-            native_step=1,
-            default_value=DEFAULT_WATER_BOOST_MINUTES,
             entry_id=config_entry.entry_id,
         ),
         HiveNumberEntityDescription(
@@ -132,11 +120,28 @@ async def async_setup_entry(
             default_value=DEFAULT_HEATING_BOOST_TEMPERATURE,
             entry_id=config_entry.entry_id,
         ),
-    )
+    ]
+
+    if config_entry.options[CONF_MODEL] == MODEL_SLR2:
+        entity_descriptions.append(HiveNumberEntityDescription(
+            key="water_boost_duration",
+            translation_key="water_boost_duration",
+            name=config_entry.title,
+            icon="mdi:timer",
+            func=None,
+            topic=None,
+            entity_category=EntityCategory.CONFIG,
+            native_min_value=30,
+            native_max_value=180,
+            native_step=1,
+            default_value=DEFAULT_WATER_BOOST_MINUTES,
+            entry_id=config_entry.entry_id,
+            )
+        )
 
     _entities = {}
 
-    _entities = [HiveNumber(entity_description=entity_description,) for entity_description in ENTITY_DESCRIPTIONS]
+    _entities = [HiveNumber(entity_description=entity_description,) for entity_description in entity_descriptions]
 
     async_add_entities(
         [sensorEntity for sensorEntity in _entities],

@@ -21,6 +21,15 @@ MANUFACTURER = "@Andrew-CodeChimp"
 CONFIG_VERSION = 1
 
 CONF_MQTT_TOPIC = "mqtt_topic"
+CONF_MODEL = "model"
+
+MODEL_SLR1 = "SLR1"
+MODEL_SLR2 = "SLR2"
+
+MODELS = [
+    MODEL_SLR1,
+    MODEL_SLR2,
+]
 
 HIVE_BOOST = "emergency_heat"
 
