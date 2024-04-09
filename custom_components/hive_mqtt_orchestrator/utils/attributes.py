@@ -38,7 +38,7 @@ def dict_to_typed_dict(data: dict, keys_to_ignore = []):
           data_as_datetime = datetime.fromisoformat(new_data[key].replace('Z', '+00:00'))
           new_data[key] = data_as_datetime
           continue
-        except: # pylint: disable=E722
+        except ValueError:
           # Do nothing
           continue
 
