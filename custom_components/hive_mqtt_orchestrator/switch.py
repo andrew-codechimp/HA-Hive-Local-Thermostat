@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from time import sleep
 
 from dataclasses import dataclass
 
@@ -31,6 +32,7 @@ from .const import (
     DEFAULT_WATER_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
+    DEFAULT_FROST_TEMPERATURE,
     CONF_MODEL,
     MODEL_SLR2,
 )
@@ -141,18 +143,38 @@ class HiveSwitch(HiveEntity, SwitchEntity):
         """Turn off boost."""
 
         if self.entity_description.key == "boost_water":
-            payload = (r'{"system_mode_water":"' +
-                       self._pre_boost_mqtt_data["system_mode_water"] +
-                       r'","temperature_setpoint_hold_duration_water":' +
-                       str(self.get_entity_value("water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)) +
-                       r',"temperature_setpoint_hold_water":1}')
+
+            if self._pre_boost_mqtt_data["system_mode_water"] == "auto":
+                payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
+                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            elif self._pre_boost_mqtt_data["system_mode_water"] == "heat":
+                payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
+                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            elif self._pre_boost_mqtt_data["system_mode_water"] == "off":
+                payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
+                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+
         elif self.entity_description.key == "boost_heating":
-            payload = (r'{"system_mode_heat":"' +
-                       self._pre_boost_mqtt_data["system_mode_heat"] + +
-                       r'","temperature_setpoint_hold_duration_heat":' +
-                       str(int(self.get_entity_value("heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES))) +
-                       r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":' +
-                       str(self.get_entity_value("heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)) + r'}')
+
+            if self._pre_boost_mqtt_data["system_mode_heat"] == "off":
+                payload = r'{"system_mode_heat":"off","temperature_setpoint_hold_heat":"0"}'
+                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+
+                sleep(0.5)
+
+                payload = r'{"occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)) + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat:"65535"}'
+                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            else:
+                payload = (r'{"system_mode_heat":"' +
+                            self._pre_boost_mqtt_data["system_mode_heat"] +
+                            r'","occupied_heating_setpoint_heat":' +
+                            self._pre_boost_mqtt_data["occupied_heating_setpoint_heat"] +
+                            r',"temperature_setpoint_hold_heat":' +
+                            self._pre_boost_mqtt_data["temperature_setpoint_hold_heat"] +
+                            r'","temperature_setpoint_hold_duration_heat":' +
+                            self._pre_boost_mqtt_data["temperature_setpoint_hold_duration_heat"] + r'}')
+
+                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         self._attr_is_on = False
         self.async_write_ha_state()
