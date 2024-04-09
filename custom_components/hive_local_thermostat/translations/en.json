@@ -43,7 +43,7 @@
     "entity": {
         "sensor": {
             "running_state_water": {
-                "name": "Running State Water",
+                "name": "Running state water",
                 "state": {
                     "off": "Off",
                     "idle": "Idle",
@@ -51,7 +51,7 @@
                 }
             },
             "running_state_heat": {
-                "name": "Running State Heat",
+                "name": "Running state heat",
                 "state": {
                     "off": "Off",
                     "idle": "Idle",
@@ -67,30 +67,30 @@
         },
         "select": {
             "system_mode_water": {
-                "name": "Water Mode",
+                "name": "Water mode",
                 "state": {
-                    "off": "Always Off",
+                    "off": "Always off",
                     "auto": "Schedule",
-                    "heat": "Always On",
-                    "emergency_heat": "Boost"
+                    "heat": "Always on",
+                    "boost": "Boost"
                 }
             }
         },
         "number": {
             "heating_boost_duration": {
-                "name": "Heating Boost Duration"
+                "name": "Heating boost duration"
             },
             "water_boost_duration": {
-                "name": "Water Boost Duration"
+                "name": "Water boost duration"
             },
             "heating_frost_prevention": {
-                "name": "Heating Frost Prevention"
+                "name": "Heating frost prevention"
             },
             "heating_default_temperature": {
-                "name": "Heating Default Temperature"
+                "name": "Heating default temperature"
             },
             "heating_boost_temperature": {
-                "name": "Heating Boost Temperature"
+                "name": "Heating boost temperature"
             }
         },
         "switch": {

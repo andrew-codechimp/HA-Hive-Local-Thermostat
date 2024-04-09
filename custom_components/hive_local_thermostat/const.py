@@ -39,6 +39,6 @@ DEFAULT_HEATING_BOOST_MINUTES = 120
 DEFAULT_HEATING_BOOST_TEMPERATURE = 25
 DEFAULT_WATER_BOOST_MINUTES = 60
 
-WATER_MODES: Final = ["auto", "heat", "off", "emergency_heat"]
+WATER_MODES: Final = ["auto", "heat", "off", "boost"]
 
 ICON_UNKNOWN = "mdi:help"
