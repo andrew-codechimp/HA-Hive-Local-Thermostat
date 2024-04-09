@@ -20,6 +20,7 @@ class HiveEntityDescription(EntityDescription):
     topic: str | None = None
     entry_id: str | None = None
     icons_by_state: dict | None = None
+    model: str | None = None
 
 class HiveEntity():
     """HiveEntity class."""

@@ -36,6 +36,7 @@ from .const import (
     DEFAULT_FROST_TEMPERATURE,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
+    CONF_MODEL
 )
 
 PRESET_MAP = {
@@ -70,6 +71,7 @@ async def async_setup_entry(
         func=None,
         topic=config_entry.options[CONF_MQTT_TOPIC],
         entry_id=config_entry.entry_id,
+        model=config_entry.options[CONF_MODEL],
     )
 
     _entities = [HiveClimateEntity(entity_description=hive_climate_entity_description) ]

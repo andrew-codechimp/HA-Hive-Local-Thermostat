@@ -74,6 +74,7 @@ async def async_setup_entry(
             default_value=DEFAULT_HEATING_BOOST_MINUTES,
             mode=NumberMode.AUTO,
             entry_id=config_entry.entry_id,
+            model=config_entry.options[CONF_MODEL],
         ),
         HiveNumberEntityDescription(
             key="heating_frost_prevention",
@@ -89,6 +90,7 @@ async def async_setup_entry(
             native_step=0.5,
             default_value=DEFAULT_FROST_TEMPERATURE,
             entry_id=config_entry.entry_id,
+            model=config_entry.options[CONF_MODEL],
         ),
         HiveNumberEntityDescription(
             key="heating_default_temperature",
@@ -104,6 +106,7 @@ async def async_setup_entry(
             native_step=0.5,
             default_value=DEFAULT_HEATING_TEMPERATURE,
             entry_id=config_entry.entry_id,
+            model=config_entry.options[CONF_MODEL],
         ),
         HiveNumberEntityDescription(
             key="heating_boost_temperature",
@@ -119,6 +122,7 @@ async def async_setup_entry(
             native_step=0.5,
             default_value=DEFAULT_HEATING_BOOST_TEMPERATURE,
             entry_id=config_entry.entry_id,
+            model=config_entry.options[CONF_MODEL],
         ),
     ]
 
@@ -136,6 +140,7 @@ async def async_setup_entry(
             native_step=1,
             default_value=DEFAULT_WATER_BOOST_MINUTES,
             entry_id=config_entry.entry_id,
+            model=config_entry.options[CONF_MODEL],
             )
         )
 

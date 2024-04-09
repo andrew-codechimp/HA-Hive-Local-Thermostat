@@ -60,6 +60,7 @@ async def async_setup_entry(
             func=None,
             topic=config_entry.options[CONF_MQTT_TOPIC],
             entry_id=config_entry.entry_id,
+            model=config_entry.options[CONF_MODEL],
             options=WATER_MODES,
         ),
     )
