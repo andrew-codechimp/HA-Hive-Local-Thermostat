@@ -18,7 +18,7 @@ from homeassistant.helpers.schema_config_entry_flow import (
 from . import const
 
 def required(
-    key: str, options: Dict[str, Any], default: Any | None = None
+    key: str, options: dict[str, Any], default: Any | None = None
 ) -> vol.Required:
     """Return vol.Required."""
     if isinstance(options, dict) and key in options:
@@ -31,7 +31,7 @@ def required(
 
 
 def optional(
-    key: str, options: Dict[str, Any], default: Any | None = None
+    key: str, options: dict[str, Any], default: Any | None = None
 ) -> vol.Optional:
     """Return vol.Optional."""
     if isinstance(options, dict) and key in options:
@@ -79,10 +79,10 @@ async def general_config_schema(
         }
     )
 
-CONFIG_FLOW: Dict[str, SchemaFlowFormStep | SchemaFlowMenuStep] = {
+CONFIG_FLOW: dict[str, SchemaFlowFormStep | SchemaFlowMenuStep] = {
     "user": SchemaFlowFormStep(general_config_schema),
 }
-OPTIONS_FLOW: Dict[str, SchemaFlowFormStep | SchemaFlowMenuStep] = {
+OPTIONS_FLOW: dict[str, SchemaFlowFormStep | SchemaFlowMenuStep] = {
     "init": SchemaFlowFormStep(general_options_schema),
 }
 

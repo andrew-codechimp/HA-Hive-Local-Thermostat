@@ -22,7 +22,7 @@ class HiveEntityDescription(EntityDescription):
     icons_by_state: dict | None = None
     model: str | None = None
 
-class HiveEntity():
+class HiveEntity:
     """HiveEntity class."""
 
     entity_description: HiveEntityDescription
@@ -51,7 +51,7 @@ class HiveEntity():
 
     def get_entity_value(self, entity_key: str, default: float = None) -> float:
         """Get an entities value store in hass data."""
-        if not self.entity_description.entry_id in self.hass.data[DOMAIN]:
+        if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             return default
 
         return self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default)

@@ -1,3 +1,5 @@
+"""Attributes helper for hive_mqtt_orchestrator."""
+
 import re
 from datetime import datetime
 

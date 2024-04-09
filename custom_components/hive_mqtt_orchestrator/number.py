@@ -7,15 +7,13 @@ from dataclasses import dataclass
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.components.number import (
     NumberEntityDescription,
     NumberMode,
     RestoreNumber,
     NumberDeviceClass,
 )
-from homeassistant.core import callback
-from homeassistant.util import slugify
 from homeassistant.util.dt import utcnow
 from homeassistant.const import (
     Platform,
@@ -45,6 +43,7 @@ class HiveNumberEntityDescription(
     NumberEntityDescription,
 ):
     """Class describing Hive number entities."""
+
     default_value: float | None = None
 
 async def async_setup_entry(
