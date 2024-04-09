@@ -1,4 +1,4 @@
-"""Attributes helper for hive_mqtt_orchestrator."""
+"""Attributes helper for hive_local_thermostat."""
 
 import re
 from datetime import datetime

@@ -21,15 +21,15 @@ jobs:
         shell: "bash"
         run: |
           yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
-            "${{ github.workspace }}/custom_components/hive_mqtt_orchestrator/manifest.json"
+            "${{ github.workspace }}/custom_components/hive_local_thermostat/manifest.json"
 
       - name: "ZIP the integration directory"
         shell: "bash"
         run: |
-          cd "${{ github.workspace }}/custom_components/hive_mqtt_orchestrator"
-          zip hive_mqtt_orchestrator.zip -r ./
+          cd "${{ github.workspace }}/custom_components/hive_local_thermostat"
+          zip hive_local_thermostat.zip -r ./
 
       - name: "Upload the ZIP file to the release"
         uses: softprops/action-gh-release@v2.0.4
         with:
-          files: ${{ github.workspace }}/custom_components/hive_mqtt_orchestrator/hive_mqtt_orchestrator.zip
+          files: ${{ github.workspace }}/custom_components/hive_local_thermostat/hive_local_thermostat.zip

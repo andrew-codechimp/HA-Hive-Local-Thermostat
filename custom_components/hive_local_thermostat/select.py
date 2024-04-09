@@ -1,4 +1,4 @@
-"""Select platform for hive_mqtt_orchestrator."""
+"""Select platform for hive_local_thermostat."""
 
 from __future__ import annotations
 
@@ -69,7 +69,7 @@ async def async_setup_entry(
     hass.data[DOMAIN][config_entry.entry_id][Platform.SELECT] = _entities
 
 class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
-    """hive_mqtt_orchestrator Select class."""
+    """hive_local_thermostat Select class."""
 
     def __init__(
         self,

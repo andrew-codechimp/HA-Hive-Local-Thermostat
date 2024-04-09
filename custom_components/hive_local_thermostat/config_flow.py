@@ -1,4 +1,4 @@
-"""Adds config flow for hive_mqtt_orchestrator."""
+"""Adds config flow for hive_local_thermostat."""
 from __future__ import annotations
 
 from collections.abc import Mapping

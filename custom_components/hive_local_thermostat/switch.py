@@ -1,4 +1,4 @@
-"""Sensor platform for hive_mqtt_orchestrator."""
+"""Sensor platform for hive_local_thermostat."""
 
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ async def async_setup_entry(
     hass.data[DOMAIN][config_entry.entry_id][Platform.SWITCH] = _entities
 
 class HiveSwitch(HiveEntity, SwitchEntity):
-    """hive_mqtt_orchestrator Switch class."""
+    """hive_local_thermostat Switch class."""
 
     def __init__(
         self,

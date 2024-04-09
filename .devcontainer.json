@@ -1,5 +1,5 @@
 {
-    "name": "andrew-codechimp/hive-mqtt-orchestrator",
+    "name": "andrew-codechimp/hive-local-thermostat",
     "image": "mcr.microsoft.com/vscode/devcontainers/python:3.12-bullseye",
     "postCreateCommand": "scripts/setup",
     "forwardPorts": [

@@ -1,7 +1,7 @@
-# HA-Hive-MQTT-Orchestrator
+# HA-Hive-Local-Thermostat
 Local Hive Thermostat MQTT integration Home Assistant
 
-## Early beta
+**Early beta**
 
 To use this integration your Hive thermostat receiver must be added to [Zigbee2MQTT](https://www.zigbee2mqtt.io/supported-devices/#v=Hive) and a MQTT broker and the MQTT integration within Home Assistant must be correctly configured.
 

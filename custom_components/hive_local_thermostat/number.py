@@ -1,4 +1,4 @@
-"""Number platform for hive_mqtt_orchestrator."""
+"""Number platform for hive_local_thermostat."""
 
 from __future__ import annotations
 
@@ -149,7 +149,7 @@ async def async_setup_entry(
     hass.data[DOMAIN][config_entry.entry_id][Platform.NUMBER] = _entities
 
 class HiveNumber(HiveEntity, RestoreNumber):
-    """hive_mqtt_orchestrator Number class."""
+    """hive_local_thermostat Number class."""
 
     def __init__(
         self,
