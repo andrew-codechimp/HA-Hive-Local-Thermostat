@@ -127,7 +127,7 @@ class HiveSwitch(HiveEntity, SwitchEntity):
                        r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":' +
                        str(self.get_entity_value("heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)) + r'}')
 
-        LOGGER.debug("Sending to {self._topic} message {payload}")
+        LOGGER.debug("Sending to {self._topic}/set message {payload}")
         await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         self._attr_is_on = True
@@ -147,20 +147,20 @@ class HiveSwitch(HiveEntity, SwitchEntity):
                 payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
 
             if payload:
-                LOGGER.debug("Sending to {self._topic} message {payload}")
+                LOGGER.debug("Sending to {self._topic}/set message {payload}")
                 await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         elif self.entity_description.key == "boost_heating":
 
             if self._pre_boost_mqtt_data["system_mode_heat"] == "off":
                 payload = r'{"system_mode_heat":"off","temperature_setpoint_hold_heat":"0"}'
-                LOGGER.debug("Sending to {self._topic} message {payload}")
+                LOGGER.debug("Sending to {self._topic}/set message {payload}")
                 await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
                 sleep(0.5)
 
                 payload = r'{"occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)) + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat:"65535"}'
-                LOGGER.debug("Sending to {self._topic} message {payload}")
+                LOGGER.debug("Sending to {self._topic}/set message {payload}")
                 await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
             else:
                 payload = (r'{"system_mode_heat":"' +
@@ -172,7 +172,7 @@ class HiveSwitch(HiveEntity, SwitchEntity):
                             r'","temperature_setpoint_hold_duration_heat":' +
                             self._pre_boost_mqtt_data["temperature_setpoint_hold_duration_heat"] + r'}')
 
-                LOGGER.debug("Sending to {self._topic} message {payload}")
+                LOGGER.debug("Sending to {self._topic}/set message {payload}")
                 await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         self._attr_is_on = False

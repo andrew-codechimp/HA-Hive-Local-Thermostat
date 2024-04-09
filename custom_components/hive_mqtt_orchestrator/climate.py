@@ -145,7 +145,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if hvac_mode == HVACMode.AUTO:
             payload = r'{"system_mode_heat":"heat","temperature_setpoint_hold_heat":"0","temperature_setpoint_hold_duration_heat":"0"}'
 
-            LOGGER.debug("Sending to {self._topic} message {payload}")
+            LOGGER.debug("Sending to {self._topic}/set message {payload}")
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         elif hvac_mode == HVACMode.HEAT:
             if self._pre_boost_occupied_heating_setpoint_heat:
@@ -153,19 +153,19 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             else:
                 payload = r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_default_temperature", DEFAULT_HEATING_TEMPERATURE)) + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
 
-            LOGGER.debug("Sending to {self._topic} message {payload}")
+            LOGGER.debug("Sending to {self._topic}/set message {payload}")
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         elif hvac_mode == HVACMode.OFF:
             payload = r'{"system_mode_heat":"off","temperature_setpoint_hold_heat":"0"}'
 
-            LOGGER.debug("Sending to {self._topic} message {payload}")
+            LOGGER.debug("Sending to {self._topic}/set message {payload}")
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
             sleep(0.5)
 
             payload = r'{"occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)) + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat:"65535"}'
 
-            LOGGER.debug("Sending to {self._topic} message {payload}")
+            LOGGER.debug("Sending to {self._topic}/set message {payload}")
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         else:
@@ -205,7 +205,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
     async def async_set_temperature(self, temperature, **kwargs):
         payload = r'{"occupied_heating_setpoint_heat":' + str(temperature) + r'}'
 
-        LOGGER.debug("Sending to {self._topic} message {payload}")
+        LOGGER.debug("Sending to {self._topic}/set message {payload}")
         await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
     def _climate_preset(self, mode):
@@ -224,7 +224,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             self._pre_boost_occupied_heating_setpoint_heat = self.target_temperature
             payload = r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":' + str(int(self.get_entity_value("heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES))) + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)) + r'}'
 
-            LOGGER.debug("Sending to {self._topic} message {payload}")
+            LOGGER.debug("Sending to {self._topic}/set message {payload}")
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         else:
             if self._mqtt_data["system_mode_heat"] == "emergency_heating":
