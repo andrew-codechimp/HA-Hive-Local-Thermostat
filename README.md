@@ -1,5 +1,5 @@
 # HA-Hive-Local-Thermostat
-Local Hive Thermostat MQTT integration Home Assistant
+Local Hive Thermostat MQTT integration for Home Assistant
 
 **Early beta**
 
