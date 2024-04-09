@@ -1,5 +1,5 @@
 {
-    "name": "Hive MQTT Orchestrator",
+    "name": "Hive Local Thermostat",
     "filename": "hive_local_thermostat.zip",
     "hide_default_branch": true,
     "homeassistant": "2024.3.0",
