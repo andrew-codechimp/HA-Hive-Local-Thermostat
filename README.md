@@ -60,7 +60,7 @@ Installation via HACS is recommended, but a manual setup is supported.
 [commits-shield]: https://img.shields.io/github/commit-activity/y/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
 [commits]: https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/commits/main
 [hacs]: https://github.com/hacs/integration
-[hacsbadge]: https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge
+[hacsbadge]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge
 [exampleimg]: example.png
 [license-shield]: https://img.shields.io/github/license/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
