@@ -59,6 +59,7 @@ async def async_setup_entry(
         async_add_entities: AddEntitiesCallback
     ):
     """Set up the sensor platform."""
+
     _entities = {}
 
     hive_climate_entity_description = HiveClimateEntityDescription(
@@ -74,14 +75,13 @@ async def async_setup_entry(
     _entities = [HiveClimateEntity(entity_description=hive_climate_entity_description) ]
 
     async_add_entities(
-        [climateEntity for climateEntity in _entities],
+        climateEntity for climateEntity in _entities
     )
 
     hass.data[DOMAIN][config_entry.entry_id][Platform.CLIMATE] = _entities
 
 class HiveClimateEntity(HiveEntity, ClimateEntity):
     """hive_mqtt_orchestrator Climate class."""
-
 
     def __init__(
         self,
@@ -120,6 +120,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
     @property
     def hvac_mode(self):
+        """Get the current hvac mode."""
+
         if not self._mqtt_data:
             return
 
@@ -133,6 +135,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             return HVACMode.OFF
 
     async def async_set_hvac_mode(self, hvac_mode):
+        """Set the hvac mode."""
+
         if hvac_mode in self._attr_hvac_modes:
             self._attr_hvac_mode = hvac_mode
         else:
@@ -171,6 +175,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
     @property
     def hvac_action(self):
+        """Get the current action."""
+
         if not self._mqtt_data:
             return
 
@@ -185,6 +191,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
     @property
     def current_temperature(self):
+        """Get the current temperature."""
+
         if not self._mqtt_data:
             return
         if "local_temperature_heat" in self._mqtt_data:
@@ -192,6 +200,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
     @property
     def target_temperature(self):
+        """Get the target temperature."""
+
         if not self._mqtt_data:
             return
         if "occupied_heating_setpoint_heat" in self._mqtt_data:
@@ -200,22 +210,30 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             return self._mqtt_data["occupied_heating_setpoint_heat"]
 
     async def async_set_temperature(self, temperature, **kwargs):
+        """Set the target temperature."""
+
         payload = r'{"occupied_heating_setpoint_heat":' + str(temperature) + r'}'
 
         LOGGER.debug("Sending to {self._topic}/set message {payload}")
         await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
     def _climate_preset(self, mode):
+        """Get the current preset."""
+
         return next((k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE])
 
     @property
     def preset_mode(self):
+        """Get the preset mode."""
+
         if not self._mqtt_data:
             return
         if "system_mode_heat" in self._mqtt_data:
             return self._climate_preset(self._mqtt_data["system_mode_heat"])
 
     async def async_set_preset_mode(self, preset_mode):
+        """Set the preset mode."""
+
         if preset_mode == "boost":
             self._pre_boost_hvac_mode = self.hvac_mode
             self._pre_boost_occupied_heating_setpoint_heat = self.target_temperature
@@ -231,6 +249,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
     def process_update(self, mqtt_data) -> None:
         """Update the state of the sensor."""
+
         self._mqtt_data = mqtt_data
         if (self.hass is not None): # this is a hack to get around the fact that the entity is not yet initialized at first
             self.async_schedule_update_ha_state()

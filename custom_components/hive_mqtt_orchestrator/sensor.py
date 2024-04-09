@@ -78,7 +78,7 @@ async def async_setup_entry(
     _entities = [HiveSensor(entity_description=entity_description,) for entity_description in entity_descriptions]
 
     async_add_entities(
-        [sensorEntity for sensorEntity in _entities],
+        sensorEntity for sensorEntity in _entities
     )
 
     hass.data[DOMAIN][config_entry.entry_id][Platform.SENSOR] = _entities
