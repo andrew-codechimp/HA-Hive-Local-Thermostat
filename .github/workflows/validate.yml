@@ -7,9 +7,13 @@ on:
   push:
     branches:
       - "main"
+    paths-ignore:
+      - 'README.md'
   pull_request:
     branches:
       - "main"
+    paths-ignore:
+      - 'README.md'
 
 jobs:
   hassfest: # https://developers.home-assistant.io/blog/2020/04/16/hassfest

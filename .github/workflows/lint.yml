@@ -2,11 +2,18 @@ name: "Lint"
 
 on:
   push:
-    branches:
-      - "main"
+    paths:
+      - '**.py' # Run if pushed commits include a change to a Python (.py) file.
+      - '.github/workflows/lint.yml' # Run if pushed commits include a change to a github actions workflow file.
+      - 'requirements.txt' # Run if pushed commits include a change to the Python requirements.txt file.
+      - '.ruff.toml' # Run if ruff configuration file changes.
   pull_request:
-    branches:
-      - "main"
+    paths:
+      - '**.py' # Run if pushed commits include a change to a Python (.py) file.
+      - '.github/workflows/lint.yml' # Run if pushed commits include a change to a github actions workflow file.
+      - 'requirements.txt' # Run if pushed commits include a change to the Python requirements.txt file.
+      - '.ruff.toml' # Run if ruff configuration file changes.
+  workflow_dispatch:
 
 jobs:
   build:
