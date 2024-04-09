@@ -167,6 +167,9 @@ class HiveSwitch(HiveEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off boost."""
 
+        if not self._pre_boost_mqtt_data:
+            return # Cannot make a sensible choice for ending boost so let it do it automatically.
+
         if self.entity_description.key == "boost_water":
             payload = None
 
@@ -193,10 +196,6 @@ class HiveSwitch(HiveEntity, SwitchEntity):
                 )
 
         elif self.entity_description.key == "boost_heating":
-
-            if not self._pre_boost_mqtt_data:
-                return
-
             if self._pre_boost_mqtt_data["system_mode_heat"] == "off":
                 payload = (
                     r'{"system_mode_heat":"off","temperature_setpoint_hold_heat":"0"}'
