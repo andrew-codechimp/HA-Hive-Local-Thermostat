@@ -10,16 +10,10 @@ from dataclasses import dataclass
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.components.mqtt import client as mqtt_client
-from homeassistant.core import callback
-from homeassistant.util import slugify
 from homeassistant.const import (
     Platform,
-    UnitOfInformation,
-    CONF_NAME,
-    CONF_ENTITIES,
 )
 
 from .entity import HiveEntity, HiveEntityDescription
@@ -28,7 +22,6 @@ from .const import (
     DOMAIN,
     LOGGER,
     CONF_MQTT_TOPIC,
-    ICON_UNKNOWN,
     DEFAULT_WATER_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
@@ -134,6 +127,7 @@ class HiveSwitch(HiveEntity, SwitchEntity):
                        r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":' +
                        str(self.get_entity_value("heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)) + r'}')
 
+        LOGGER.debug("Sending to {self._topic} message {payload}")
         await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         self._attr_is_on = True
@@ -143,26 +137,30 @@ class HiveSwitch(HiveEntity, SwitchEntity):
         """Turn off boost."""
 
         if self.entity_description.key == "boost_water":
+            payload = None
 
             if self._pre_boost_mqtt_data["system_mode_water"] == "auto":
                 payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
-                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
             elif self._pre_boost_mqtt_data["system_mode_water"] == "heat":
                 payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
-                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
             elif self._pre_boost_mqtt_data["system_mode_water"] == "off":
                 payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
+
+            if payload:
+                LOGGER.debug("Sending to {self._topic} message {payload}")
                 await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         elif self.entity_description.key == "boost_heating":
 
             if self._pre_boost_mqtt_data["system_mode_heat"] == "off":
                 payload = r'{"system_mode_heat":"off","temperature_setpoint_hold_heat":"0"}'
+                LOGGER.debug("Sending to {self._topic} message {payload}")
                 await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
                 sleep(0.5)
 
                 payload = r'{"occupied_heating_setpoint_heat":' + str(self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)) + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat:"65535"}'
+                LOGGER.debug("Sending to {self._topic} message {payload}")
                 await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
             else:
                 payload = (r'{"system_mode_heat":"' +
@@ -174,22 +172,8 @@ class HiveSwitch(HiveEntity, SwitchEntity):
                             r'","temperature_setpoint_hold_duration_heat":' +
                             self._pre_boost_mqtt_data["temperature_setpoint_hold_duration_heat"] + r'}')
 
+                LOGGER.debug("Sending to {self._topic} message {payload}")
                 await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         self._attr_is_on = False
         self.async_write_ha_state()
-
-    # @property
-    # def native_value(self) -> str:
-    #     """Return the native value of the sensor."""
-    #     if (
-    #         self.coordinator.data
-    #         and self.entity_description.key in self.coordinator.data
-    #     ):
-    #         return self.coordinator.data[self.entity_description.key]
-    #     return None
-
-    # @property
-    # def extra_state_attributes(self):
-    #     """Return the state attributes."""
-    #     return {ATTR_DEVICE_ID: self._device_id}

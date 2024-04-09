@@ -140,16 +140,15 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
 
         if option == "auto":
             payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         elif option == "heat":
             payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         elif option == "emergency_heat":
             payload = r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":' + str(self.get_entity_value("water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)) + r',"temperature_setpoint_hold_water":1}'
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         elif option == "off":
             payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+
+        LOGGER.debug("Sending to {self._topic} message {payload}")
+        await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         self._attr_current_option = option
         self.async_write_ha_state()

@@ -110,9 +110,6 @@ class HiveSensor(HiveEntity, SensorEntity):
     def process_update(self, mqtt_data) -> None:
         """Update the state of the sensor."""
         new_value = self._func(mqtt_data)
-        # if (self._ignore_zero_values and new_value == 0):
-        #     LOGGER.debug("Ignored new value of %s on %s.", new_value, self._attr_unique_id)
-        #     return
 
         if new_value == "":
             new_value = "preheating"
@@ -122,18 +119,3 @@ class HiveSensor(HiveEntity, SensorEntity):
         self._attr_native_value = new_value
         if (self.hass is not None): # this is a hack to get around the fact that the entity is not yet initialized at first
             self.async_schedule_update_ha_state()
-
-    # @property
-    # def native_value(self) -> str:
-    #     """Return the native value of the sensor."""
-    #     if (
-    #         self.coordinator.data
-    #         and self.entity_description.key in self.coordinator.data
-    #     ):
-    #         return self.coordinator.data[self.entity_description.key]
-    #     return None
-
-    # @property
-    # def extra_state_attributes(self):
-    #     """Return the state attributes."""
-    #     return {ATTR_DEVICE_ID: self._device_id}
