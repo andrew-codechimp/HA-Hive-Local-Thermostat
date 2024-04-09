@@ -94,6 +94,7 @@ class HiveSwitch(HiveEntity, SwitchEntity):
         self._attr_has_entity_name = True
         self._func = entity_description.func
         self._topic = entity_description.topic
+        self._pre_boost_mqtt_data = None
 
         super().__init__(entity_description)
 
@@ -151,6 +152,9 @@ class HiveSwitch(HiveEntity, SwitchEntity):
                 await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         elif self.entity_description.key == "boost_heating":
+
+            if not self._pre_boost_mqtt_data:
+                return
 
             if self._pre_boost_mqtt_data["system_mode_heat"] == "off":
                 payload = r'{"system_mode_heat":"off","temperature_setpoint_hold_heat":"0"}'
