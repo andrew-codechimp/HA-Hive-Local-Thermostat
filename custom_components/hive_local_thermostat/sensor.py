@@ -102,9 +102,13 @@ class HiveSensor(HiveEntity, SensorEntity):
 
     def process_update(self, mqtt_data) -> None:
         """Update the state of the sensor."""
-        new_value = self._func(mqtt_data)
 
-        if new_value == "":
+        try:
+            new_value = self._func(mqtt_data)
+
+            if new_value == "":
+                new_value = "preheating"
+        except KeyError:
             new_value = "preheating"
 
         self._attr_icon = self.entity_description.icons_by_state.get(new_value, ICON_UNKNOWN)

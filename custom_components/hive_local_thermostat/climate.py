@@ -180,6 +180,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if not self._mqtt_data:
             return
 
+        if "running_state_heat" not in self._mqtt_data:
+            return HVACAction.PREHEATING
+
         if self._mqtt_data["running_state_heat"] == "idle":
             return HVACAction.IDLE
         if self._mqtt_data["running_state_heat"] == "":

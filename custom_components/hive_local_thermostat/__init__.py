@@ -74,6 +74,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         parsed_data = json.loads(payload)
 
+        if entry.entry_id not in hass.data[DOMAIN]:
+            return
+
         for platform in PLATFORMS:
             for entity in hass.data[DOMAIN][entry.entry_id][platform]:
                 entity.process_update(parsed_data)
