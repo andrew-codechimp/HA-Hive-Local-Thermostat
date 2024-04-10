@@ -32,6 +32,8 @@ The integration supports native boost and native schedules. With schedules you c
 
 The numeric entities allow you to set defaults for boost times, temperatures and also frost protection. Frost protection should be set to match what you have set on the Hive thermostat for an accurate display.
 
+![Hive Screenshot](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/blob/main/images/screenshot.png "Hive Controls")
+
 ## Installation
 
 ### HACS
