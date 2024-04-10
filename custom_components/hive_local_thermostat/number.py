@@ -19,6 +19,7 @@ from homeassistant.const import (
     Platform,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    UnitOfTemperature,
 )
 
 from .entity import HiveEntity, HiveEntityDescription
@@ -77,6 +78,7 @@ async def async_setup_entry(
             topic=None,
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
+            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             native_min_value=5,
             native_max_value=16,
             native_step=0.5,
@@ -92,6 +94,7 @@ async def async_setup_entry(
             topic=None,
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
+            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             native_min_value=16,
             native_max_value=22,
             native_step=0.5,
@@ -107,6 +110,7 @@ async def async_setup_entry(
             topic=None,
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
+            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             native_min_value=12,
             native_max_value=32,
             native_step=0.5,
