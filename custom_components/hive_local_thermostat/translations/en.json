@@ -93,7 +93,7 @@
                 "name": "Heating boost temperature"
             }
         },
-        "switch": {
+        "button": {
             "boost_water": {
                 "name": "Water boost"
             },

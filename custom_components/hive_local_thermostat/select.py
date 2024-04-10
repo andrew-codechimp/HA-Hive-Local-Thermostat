@@ -50,7 +50,6 @@ async def async_setup_entry(
             translation_key="system_mode_water",
             name=config_entry.title,
             icon="mdi:water-boiler",
-            func=None,
             topic=config_entry.options[CONF_MQTT_TOPIC],
             entry_id=config_entry.entry_id,
             model=config_entry.options[CONF_MODEL],
@@ -80,7 +79,6 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         self.entity_description = entity_description
         self._attr_unique_id = f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
-        self._func = entity_description.func
         self._topic = entity_description.topic
         self._attr_options = entity_description.options
         self._attr_current_option = None

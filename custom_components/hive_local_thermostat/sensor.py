@@ -29,6 +29,8 @@ class HiveSensorEntityDescription(
 ):
     """Class describing Hive sensor entities."""
 
+    func: any | None = None
+
 async def async_setup_entry(
         hass: HomeAssistant,
         config_entry: ConfigEntry,

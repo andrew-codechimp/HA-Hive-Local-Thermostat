@@ -66,7 +66,6 @@ async def async_setup_entry(
         key="climate",
         translation_key="climate",
         name=config_entry.title,
-        func=None,
         topic=config_entry.options[CONF_MQTT_TOPIC],
         entry_id=config_entry.entry_id,
         model=config_entry.options[CONF_MODEL],
@@ -92,7 +91,6 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self.entity_description = entity_description
         self._attr_unique_id = f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
-        self._func = entity_description.func
         self._topic = entity_description.topic
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
@@ -245,7 +243,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             LOGGER.debug("Sending to {self._topic}/set message {payload}")
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         else:
-            if self._mqtt_data["system_mode_heat"] == "emergency_heating":
+            if self._pre_boost_hvac_mode is not None:
                 await self.async_set_hvac_mode(self._pre_boost_hvac_mode)
                 self._pre_boost_hvac_mode = None
                 self._pre_boost_occupied_heating_setpoint_heat = None

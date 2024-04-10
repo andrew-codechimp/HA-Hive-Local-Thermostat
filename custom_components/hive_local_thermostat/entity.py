@@ -16,7 +16,6 @@ class HiveEntityDescription(EntityDescription):
     """Defines a base Hive entity description."""
 
     entity_id: str | None = None
-    func: any | None = None
     topic: str | None = None
     entry_id: str | None = None
     icons_by_state: dict | None = None

@@ -59,7 +59,6 @@ async def async_setup_entry(
             translation_key="heating_boost_duration",
             name=config_entry.title,
             icon="mdi:timer",
-            func=None,
             topic=None,
             entity_category=EntityCategory.CONFIG,
             native_min_value=30,
@@ -75,7 +74,6 @@ async def async_setup_entry(
             translation_key="heating_frost_prevention",
             name=config_entry.title,
             icon="mdi:snowflake-thermometer",
-            func=None,
             topic=None,
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
@@ -91,7 +89,6 @@ async def async_setup_entry(
             translation_key="heating_default_temperature",
             name=config_entry.title,
             icon="mdi:thermometer",
-            func=None,
             topic=None,
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
@@ -107,7 +104,6 @@ async def async_setup_entry(
             translation_key="heating_boost_temperature",
             name=config_entry.title,
             icon="mdi:thermometer",
-            func=None,
             topic=None,
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
@@ -126,7 +122,6 @@ async def async_setup_entry(
             translation_key="water_boost_duration",
             name=config_entry.title,
             icon="mdi:timer",
-            func=None,
             topic=None,
             entity_category=EntityCategory.CONFIG,
             native_min_value=30,
@@ -160,7 +155,6 @@ class HiveNumber(HiveEntity, RestoreNumber):
         self.entity_description = entity_description
         self._attr_unique_id = f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
-        self._func = entity_description.func
         self._topic = entity_description.topic
         self._state = None
         self._attributes = {}
