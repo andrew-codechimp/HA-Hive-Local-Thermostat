@@ -7,9 +7,12 @@ from dataclasses import dataclass
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.helpers.temperature import display_temp as show_temp
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription, SensorDeviceClass
 from homeassistant.const import (
     Platform,
+    UnitOfTemperature,
+    PRECISION_TENTHS,
 )
 
 from .entity import HiveEntity, HiveEntityDescription
@@ -30,6 +33,7 @@ class HiveSensorEntityDescription(
     """Class describing Hive sensor entities."""
 
     func: any | None = None
+    running_state: bool = False
 
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -54,6 +58,20 @@ async def async_setup_entry(
             topic=config_entry.options[CONF_MQTT_TOPIC],
             entry_id=config_entry.entry_id,
             model=config_entry.options[CONF_MODEL],
+            running_state = True
+        ),
+        HiveSensorEntityDescription(
+            key="local_temperature_heat",
+            translation_key="local_temperature_heat",
+            icon="mdi:thermometer",
+            name=config_entry.title,
+            device_class=SensorDeviceClass.TEMPERATURE,
+            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+            suggested_display_precision = 1,
+            func=lambda js: js["local_temperature_heat"],
+            topic=config_entry.options[CONF_MQTT_TOPIC],
+            entry_id=config_entry.entry_id,
+            model=config_entry.options[CONF_MODEL],
         ),
     ]
 
@@ -72,6 +90,7 @@ async def async_setup_entry(
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
+                running_state = True
             )
         )
 
@@ -107,13 +126,16 @@ class HiveSensor(HiveEntity, SensorEntity):
 
         try:
             new_value = self._func(mqtt_data)
+        except KeyError:
+            new_value = ""
 
+        if self.entity_description.running_state:
+            self._attr_icon = self.entity_description.icons_by_state.get(new_value, ICON_UNKNOWN)
             if new_value == "":
                 new_value = "preheating"
-        except KeyError:
-            new_value = "preheating"
 
-        self._attr_icon = self.entity_description.icons_by_state.get(new_value, ICON_UNKNOWN)
+        if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
+            new_value = show_temp(self.hass, new_value, self.entity_description.native_unit_of_measurement, PRECISION_TENTHS)
 
         self._attr_native_value = new_value
         if (self.hass is not None): # this is a hack to get around the fact that the entity is not yet initialized at first

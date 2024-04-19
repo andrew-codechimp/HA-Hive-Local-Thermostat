@@ -42,6 +42,9 @@
     },
     "entity": {
         "sensor": {
+            "local_temperature_heat": {
+                "name": "Current temperature"
+            },
             "running_state_water": {
                 "name": "Running state water",
                 "state": {
