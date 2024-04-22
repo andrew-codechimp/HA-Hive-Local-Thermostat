@@ -130,9 +130,9 @@ class HiveSensor(HiveEntity, SensorEntity):
             new_value = ""
 
         if self.entity_description.running_state:
-            self._attr_icon = self.entity_description.icons_by_state.get(new_value, ICON_UNKNOWN)
             if new_value == "":
                 new_value = "preheating"
+            self._attr_icon = self.entity_description.icons_by_state.get(new_value, ICON_UNKNOWN)
 
         if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
             new_value = show_temp(self.hass, new_value, self.entity_description.native_unit_of_measurement, PRECISION_TENTHS)
