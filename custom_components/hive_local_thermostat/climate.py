@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from time import sleep
+from asyncio import sleep
 
 from homeassistant.const import (
     UnitOfTemperature,
