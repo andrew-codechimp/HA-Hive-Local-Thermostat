@@ -38,6 +38,7 @@ from .const import (
     MODEL_SLR2,
 )
 
+
 @dataclass
 class HiveNumberEntityDescription(
     HiveEntityDescription,
@@ -47,11 +48,12 @@ class HiveNumberEntityDescription(
 
     default_value: float | None = None
 
+
 async def async_setup_entry(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-        async_add_entities: AddEntitiesCallback
-    ):
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+):
     """Set up the sensor platform."""
 
     entity_descriptions = [
@@ -121,31 +123,36 @@ async def async_setup_entry(
     ]
 
     if config_entry.options[CONF_MODEL] == MODEL_SLR2:
-        entity_descriptions.append(HiveNumberEntityDescription(
-            key="water_boost_duration",
-            translation_key="water_boost_duration",
-            name=config_entry.title,
-            icon="mdi:timer",
-            topic=None,
-            entity_category=EntityCategory.CONFIG,
-            native_min_value=30,
-            native_max_value=180,
-            native_step=1,
-            default_value=DEFAULT_WATER_BOOST_MINUTES,
-            entry_id=config_entry.entry_id,
-            model=config_entry.options[CONF_MODEL],
+        entity_descriptions.append(
+            HiveNumberEntityDescription(
+                key="water_boost_duration",
+                translation_key="water_boost_duration",
+                name=config_entry.title,
+                icon="mdi:timer",
+                topic=None,
+                entity_category=EntityCategory.CONFIG,
+                native_min_value=30,
+                native_max_value=180,
+                native_step=1,
+                default_value=DEFAULT_WATER_BOOST_MINUTES,
+                entry_id=config_entry.entry_id,
+                model=config_entry.options[CONF_MODEL],
             )
         )
 
     _entities = {}
 
-    _entities = [HiveNumber(entity_description=entity_description,) for entity_description in entity_descriptions]
+    _entities = [
+        HiveNumber(
+            entity_description=entity_description,
+        )
+        for entity_description in entity_descriptions
+    ]
 
-    async_add_entities(
-        sensorEntity for sensorEntity in _entities
-    )
+    async_add_entities(sensorEntity for sensorEntity in _entities)
 
     hass.data[DOMAIN][config_entry.entry_id][Platform.NUMBER] = _entities
+
 
 class HiveNumber(HiveEntity, RestoreNumber):
     """hive_local_thermostat Number class."""
@@ -157,7 +164,9 @@ class HiveNumber(HiveEntity, RestoreNumber):
         """Initialize the sensor class."""
 
         self.entity_description = entity_description
-        self._attr_unique_id = f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
+        self._attr_unique_id = (
+            f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
+        )
         self._attr_has_entity_name = True
         self._topic = entity_description.topic
         self._state = None
@@ -171,10 +180,12 @@ class HiveNumber(HiveEntity, RestoreNumber):
         """Handle entity which will be added."""
         await super().async_added_to_hass()
 
-        if ((last_state := await self.async_get_last_state()) and
-            (last_number_data := await self.async_get_last_number_data())
+        if (last_state := await self.async_get_last_state()) and (
+            last_number_data := await self.async_get_last_number_data()
         ):
-            self._attributes = dict_to_typed_dict(last_state.attributes, ["min", "max", "step"])
+            self._attributes = dict_to_typed_dict(
+                last_state.attributes, ["min", "max", "step"]
+            )
             if last_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
                 self._state = last_number_data.native_value
             else:
@@ -185,9 +196,11 @@ class HiveNumber(HiveEntity, RestoreNumber):
         if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             self.hass.data[DOMAIN][self.entity_description.entry_id] = []
 
-        self.hass.data[DOMAIN][self.entity_description.entry_id][self.entity_description.key] = self._state
+        self.hass.data[DOMAIN][self.entity_description.entry_id][
+            self.entity_description.key
+        ] = self._state
 
-        LOGGER.debug(f'Restored {self.entity_description.key} state: {self._state}')
+        LOGGER.debug(f"Restored {self.entity_description.key} state: {self._state}")
 
     @property
     def native_value(self) -> float | None:
@@ -202,7 +215,9 @@ class HiveNumber(HiveEntity, RestoreNumber):
         if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             self.hass.data[DOMAIN][self.entity_description.entry_id] = []
 
-        self.hass.data[DOMAIN][self.entity_description.entry_id][self.entity_description.key] = value
+        self.hass.data[DOMAIN][self.entity_description.entry_id][
+            self.entity_description.key
+        ] = value
 
         self.async_write_ha_state()
 
@@ -213,5 +228,7 @@ class HiveNumber(HiveEntity, RestoreNumber):
 
     def process_update(self, mqtt_data) -> None:
         """Update the state of the sensor."""
-        if (self.hass is not None): # this is a hack to get around the fact that the entity is not yet initialized at first
+        if (
+            self.hass is not None
+        ):  # this is a hack to get around the fact that the entity is not yet initialized at first
             self.async_schedule_update_ha_state()
