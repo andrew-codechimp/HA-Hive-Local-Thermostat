@@ -101,7 +101,9 @@ class HiveButton(HiveEntity, ButtonEntity):
 
     def process_update(self, mqtt_data) -> None:
         """Update the state of the switch."""
-        if (self.hass is not None): # this is a hack to get around the fact that the entity is not yet initialized at first
+        if (
+            self.hass is not None
+        ):  # this is a hack to get around the fact that the entity is not yet initialized at first
             self.async_schedule_update_ha_state()
 
     async def async_press(self) -> None:
@@ -117,23 +119,44 @@ class HiveButton(HiveEntity, ButtonEntity):
                 + r',"temperature_setpoint_hold_water":1}'
             )
         elif self.entity_description.key == "boost_heating":
-            payload = (
-                r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
-                + str(
-                    int(
-                        self.get_entity_value(
-                            "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES
+            if self.entity_description.model == MODEL_SLR2:
+                payload = (
+                    r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
+                    + str(
+                        int(
+                            self.get_entity_value(
+                                "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES
+                            )
                         )
                     )
-                )
-                + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
-                + str(
-                    self.get_entity_value(
-                        "heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE
+                    + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
+                    + str(
+                        self.get_entity_value(
+                            "heating_boost_temperature",
+                            DEFAULT_HEATING_BOOST_TEMPERATURE,
+                        )
                     )
+                    + r"}"
                 )
-                + r"}"
-            )
+            else:
+                payload = (
+                    r'{"system_mode":"emergency_heating","temperature_setpoint_hold_duration":'
+                    + str(
+                        int(
+                            self.get_entity_value(
+                                "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES
+                            )
+                        )
+                    )
+                    + r',"temperature_setpoint_hold":1,"occupied_heating_setpoint":'
+                    + str(
+                        self.get_entity_value(
+                            "heating_boost_temperature",
+                            DEFAULT_HEATING_BOOST_TEMPERATURE,
+                        )
+                    )
+                    + r"}"
+                )
 
         LOGGER.debug("Sending to {self._topic}/set message {payload}")
         await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
