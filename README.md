@@ -9,8 +9,6 @@
 
 Local Hive Thermostat MQTT integration for Home Assistant
 
-**Early beta**
-
 *Please :star: this repo if you find it useful*  
 *If you want to show your support please*
 
