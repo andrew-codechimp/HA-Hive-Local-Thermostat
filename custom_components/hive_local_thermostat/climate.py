@@ -237,7 +237,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                 )
             else:
                 payload = (
-                    r'{"occupied_heating_setpointt":'
+                    r'{"occupied_heating_setpoint":'
                     + str(
                         self.get_entity_value(
                             "heating_frost_prevention", DEFAULT_FROST_TEMPERATURE

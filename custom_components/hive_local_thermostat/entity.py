@@ -36,8 +36,8 @@ class HiveEntity:
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self.entity_description.entry_id)},
             name=self.entity_description.name,
-            model=VERSION,
-            manufacturer=MANUFACTURER,
+            model=self.entity_description.model,
+            manufacturer="Hive",
         )
         self.entity_description = description
         if description.entity_id:

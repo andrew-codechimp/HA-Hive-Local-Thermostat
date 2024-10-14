@@ -3,7 +3,7 @@ default_config:
 
 # https://www.home-assistant.io/integrations/logger/
 logger:
-  default: warning
+  default: info
   logs:
     custom_components.hive_local_thermostat: debug
 
