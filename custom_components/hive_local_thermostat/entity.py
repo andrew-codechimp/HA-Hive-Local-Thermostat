@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 from homeassistant.helpers.entity import DeviceInfo, EntityDescription
 
-from .const import DOMAIN, VERSION, MANUFACTURER
+from .const import DOMAIN
 
 
 @dataclass
