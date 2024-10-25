@@ -17,7 +17,6 @@ DOMAIN = manifest_data.get("domain")
 NAME = manifest_data.get("name")
 VERSION = manifest_data.get("version")
 ISSUEURL = manifest_data.get("issue_tracker")
-MANUFACTURER = "@Andrew-CodeChimp"
 CONFIG_VERSION = 1
 
 CONF_MQTT_TOPIC = "mqtt_topic"
