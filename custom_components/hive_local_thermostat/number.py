@@ -4,39 +4,37 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.components.number import (
+    NumberDeviceClass,
     NumberEntityDescription,
     NumberMode,
     RestoreNumber,
-    NumberDeviceClass,
 )
-from homeassistant.util.dt import utcnow
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    Platform,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    Platform,
     UnitOfTemperature,
 )
-
-from .entity import HiveEntity, HiveEntityDescription
-
-from .utils.attributes import dict_to_typed_dict
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.util.dt import utcnow
 
 from .const import (
-    DOMAIN,
-    LOGGER,
-    DEFAULT_HEATING_TEMPERATURE,
+    CONF_MODEL,
     DEFAULT_FROST_TEMPERATURE,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
+    DEFAULT_HEATING_TEMPERATURE,
     DEFAULT_WATER_BOOST_MINUTES,
-    CONF_MODEL,
+    DOMAIN,
+    LOGGER,
     MODEL_SLR2,
 )
+from .entity import HiveEntity, HiveEntityDescription
+from .utils.attributes import dict_to_typed_dict
 
 
 @dataclass
@@ -68,7 +66,6 @@ async def async_setup_entry(
             native_max_value=180,
             native_step=1,
             default_value=DEFAULT_HEATING_BOOST_MINUTES,
-            mode=NumberMode.AUTO,
             entry_id=config_entry.entry_id,
             model=config_entry.options[CONF_MODEL],
         ),
@@ -172,7 +169,6 @@ class HiveNumber(HiveEntity, RestoreNumber):
         self._state = None
         self._attributes = {}
         self._last_updated = None
-        self.mode = NumberMode.SLIDER
 
         super().__init__(entity_description)
 
@@ -183,9 +179,6 @@ class HiveNumber(HiveEntity, RestoreNumber):
         if (last_state := await self.async_get_last_state()) and (
             last_number_data := await self.async_get_last_number_data()
         ):
-            self._attributes = dict_to_typed_dict(
-                last_state.attributes, ["min", "max", "step"]
-            )
             if last_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
                 self._state = last_number_data.native_value
             else:
