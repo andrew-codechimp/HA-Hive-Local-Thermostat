@@ -33,7 +33,6 @@ from .const import (
     MODEL_SLR2,
 )
 from .entity import HiveEntity, HiveEntityDescription
-from .utils.attributes import dict_to_typed_dict
 
 
 @dataclass
