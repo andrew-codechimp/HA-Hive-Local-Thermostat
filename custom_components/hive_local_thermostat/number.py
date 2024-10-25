@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from homeassistant.components.number import (
     NumberDeviceClass,
     NumberEntityDescription,
-    NumberMode,
     RestoreNumber,
 )
 from homeassistant.config_entries import ConfigEntry
