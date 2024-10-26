@@ -153,6 +153,7 @@ class HiveNumber(HiveEntity, RestoreNumber):
     """hive_local_thermostat Number class."""
 
     entity_description: HiveNumberEntityDescription
+    _state: float | None
 
     def __init__(
         self,
