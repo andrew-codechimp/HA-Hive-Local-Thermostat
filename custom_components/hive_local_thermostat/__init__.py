@@ -6,26 +6,23 @@ https://github.com/andrew-codechimp/HA_Hive_Local_Thermostat
 
 from __future__ import annotations
 
-from awesomeversion.awesomeversion import AwesomeVersion
-
 import json
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers import config_validation as cv
-from homeassistant.const import __version__ as HA_VERSION  # noqa: N812
+from awesomeversion.awesomeversion import AwesomeVersion
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
-
-from homeassistant.const import CONF_ENTITIES
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_ENTITIES, Platform
+from homeassistant.const import __version__ as HA_VERSION  # noqa: N812
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    CONF_MQTT_TOPIC,
     DOMAIN,
     LOGGER,
     MIN_HA_VERSION,
-    CONF_MQTT_TOPIC,
 )
 
 PLATFORMS: list[Platform] = [
@@ -107,4 +104,3 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update options."""
     await hass.config_entries.async_reload(entry.entry_id)
-

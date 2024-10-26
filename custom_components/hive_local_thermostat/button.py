@@ -4,27 +4,26 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.components.mqtt import client as mqtt_client
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     Platform,
 )
-
-from .entity import HiveEntity, HiveEntityDescription
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    DOMAIN,
-    LOGGER,
+    CONF_MODEL,
     CONF_MQTT_TOPIC,
-    DEFAULT_WATER_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
-    CONF_MODEL,
+    DEFAULT_WATER_BOOST_MINUTES,
+    DOMAIN,
+    LOGGER,
     MODEL_SLR2,
 )
+from .entity import HiveEntity, HiveEntityDescription
 
 
 @dataclass
@@ -83,6 +82,8 @@ async def async_setup_entry(
 
 class HiveButton(HiveEntity, ButtonEntity):
     """hive_local_thermostat Button class."""
+
+    entity_description: HiveButtonEntityDescription
 
     def __init__(
         self,

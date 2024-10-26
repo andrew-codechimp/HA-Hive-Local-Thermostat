@@ -5,7 +5,7 @@ from __future__ import annotations
 import abc
 from dataclasses import dataclass
 
-from homeassistant.helpers.entity import DeviceInfo, EntityDescription
+from homeassistant.helpers.entity import DeviceInfo, Entity, EntityDescription
 
 from .const import DOMAIN
 
@@ -20,7 +20,7 @@ class HiveEntityDescription(EntityDescription):
     icons_by_state: dict | None = None
     model: str | None = None
 
-class HiveEntity:
+class HiveEntity(Entity):
     """HiveEntity class."""
 
     entity_description: HiveEntityDescription
@@ -47,7 +47,7 @@ class HiveEntity:
         """To be implemented by entities to process updates from MQTT."""
         raise NotImplementedError('users must define process_update to use this base class')
 
-    def get_entity_value(self, entity_key: str, default: float = None) -> float:
+    def get_entity_value(self, entity_key: str, default: float | None = None) -> float:
         """Get an entities value store in hass data."""
         if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             return default

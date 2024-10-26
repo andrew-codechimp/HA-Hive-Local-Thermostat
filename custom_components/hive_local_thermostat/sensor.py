@@ -4,30 +4,29 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.temperature import display_temp as show_temp
 from homeassistant.components.sensor import (
+    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
-    SensorDeviceClass,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    PRECISION_TENTHS,
     Platform,
     UnitOfTemperature,
-    PRECISION_TENTHS,
 )
-
-from .entity import HiveEntity, HiveEntityDescription
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.temperature import display_temp as show_temp
 
 from .const import (
-    DOMAIN,
-    CONF_MQTT_TOPIC,
-    ICON_UNKNOWN,
     CONF_MODEL,
+    CONF_MQTT_TOPIC,
+    DOMAIN,
+    ICON_UNKNOWN,
     MODEL_SLR2,
 )
+from .entity import HiveEntity, HiveEntityDescription
 
 
 @dataclass
@@ -147,6 +146,8 @@ async def async_setup_entry(
 
 class HiveSensor(HiveEntity, SensorEntity):
     """hive_local_thermostat Sensor class."""
+
+    entity_description: HiveSensorEntityDescription
 
     def __init__(
         self,

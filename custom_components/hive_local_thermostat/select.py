@@ -4,27 +4,27 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.components.mqtt import client as mqtt_client
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     Platform,
 )
-
-from .entity import HiveEntity, HiveEntityDescription
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
+    CONF_MODEL,
+    CONF_MQTT_TOPIC,
+    DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
-    CONF_MQTT_TOPIC,
-    WATER_MODES,
-    DEFAULT_WATER_BOOST_MINUTES,
-    CONF_MODEL,
     MODEL_SLR1,
+    WATER_MODES,
 )
+from .entity import HiveEntity, HiveEntityDescription
+
 
 @dataclass
 class HiveSelectEntityDescription(
@@ -69,6 +69,8 @@ async def async_setup_entry(
 
 class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
     """hive_local_thermostat Select class."""
+
+    entity_description: HiveSelectEntityDescription
 
     def __init__(
         self,

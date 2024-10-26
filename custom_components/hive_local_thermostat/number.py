@@ -152,6 +152,8 @@ async def async_setup_entry(
 class HiveNumber(HiveEntity, RestoreNumber):
     """hive_local_thermostat Number class."""
 
+    entity_description: HiveNumberEntityDescription
+
     def __init__(
         self,
         entity_description: HiveNumberEntityDescription,

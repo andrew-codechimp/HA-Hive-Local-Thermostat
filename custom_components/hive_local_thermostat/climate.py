@@ -2,42 +2,40 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from asyncio import sleep
+from dataclasses import dataclass
 
-from homeassistant.const import (
-    UnitOfTemperature,
-)
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.climate import (
     PRESET_BOOST,
     PRESET_NONE,
     ClimateEntity,
-    HVACMode,
-    HVACAction,
-    ClimateEntityFeature,
     ClimateEntityDescription,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
 )
-
-from homeassistant.const import Platform
-
-from .entity import HiveEntity, HiveEntityDescription
+from homeassistant.components.mqtt import client as mqtt_client
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    Platform,
+    UnitOfTemperature,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    DOMAIN,
-    LOGGER,
-    HIVE_BOOST,
+    CONF_MODEL,
     CONF_MQTT_TOPIC,
-    DEFAULT_HEATING_TEMPERATURE,
     DEFAULT_FROST_TEMPERATURE,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
-    CONF_MODEL,
+    DEFAULT_HEATING_TEMPERATURE,
+    DOMAIN,
+    HIVE_BOOST,
+    LOGGER,
     MODEL_SLR2,
 )
+from .entity import HiveEntity, HiveEntityDescription
 
 PRESET_MAP = {
     PRESET_NONE: "",
@@ -80,6 +78,8 @@ async def async_setup_entry(
 
 class HiveClimateEntity(HiveEntity, ClimateEntity):
     """hive_local_thermostat Climate class."""
+
+    entity_description: HiveClimateEntityDescription
 
     def __init__(
         self,
