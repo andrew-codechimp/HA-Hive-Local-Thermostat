@@ -29,7 +29,7 @@ from .const import (
 from .entity import HiveEntity, HiveEntityDescription
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class HiveSensorEntityDescription(
     HiveEntityDescription,
     SensorEntityDescription,
@@ -129,8 +129,6 @@ async def async_setup_entry(
                 model=config_entry.options[CONF_MODEL],
             ),
         ]
-
-    _entities = {}
 
     _entities = [
         HiveSensor(

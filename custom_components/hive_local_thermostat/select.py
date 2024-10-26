@@ -26,7 +26,7 @@ from .const import (
 from .entity import HiveEntity, HiveEntityDescription
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class HiveSelectEntityDescription(
     HiveEntityDescription,
     SelectEntityDescription,
@@ -56,8 +56,6 @@ async def async_setup_entry(
             options=WATER_MODES,
         ),
     )
-
-    _entities = {}
 
     _entities = [HiveSelect(entity_description=entity_description,) for entity_description in ENTITY_DESCRIPTIONS]
 

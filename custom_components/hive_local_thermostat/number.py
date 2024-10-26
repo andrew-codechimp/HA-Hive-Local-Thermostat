@@ -23,6 +23,7 @@ from homeassistant.util.dt import utcnow
 
 from .const import (
     CONF_MODEL,
+    CONF_MQTT_TOPIC,
     DEFAULT_FROST_TEMPERATURE,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
@@ -35,7 +36,7 @@ from .const import (
 from .entity import HiveEntity, HiveEntityDescription
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class HiveNumberEntityDescription(
     HiveEntityDescription,
     NumberEntityDescription,
@@ -58,7 +59,7 @@ async def async_setup_entry(
             translation_key="heating_boost_duration",
             name=config_entry.title,
             icon="mdi:timer",
-            topic=None,
+            topic=config_entry.options[CONF_MQTT_TOPIC],
             entity_category=EntityCategory.CONFIG,
             native_min_value=30,
             native_max_value=180,
@@ -72,7 +73,7 @@ async def async_setup_entry(
             translation_key="heating_frost_prevention",
             name=config_entry.title,
             icon="mdi:snowflake-thermometer",
-            topic=None,
+            topic=config_entry.options[CONF_MQTT_TOPIC],
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -88,7 +89,7 @@ async def async_setup_entry(
             translation_key="heating_default_temperature",
             name=config_entry.title,
             icon="mdi:thermometer",
-            topic=None,
+            topic=config_entry.options[CONF_MQTT_TOPIC],
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -104,7 +105,7 @@ async def async_setup_entry(
             translation_key="heating_boost_temperature",
             name=config_entry.title,
             icon="mdi:thermometer",
-            topic=None,
+            topic=config_entry.options[CONF_MQTT_TOPIC],
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -124,7 +125,7 @@ async def async_setup_entry(
                 translation_key="water_boost_duration",
                 name=config_entry.title,
                 icon="mdi:timer",
-                topic=None,
+                topic=config_entry.options[CONF_MQTT_TOPIC],
                 entity_category=EntityCategory.CONFIG,
                 native_min_value=30,
                 native_max_value=180,
@@ -134,8 +135,6 @@ async def async_setup_entry(
                 model=config_entry.options[CONF_MODEL],
             )
         )
-
-    _entities = {}
 
     _entities = [
         HiveNumber(

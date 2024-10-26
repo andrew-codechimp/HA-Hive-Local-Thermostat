@@ -43,7 +43,7 @@ PRESET_MAP = {
 }
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class HiveClimateEntityDescription(
     HiveEntityDescription,
     ClimateEntityDescription,
@@ -57,8 +57,6 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ):
     """Set up the sensor platform."""
-
-    _entities = {}
 
     hive_climate_entity_description = HiveClimateEntityDescription(
         key="climate",

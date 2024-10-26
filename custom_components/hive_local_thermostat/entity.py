@@ -10,14 +10,14 @@ from homeassistant.helpers.entity import DeviceInfo, Entity, EntityDescription
 from .const import DOMAIN
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class HiveEntityDescription(EntityDescription):
     """Defines a base Hive entity description."""
 
     entity_id: str | None = None
-    topic: str | None = None
+    topic: str
     entry_id: str | None = None
-    icons_by_state: dict | None = None
+    icons_by_state: dict[str, str] | None = None
     model: str | None = None
 
 class HiveEntity(Entity):

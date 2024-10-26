@@ -26,7 +26,7 @@ from .const import (
 from .entity import HiveEntity, HiveEntityDescription
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class HiveButtonEntityDescription(
     HiveEntityDescription,
     ButtonEntityDescription,
@@ -65,8 +65,6 @@ async def async_setup_entry(
                 model=config_entry.options[CONF_MODEL],
             )
         )
-
-    _entities = {}
 
     _entities = [
         HiveButton(
