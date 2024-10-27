@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import abc
 from dataclasses import dataclass
+from typing import Any
 
 from homeassistant.helpers.entity import DeviceInfo, Entity, EntityDescription
 
@@ -16,7 +17,7 @@ class HiveEntityDescription(EntityDescription):
 
     entity_id: str | None = None
     topic: str
-    entry_id: str | None = None
+    entry_id: str
     model: str | None = None
 
 class HiveEntity(Entity):
@@ -33,7 +34,7 @@ class HiveEntity(Entity):
         super().__init__()
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self.entity_description.entry_id)},
-            name=self.entity_description.name,
+            name=self.entity_description.name if isinstance(self.entity_description.name, str) else None,
             model=self.entity_description.model,
             manufacturer="Hive",
         )
@@ -42,11 +43,11 @@ class HiveEntity(Entity):
             self.entity_id = description.entity_id
 
     @abc.abstractmethod
-    def process_update(self, mqtt_data) -> None:
+    def process_update(self, mqtt_data: dict[str, Any]) -> float | None:
         """To be implemented by entities to process updates from MQTT."""
         raise NotImplementedError('users must define process_update to use this base class')
 
-    def get_entity_value(self, entity_key: str, default: float | None = None) -> float:
+    def get_entity_value(self, entity_key: str, default: float) -> float:
         """Get an entities value store in hass data."""
         if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             return default

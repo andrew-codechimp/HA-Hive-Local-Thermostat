@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
@@ -81,13 +82,12 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         self._attr_has_entity_name = True
         self._topic = entity_description.topic
         self._attr_current_option = None
-        self._mqtt_data = None
         if entity_description.options:
             self._attr_options = entity_description.options
 
         super().__init__(entity_description)
 
-    def process_update(self, mqtt_data) -> None:
+    def process_update(self, mqtt_data: dict[str, Any]) -> None:
         """Update the state of the sensor."""
         self._mqtt_data = mqtt_data
 
