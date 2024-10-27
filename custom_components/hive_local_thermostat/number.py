@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 
 from homeassistant.components.number import (
     NumberDeviceClass,
@@ -153,6 +154,7 @@ class HiveNumber(HiveEntity, RestoreNumber):
 
     entity_description: HiveNumberEntityDescription
     _state: float | None
+    _last_updated: datetime | None
 
     def __init__(
         self,
@@ -167,7 +169,6 @@ class HiveNumber(HiveEntity, RestoreNumber):
         self._attr_has_entity_name = True
         self._topic = entity_description.topic
         self._state = None
-        self._attributes = {}
         self._last_updated = None
 
         super().__init__(entity_description)
@@ -213,11 +214,6 @@ class HiveNumber(HiveEntity, RestoreNumber):
         ] = value
 
         self.async_write_ha_state()
-
-    @property
-    def extra_state_attributes(self):
-        """Attributes of the sensor."""
-        return self._attributes
 
     def process_update(self, mqtt_data) -> None:
         """Update the state of the sensor."""

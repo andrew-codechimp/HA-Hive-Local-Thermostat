@@ -80,9 +80,10 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         self._attr_unique_id = f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         self._attr_has_entity_name = True
         self._topic = entity_description.topic
-        self._attr_options = entity_description.options
         self._attr_current_option = None
         self._mqtt_data = None
+        if entity_description.options:
+            self._attr_options = entity_description.options
 
         super().__init__(entity_description)
 

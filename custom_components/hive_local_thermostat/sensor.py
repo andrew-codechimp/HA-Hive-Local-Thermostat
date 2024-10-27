@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any, cast
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -36,7 +38,9 @@ class HiveSensorEntityDescription(
 ):
     """Class describing Hive sensor entities."""
 
-    func: any | None = None
+    icons_by_state: dict[str, str] | None = None
+    value_fn: Callable[[dict[str, Any]], str | int | float | None]
+    # value_fn: any | None = None
     running_state: bool = False
 
 
@@ -60,7 +64,8 @@ async def async_setup_entry(
                     "preheating": "mdi:radiator",
                 },
                 name=config_entry.title,
-                func=lambda js: js["running_state_heat"],
+                value_fn=lambda data: cast(str, data["running_state_heat"]),
+                # value_fn=lambda js: js["running_state_heat"],
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
@@ -74,7 +79,8 @@ async def async_setup_entry(
                 device_class=SensorDeviceClass.TEMPERATURE,
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 suggested_display_precision=1,
-                func=lambda js: js["local_temperature_heat"],
+                value_fn=lambda data: cast(float, data["local_temperature_heat"]),
+                # value_fn=lambda js: js["local_temperature_heat"],
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
@@ -89,7 +95,8 @@ async def async_setup_entry(
                     "off": "mdi:water-boiler-off",
                 },
                 name=config_entry.title,
-                func=lambda js: js["running_state_water"],
+                value_fn=lambda data: cast(str, data["running_state_water"]),
+                # value_fn=lambda js: js["running_state_water"],
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
@@ -109,7 +116,8 @@ async def async_setup_entry(
                     "preheating": "mdi:radiator",
                 },
                 name=config_entry.title,
-                func=lambda js: js["running_state"],
+                value_fn=lambda data: cast(str, data["running_state"]),
+                # value_fn=lambda js: js["running_state"],
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
@@ -123,7 +131,8 @@ async def async_setup_entry(
                 device_class=SensorDeviceClass.TEMPERATURE,
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 suggested_display_precision=1,
-                func=lambda js: js["local_temperature"],
+                value_fn=lambda data: cast(float, data["local_temperature"]),
+                # value_fn=lambda js: js["local_temperature"],
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
@@ -158,7 +167,7 @@ class HiveSensor(HiveEntity, SensorEntity):
             f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         )
         self._attr_has_entity_name = True
-        self._func = entity_description.func
+        self._func = entity_description.value_fn
         self._topic = entity_description.topic
 
         super().__init__(entity_description)
@@ -174,9 +183,12 @@ class HiveSensor(HiveEntity, SensorEntity):
         if self.entity_description.running_state:
             if new_value == "":
                 new_value = "preheating"
-            self._attr_icon = self.entity_description.icons_by_state.get(
-                new_value, ICON_UNKNOWN
-            )
+            if self.entity_description.icons_by_state:
+                self._attr_icon = self.entity_description.icons_by_state.get(
+                    cast(str, new_value), ICON_UNKNOWN
+                )
+            else:
+                self._attr_icon = ICON_UNKNOWN
 
         if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
             new_value = show_temp(

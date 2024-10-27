@@ -17,7 +17,6 @@ class HiveEntityDescription(EntityDescription):
     entity_id: str | None = None
     topic: str
     entry_id: str | None = None
-    icons_by_state: dict[str, str] | None = None
     model: str | None = None
 
 class HiveEntity(Entity):
