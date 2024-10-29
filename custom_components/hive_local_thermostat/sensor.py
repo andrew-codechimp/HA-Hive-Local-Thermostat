@@ -193,8 +193,8 @@ class HiveSensor(HiveEntity, SensorEntity):
         if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
             new_value = show_temp(
                 self.hass,
-                new_value,
-                self.entity_description.native_unit_of_measurement,
+                cast(float, new_value),
+                self.entity_description.native_unit_of_measurement or UnitOfTemperature.CELSIUS,
                 PRECISION_TENTHS,
             )
 
