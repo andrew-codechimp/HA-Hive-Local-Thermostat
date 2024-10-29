@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from asyncio import sleep
 from dataclasses import dataclass
+from typing import Any
 
 from homeassistant.components.climate import (
     PRESET_BOOST,
@@ -17,6 +18,7 @@ from homeassistant.components.climate import (
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    ATTR_TEMPERATURE,
     Platform,
     UnitOfTemperature,
 )
@@ -55,7 +57,7 @@ async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-):
+) -> None:
     """Set up the sensor platform."""
 
     hive_climate_entity_description = HiveClimateEntityDescription(
@@ -314,8 +316,10 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                     return self.get_entity_value("heating_frost_prevention")
                 return self._mqtt_data["occupied_heating_setpoint"]
 
-    async def async_set_temperature(self, temperature, **kwargs):
+    async def async_set_temperature(self, **kwargs):
         """Set the target temperature."""
+
+        temperature = kwargs.get(ATTR_TEMPERATURE)
 
         if self.entity_description.model == MODEL_SLR2:
             payload = r'{"occupied_heating_setpoint_heat":' + str(temperature) + r"}"

@@ -62,7 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     @callback
-    async def mqtt_message_received(message: ReceiveMessage):
+    async def mqtt_message_received(message: ReceiveMessage) -> None:
         """Handle received MQTT message."""
         topic = message.topic
         payload = message.payload
