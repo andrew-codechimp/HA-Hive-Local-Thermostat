@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from asyncio import sleep
 from dataclasses import dataclass
-from typing import Any
 
 from homeassistant.components.climate import (
     PRESET_BOOST,
