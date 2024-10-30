@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.helpers.entity import DeviceInfo, Entity, EntityDescription
 
@@ -52,4 +52,4 @@ class HiveEntity(Entity):
         if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             return default
 
-        return self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default)
+        return cast(float, self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default))
