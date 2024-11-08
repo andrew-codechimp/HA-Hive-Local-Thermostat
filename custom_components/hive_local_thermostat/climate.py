@@ -262,27 +262,20 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if self.entity_description.model == MODEL_SLR2:
             if "running_state_heat" not in self._mqtt_data:
                 return HVACAction.PREHEATING
-
-            if self._mqtt_data["running_state_heat"] == "idle":
-                return HVACAction.IDLE
-            if self._mqtt_data["running_state_heat"] == "":
-                return HVACAction.PREHEATING
-            if self._mqtt_data["running_state_heat"] == "heat":
-                return HVACAction.HEATING
-            if self._mqtt_data["running_state_heat"] == "off":
-                return HVACAction.OFF
+            running_state_heat = self._mqtt_data["running_state_heat"]
         else:
             if "running_state" not in self._mqtt_data:
                 return HVACAction.PREHEATING
+            running_state_heat = self._mqtt_data["running_state"]
 
-            if self._mqtt_data["running_state"] == "idle":
-                return HVACAction.IDLE
-            if self._mqtt_data["running_state"] == "":
-                return HVACAction.PREHEATING
-            if self._mqtt_data["running_state"] == "heat":
-                return HVACAction.HEATING
-            if self._mqtt_data["running_state"] == "off":
-                return HVACAction.OFF
+        if running_state_heat == "idle":
+            return HVACAction.IDLE
+        if running_state_heat == "" or running_state_heat is None:
+            return HVACAction.PREHEATING
+        if running_state_heat == "heat":
+            return HVACAction.HEATING
+        if running_state_heat == "off":
+            return HVACAction.OFF
 
     @property
     def current_temperature(self):

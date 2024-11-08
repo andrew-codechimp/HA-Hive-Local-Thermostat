@@ -64,8 +64,8 @@ async def async_setup_entry(
                     "preheating": "mdi:radiator",
                 },
                 name=config_entry.title,
-                value_fn=lambda data: cast(str, data["running_state_heat"]),
-                # value_fn=lambda js: js["running_state_heat"],
+                # value_fn=lambda data: cast(str, data["running_state_heat"]),
+                value_fn=lambda js: js["running_state_heat"],
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
@@ -181,7 +181,7 @@ class HiveSensor(HiveEntity, SensorEntity):
             new_value = ""
 
         if self.entity_description.running_state:
-            if new_value == "":
+            if new_value == "" or new_value is None:
                 new_value = "preheating"
             if self.entity_description.icons_by_state:
                 self._attr_icon = self.entity_description.icons_by_state.get(
