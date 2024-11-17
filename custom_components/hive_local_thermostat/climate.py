@@ -300,12 +300,12 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if self.entity_description.model == MODEL_SLR2:
             if "occupied_heating_setpoint_heat" in self._mqtt_data:
                 if self._mqtt_data["occupied_heating_setpoint_heat"] == 1:
-                    return self.get_entity_value("heating_frost_prevention")
+                    return self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)
                 return self._mqtt_data["occupied_heating_setpoint_heat"]
         else:
             if "occupied_heating_setpoint" in self._mqtt_data:
                 if self._mqtt_data["occupied_heating_setpoint"] == 1:
-                    return self.get_entity_value("heating_frost_prevention")
+                    return self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)
                 return self._mqtt_data["occupied_heating_setpoint"]
 
     async def async_set_temperature(self, **kwargs):
