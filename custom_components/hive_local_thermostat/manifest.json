@@ -13,5 +13,5 @@
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/issues",
   "requirements": [],
-  "version": "1.0.0"
+  "version": "1.0.0-dev"
 }
