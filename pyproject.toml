@@ -28,7 +28,7 @@ hass-nabucasa = "0.81.1"
 pre-commit = "4.0.1"
 pre-commit-hooks = "5.0.0"
 pylint = "3.3.2"
-ruff = "0.8.1"
+ruff = "0.8.2"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/issues"
