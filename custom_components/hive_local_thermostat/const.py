@@ -7,7 +7,7 @@ from typing import Final
 
 LOGGER: Logger = getLogger(__package__)
 
-MIN_HA_VERSION = "2024.7"
+MIN_HA_VERSION = "2024.12"
 
 manifestfile = Path(__file__).parent / "manifest.json"
 with open(file=manifestfile, encoding="UTF-8") as json_file:
