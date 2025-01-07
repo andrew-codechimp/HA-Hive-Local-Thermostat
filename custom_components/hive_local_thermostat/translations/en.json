@@ -41,6 +41,14 @@
         }
     },
     "entity": {
+        "binary_sensor": {
+            "heat_boost": {
+                "name": "Heating boost"
+            },
+            "water_boost": {
+                "name": "Water boost"
+            }
+        },
         "sensor": {
             "local_temperature_heat": {
                 "name": "Current temperature"

@@ -40,7 +40,6 @@ class HiveSensorEntityDescription(
 
     icons_by_state: dict[str, str] | None = None
     value_fn: Callable[[dict[str, Any]], str | int | float | None]
-    # value_fn: any | None = None
     running_state: bool = False
 
 
