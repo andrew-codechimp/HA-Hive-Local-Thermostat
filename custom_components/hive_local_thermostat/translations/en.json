@@ -69,6 +69,14 @@
                     "heat": "Heating",
                     "preheating": "Preheating"
                 }
+            },
+            "boost_remaining_heat": {
+                "name": "Heating boost remaining",
+                "unit_of_measurement": "minutes"
+            },
+            "boost_remaining_water": {
+                "name": "Water boost remaining",
+                "unit_of_measurement": "minutes"
             }
         },
         "climate": {
