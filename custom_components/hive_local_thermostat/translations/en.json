@@ -41,6 +41,14 @@
         }
     },
     "entity": {
+        "binary_sensor": {
+            "heat_boost": {
+                "name": "Heating boost"
+            },
+            "water_boost": {
+                "name": "Water boost"
+            }
+        },
         "sensor": {
             "local_temperature_heat": {
                 "name": "Current temperature"
@@ -61,6 +69,14 @@
                     "heat": "Heating",
                     "preheating": "Preheating"
                 }
+            },
+            "boost_remaining_heat": {
+                "name": "Heating boost remaining",
+                "unit_of_measurement": "minutes"
+            },
+            "boost_remaining_water": {
+                "name": "Water boost remaining",
+                "unit_of_measurement": "minutes"
             }
         },
         "climate": {

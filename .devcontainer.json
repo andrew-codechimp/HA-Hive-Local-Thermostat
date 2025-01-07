@@ -1,6 +1,6 @@
 {
     "name": "andrew-codechimp/hive-local-thermostat",
-    "image": "mcr.microsoft.com/vscode/devcontainers/python:3.12",
+    "image": "mcr.microsoft.com/devcontainers/python:dev-3.13",
     "features": {
         "ghcr.io/devcontainers/features/github-cli:1": {
             "installDirectlyFromGitHubRelease": true,

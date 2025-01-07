@@ -5,7 +5,7 @@ classifiers = [
   "Framework :: AsyncIO",
   "Intended Audience :: Developers",
   "Natural Language :: English",
-  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3",
 ]
 description = "HA-Hive-Local-Thermostat - Hive Local Thermostat for Home Assistant"
@@ -20,11 +20,10 @@ repository = "https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat"
 version = "0.0.0"
 
 [tool.poetry.dependencies]
-homeassistant = "2024.7.0"
-python = ">=3.12,<3.13"
+homeassistant = "2024.12.0"
+python = ">=3.13,<3.14"
 
 [tool.poetry.group.dev.dependencies]
-hass-nabucasa = "0.81.1"
 pre-commit = "4.0.1"
 pre-commit-hooks = "5.0.0"
 pylint = "3.3.3"
@@ -103,7 +102,7 @@ disable = [
 # free to run mypy on Windows, Linux, or macOS and get consistent
 # results.
 platform = "linux"
-python_version = "3.12"
+python_version = "3.13"
 
 # show error messages from unrelated files
 follow_imports = "normal"
