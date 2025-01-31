@@ -19,13 +19,19 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    CONF_MODEL,
     CONF_MQTT_TOPIC,
     DOMAIN,
     LOGGER,
     MIN_HA_VERSION,
+    MODEL_SLR2,
 )
 
-PLATFORMS: list[Platform] = [
+PLATFORMS_SLR1: list[Platform] = [
+    Platform.SENSOR, Platform.CLIMATE, Platform.NUMBER, Platform.BUTTON, Platform.BINARY_SENSOR
+]
+
+PLATFORMS_SLR2: list[Platform] = [
     Platform.SENSOR, Platform.CLIMATE, Platform.NUMBER, Platform.SELECT, Platform.BUTTON, Platform.BINARY_SENSOR
 ]
 
@@ -57,7 +63,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {}
     hass.data[DOMAIN][entry.entry_id][CONF_ENTITIES] = []
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(
+        entry,
+        PLATFORMS_SLR2 if entry.options[CONF_MODEL] == MODEL_SLR2 else PLATFORMS_SLR1)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
@@ -74,7 +82,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if entry.entry_id not in hass.data[DOMAIN]:
             return
 
-        for platform in PLATFORMS:
+        for platform in PLATFORMS_SLR2 if entry.options[CONF_MODEL] == MODEL_SLR2 else PLATFORMS_SLR1:
             for entity in hass.data[DOMAIN][entry.entry_id][platform]:
                 entity.process_update(parsed_data)
 
@@ -89,7 +97,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+    if unloaded := await hass.config_entries.async_unload_platforms(
+        entry,
+        PLATFORMS_SLR2 if entry.options[CONF_MODEL] == MODEL_SLR2 else PLATFORMS_SLR1):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unloaded
 
