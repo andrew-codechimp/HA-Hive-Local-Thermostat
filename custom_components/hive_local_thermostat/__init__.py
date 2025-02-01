@@ -37,6 +37,9 @@ PLATFORMS_SLR2: list[Platform] = [
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
+def get_platforms(model: str) -> list[Platform]:
+    """Return platforms for model."""
+    return PLATFORMS_SLR2 if model == MODEL_SLR2 else PLATFORMS_SLR1
 
 async def async_setup(
     hass: HomeAssistant,  # pylint: disable=unused-argument
@@ -55,7 +58,6 @@ async def async_setup(
 
     return True
 
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
@@ -65,7 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(
         entry,
-        PLATFORMS_SLR2 if entry.options[CONF_MODEL] == MODEL_SLR2 else PLATFORMS_SLR1)
+        get_platforms(entry.options[CONF_MODEL]))
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
@@ -82,7 +84,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if entry.entry_id not in hass.data[DOMAIN]:
             return
 
-        for platform in PLATFORMS_SLR2 if entry.options[CONF_MODEL] == MODEL_SLR2 else PLATFORMS_SLR1:
+        for platform in get_platforms(entry.options[CONF_MODEL]):
             for entity in hass.data[DOMAIN][entry.entry_id][platform]:
                 entity.process_update(parsed_data)
 
@@ -99,7 +101,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
     if unloaded := await hass.config_entries.async_unload_platforms(
         entry,
-        PLATFORMS_SLR2 if entry.options[CONF_MODEL] == MODEL_SLR2 else PLATFORMS_SLR1):
+        get_platforms(entry.options[CONF_MODEL])):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unloaded
 
