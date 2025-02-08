@@ -9,8 +9,6 @@
 
 Local Hive Thermostat MQTT integration for Home Assistant
 
-⚠️  [Zigbee2MQTT 2.0.0 and Hive control broken](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/discussions/63)
-
 *Please :star: this repo if you find it useful*  
 *If you want to show your support please*
 
