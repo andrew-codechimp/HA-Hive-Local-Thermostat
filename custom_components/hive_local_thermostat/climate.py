@@ -179,38 +179,61 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                         + str(self._pre_boost_occupied_heating_setpoint_heat)
                         + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
                     )
+
+                    payload_heating_setpoint = (
+                        r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
+                        + str(self._pre_boost_occupied_heating_setpoint_heat)
+                        + r'}'
+                    )
                 else:
                     payload = (
                         r'{"system_mode":"heat","occupied_heating_setpoint":'
                         + str(self._pre_boost_occupied_heating_setpoint_heat)
                         + r',"temperature_setpoint_hold":"1","temperature_setpoint_hold_duration":"0"}'
                     )
+
+                    payload_heating_setpoint = (
+                        r'{"system_mode_heat":"heat","occupied_heating_setpoint":'
+                        + str(self._pre_boost_occupied_heating_setpoint_heat)
+                        + r'}'
+                    )
             else:
-                if self.entity_description.model == MODEL_SLR2:
-                    payload = (
-                        r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
-                        + str(
+                heating_default_temperature = str(
                             self.get_entity_value(
                                 "heating_default_temperature",
                                 DEFAULT_HEATING_TEMPERATURE,
                             )
                         )
+                if self.entity_description.model == MODEL_SLR2:
+                    payload = (
+                        r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
+                        + heating_default_temperature
                         + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
+                    )
+
+                    payload_heating_setpoint = (
+                        r'{"system_mode_heat":"heat","occupied_heating_setpoint":'
+                        + heating_default_temperature
+                        + r'}'
                     )
                 else:
                     payload = (
                         r'{"system_mode":"heat","occupied_heating_setpoint":'
-                        + str(
-                            self.get_entity_value(
-                                "heating_default_temperature",
-                                DEFAULT_HEATING_TEMPERATURE,
-                            )
-                        )
+                        + heating_default_temperature
                         + r',"temperature_setpoint_hold":"1","temperature_setpoint_hold_duration":"0"}'
+                    )
+
+                    payload_heating_setpoint = (
+                        r'{"system_mode_heat":"heat","occupied_heating_setpoint":'
+                        + heating_default_temperature
+                        + r'}'
                     )
 
             LOGGER.debug("Sending to {self._topic}/set message {payload}")
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            await sleep(0.5)
+            LOGGER.debug("Sending to {self._topic}/set message {payload_heating_setpoint}")
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload_heating_setpoint)
         elif hvac_mode == HVACMode.OFF:
             if self.entity_description.model == MODEL_SLR2:
                 payload = (
