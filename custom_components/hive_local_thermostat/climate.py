@@ -212,7 +212,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                     )
 
                     payload_heating_setpoint = (
-                        r'{"system_mode_heat":"heat","occupied_heating_setpoint":'
+                        r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
                         + heating_default_temperature
                         + r'}'
                     )
