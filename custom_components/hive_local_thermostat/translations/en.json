@@ -120,5 +120,50 @@
                 "name": "Heating boost"
             }
         }
+    },
+    "services": {
+        "boost_heating": {
+            "name": "Boost heating",
+            "description": "Boost the heating.",
+            "fields": {
+                "config_entry_id": {
+                    "name": "Hive Thermostat",
+                    "description": "Select the Hive Thermostat to boost."
+                },
+                "temperature_to_boost": {
+                    "name": "Temperature",
+                    "description": "Temperature to boost to (or use default if omitted)."
+                },
+                "minutes_to_boost": {
+                    "name": "Minutes",
+                    "description": "Number of minutes to boost (or use default if omitted)."
+                }
+            }
+        },
+        "boost_water": {
+            "name": "Boost water",
+            "description": "Boost the water.",
+            "fields": {
+                "config_entry_id": {
+                    "name": "Hive Thermostat",
+                    "description": "Select the Hive Thermostat to boost."
+                },
+                "minutes_to_boost": {
+                    "name": "Minutes",
+                    "description": "Number of minutes to boost (or use default if omitted)."
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "not_loaded": {
+            "message": "{target} is not loaded."
+        },
+        "integration_not_found": {
+            "message": "Integration \"{target}\" not found in registry."
+        },
+        "wrong_model": {
+            "message": "This device does not support this action."
+        }
     }
 }
