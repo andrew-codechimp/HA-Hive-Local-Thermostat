@@ -1,6 +1,4 @@
 boost_heating:
-  name: Boost heating
-  description: "Boost the heating."
   fields:
     config_entry_id:
       required: true
@@ -27,8 +25,6 @@ boost_heating:
           step: 0.5
           mode: box
 boost_water:
-  name: Boost water
-  description: "Boost the water."
   fields:
     config_entry_id:
       required: true
