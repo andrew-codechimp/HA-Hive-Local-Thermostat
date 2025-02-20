@@ -82,6 +82,7 @@ def setup_services(hass: HomeAssistant) -> None:
     async def handle_heating_boost(call: ServiceCall) -> ServiceResponse:
         """Handle the service call."""
         entry = async_get_entry(hass, call.data[ATTR_CONFIG_ENTRY_ID])
+
         boost_minutes = cast(int, call.data.get(SERVICE_DATA_HEATING_BOOST_MINUTES,
             get_entity_value(hass, entry.entry_id, "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES)
         ))
@@ -118,6 +119,7 @@ def setup_services(hass: HomeAssistant) -> None:
     async def handle_water_boost(call: ServiceCall) -> ServiceResponse:
         """Handle the service call."""
         entry = async_get_entry(hass, call.data[ATTR_CONFIG_ENTRY_ID])
+
         boost_minutes = cast(int, call.data.get(SERVICE_DATA_WATER_BOOST_MINUTES,
             get_entity_value(hass, entry.entry_id, "water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)
         ))
