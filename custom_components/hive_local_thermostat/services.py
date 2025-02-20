@@ -127,7 +127,7 @@ def setup_services(hass: HomeAssistant) -> None:
                 + r"}"
             )
 
-        LOGGER.debug("Sending to {mqtt_topic}/set message {payload}")
+        LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
         await mqtt_client.async_publish(hass, mqtt_topic + "/set", payload)
 
         return None
@@ -151,7 +151,7 @@ def setup_services(hass: HomeAssistant) -> None:
                 + r',"temperature_setpoint_hold_water":1}'
             )
 
-            LOGGER.debug("Sending to {mqtt_topic}/set message {payload}")
+            LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
             await mqtt_client.async_publish(hass, mqtt_topic + "/set", payload)
         else:
             raise ServiceValidationError(

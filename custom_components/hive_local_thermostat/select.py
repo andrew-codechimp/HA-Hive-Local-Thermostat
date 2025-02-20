@@ -139,7 +139,7 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         elif option == "off":
             payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
 
-        LOGGER.debug("Sending to {self._topic}/set message {payload}")
+        LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
         await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         self._attr_current_option = option

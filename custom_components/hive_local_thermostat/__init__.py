@@ -80,7 +80,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         topic = message.topic
         payload = message.payload
         LOGGER.debug("Received message: %s", topic)
-        LOGGER.debug("  Payload: %s", payload)
+        LOGGER.debug("Payload: %s", payload)
 
         parsed_data = json.loads(payload)
 
