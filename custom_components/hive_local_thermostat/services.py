@@ -82,8 +82,13 @@ def setup_services(hass: HomeAssistant) -> None:
     async def handle_heating_boost(call: ServiceCall) -> ServiceResponse:
         """Handle the service call."""
         entry = async_get_entry(hass, call.data[ATTR_CONFIG_ENTRY_ID])
-        boost_minutes = cast(int, call.data.get(SERVICE_DATA_HEATING_BOOST_MINUTES, DEFAULT_HEATING_BOOST_MINUTES))
-        boost_temperature = cast(float, call.data.get(SERVICE_DATA_HEATING_BOOST_TEMPERATURE, DEFAULT_HEATING_BOOST_TEMPERATURE))
+        boost_minutes = cast(int, call.data.get(SERVICE_DATA_HEATING_BOOST_MINUTES,
+            get_entity_value(hass, entry.entry_id, "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES)
+        ))
+
+        boost_temperature = cast(float, call.data.get(SERVICE_DATA_HEATING_BOOST_TEMPERATURE,
+            get_entity_value(hass, entry.entry_id, "heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)
+        ))
 
         model=entry.options[CONF_MODEL]
         mqtt_topic=entry.options[CONF_MQTT_TOPIC]
@@ -91,39 +96,17 @@ def setup_services(hass: HomeAssistant) -> None:
         if model == MODEL_SLR2:
             payload = (
                 r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
-                + str(
-                    int(
-                        get_entity_value(hass, entry.entry_id,
-                            "heating_boost_duration", boost_minutes
-                        )
-                    )
-                )
+                + str(boost_minutes)
                 + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
-                + str(
-                    get_entity_value(hass, entry.entry_id,
-                        "heating_boost_temperature",
-                        boost_temperature,
-                    )
-                )
+                + str(boost_temperature)
                 + r"}"
             )
         else:
             payload = (
                 r'{"system_mode":"emergency_heating","temperature_setpoint_hold_duration":'
-                + str(
-                    int(
-                        get_entity_value(hass, entry.entry_id,
-                            "heating_boost_duration", boost_minutes
-                        )
-                    )
-                )
+                + str(boost_minutes)
                 + r',"temperature_setpoint_hold":1,"occupied_heating_setpoint":'
-                + str(
-                    get_entity_value(hass, entry.entry_id,
-                        "heating_boost_temperature",
-                        boost_temperature,
-                    )
-                )
+                + str(boost_temperature)
                 + r"}"
             )
 
@@ -135,7 +118,9 @@ def setup_services(hass: HomeAssistant) -> None:
     async def handle_water_boost(call: ServiceCall) -> ServiceResponse:
         """Handle the service call."""
         entry = async_get_entry(hass, call.data[ATTR_CONFIG_ENTRY_ID])
-        boost_minutes = cast(int, call.data.get(SERVICE_DATA_WATER_BOOST_MINUTES, DEFAULT_WATER_BOOST_MINUTES))
+        boost_minutes = cast(int, call.data.get(SERVICE_DATA_WATER_BOOST_MINUTES,
+            get_entity_value(hass, entry.entry_id, "water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)
+        ))
 
         model=entry.options[CONF_MODEL]
         mqtt_topic=entry.options[CONF_MQTT_TOPIC]
@@ -143,11 +128,7 @@ def setup_services(hass: HomeAssistant) -> None:
         if model == MODEL_SLR2:
             payload = (
                 r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
-                + str(
-                    get_entity_value(hass, entry.entry_id,
-                        "water_boost_duration", boost_minutes
-                    )
-                )
+                + str(boost_minutes)
                 + r',"temperature_setpoint_hold_water":1}'
             )
 
