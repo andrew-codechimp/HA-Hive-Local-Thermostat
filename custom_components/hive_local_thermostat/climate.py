@@ -242,34 +242,28 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                         + r'}'
                     )
             else:
-                heating_default_temperature = str(self._attr_target_temperature or
-                            self.get_entity_value(
-                                "heating_default_temperature",
-                                DEFAULT_HEATING_TEMPERATURE,
-                            )
-                        )
                 if self.entity_description.model == MODEL_SLR2:
                     payload = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
-                        + heating_default_temperature
+                        + str(self._attr_target_temperature)
                         + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
                     )
 
                     payload_heating_setpoint = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
-                        + heating_default_temperature
+                        + str(self._attr_target_temperature)
                         + r'}'
                     )
                 else:
                     payload = (
                         r'{"system_mode":"heat","occupied_heating_setpoint":'
-                        + heating_default_temperature
+                        + str(self._attr_target_temperature)
                         + r',"temperature_setpoint_hold":"1","temperature_setpoint_hold_duration":"0"}'
                     )
 
                     payload_heating_setpoint = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint":'
-                        + heating_default_temperature
+                        + str(self._attr_target_temperature)
                         + r'}'
                     )
 

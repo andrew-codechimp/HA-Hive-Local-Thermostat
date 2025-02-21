@@ -105,9 +105,6 @@
             "heating_frost_prevention": {
                 "name": "Heating frost prevention"
             },
-            "heating_default_temperature": {
-                "name": "Heating default temperature"
-            },
             "heating_boost_temperature": {
                 "name": "Heating boost temperature"
             }
