@@ -6,6 +6,7 @@ from asyncio import sleep
 from dataclasses import dataclass
 
 from homeassistant.components.climate import (
+    ATTR_HVAC_MODE,
     PRESET_BOOST,
     PRESET_NONE,
     ClimateEntity,
@@ -111,48 +112,89 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._attr_target_temperature_step = 0.5
 
         self._mqtt_data = None
-        self._pre_boost_hvac_mode = None
-        self._pre_boost_occupied_heating_setpoint_heat = None
+        self._pre_boost_hvac_mode: HVACMode | None = None
+        self._pre_boost_occupied_heating_setpoint_heat: float | None = None
 
         super().__init__(entity_description)
 
-    @property
-    def hvac_mode(self):
-        """Get the current hvac mode."""
+    async def async_set_temperature(self, **kwargs):
+        """Set the target temperature."""
+        if temperature := kwargs.get(ATTR_TEMPERATURE):
+            self._target_temp = temperature
 
-        if not self._mqtt_data:
-            return
+        if hvac_mode := kwargs.get(ATTR_HVAC_MODE):
+            await self.async_set_hvac_mode(hvac_mode)
 
-        if self.entity_description.model == MODEL_SLR2:
-            if (
-                self._mqtt_data["system_mode_heat"] == "heat"
-                and self._mqtt_data["temperature_setpoint_hold_duration_heat"] != 65535
-            ):
-                return HVACMode.AUTO
-            if self._mqtt_data["system_mode_heat"] == "emergency_heating":
-                return HVACMode.HEAT
-            if (
-                self._mqtt_data["system_mode_heat"] == "heat"
-                and self._mqtt_data["temperature_setpoint_hold_duration_heat"] == 65535
-            ):
-                return HVACMode.HEAT
-            if self._mqtt_data["system_mode_heat"] == "off":
-                return HVACMode.OFF
+        if temperature:
+            if self.entity_description.model == MODEL_SLR2:
+               payload = r'{"occupied_heating_setpoint_heat":' + str(temperature) + r"}"
+            else:
+                payload = r'{"occupied_heating_setpoint":' + str(temperature) + r"}"
+
+            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+
+        # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
+        self.async_write_ha_state()
+
+    async def async_set_preset_mode(self, preset_mode):
+        """Set the preset mode."""
+
+        self._attr_preset_mode = preset_mode
+
+        if preset_mode == "boost":
+            self._pre_boost_hvac_mode = self._attr_hvac_mode
+            self._pre_boost_occupied_heating_setpoint_heat = self._attr_target_temperature
+
+            if self.entity_description.model == MODEL_SLR2:
+                payload = (
+                    r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
+                    + str(
+                        int(
+                            self.get_entity_value(
+                                "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES
+                            )
+                        )
+                    )
+                    + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
+                    + str(
+                        self.get_entity_value(
+                            "heating_boost_temperature",
+                            DEFAULT_HEATING_BOOST_TEMPERATURE,
+                        )
+                    )
+                    + r"}"
+                )
+            else:
+                payload = (
+                    r'{"system_mode":"emergency_heating","temperature_setpoint_hold_duration":'
+                    + str(
+                        int(
+                            self.get_entity_value(
+                                "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES
+                            )
+                        )
+                    )
+                    + r',"temperature_setpoint_hold":1,"occupied_heating_setpoint":'
+                    + str(
+                        self.get_entity_value(
+                            "heating_boost_temperature",
+                            DEFAULT_HEATING_BOOST_TEMPERATURE,
+                        )
+                    )
+                    + r"}"
+                )
+
+            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
         else:
-            if (
-                self._mqtt_data["system_mode"] == "heat"
-                and self._mqtt_data["temperature_setpoint_hold_duration"] != 65535
-            ):
-                return HVACMode.AUTO
-            if self._mqtt_data["system_mode"] == "emergency_heating":
-                return HVACMode.HEAT
-            if (
-                self._mqtt_data["system_mode"] == "heat"
-                and self._mqtt_data["temperature_setpoint_hold_duration"] == 65535
-            ):
-                return HVACMode.HEAT
-            if self._mqtt_data["system_mode"] == "off":
-                return HVACMode.OFF
+            if self._pre_boost_hvac_mode is not None:
+                await self.async_set_hvac_mode(self._pre_boost_hvac_mode)
+                self._pre_boost_hvac_mode = None
+                self._pre_boost_occupied_heating_setpoint_heat = None
+
+        # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
+        self.async_write_ha_state()
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set the hvac mode."""
@@ -198,7 +240,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                         + r'}'
                     )
             else:
-                heating_default_temperature = str(
+                heating_default_temperature = str(self._target_temp or
                             self.get_entity_value(
                                 "heating_default_temperature",
                                 DEFAULT_HEATING_TEMPERATURE,
@@ -273,76 +315,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         else:
             LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
-            return
 
-    @property
-    def hvac_action(self):
-        """Get the current action."""
-
-        if not self._mqtt_data:
-            return
-
-        if self.entity_description.model == MODEL_SLR2:
-            if "running_state_heat" not in self._mqtt_data:
-                return HVACAction.PREHEATING
-            running_state_heat = self._mqtt_data["running_state_heat"]
-        else:
-            if "running_state" not in self._mqtt_data:
-                return HVACAction.PREHEATING
-            running_state_heat = self._mqtt_data["running_state"]
-
-        if running_state_heat == "idle":
-            return HVACAction.IDLE
-        if running_state_heat == "" or running_state_heat is None:
-            return HVACAction.PREHEATING
-        if running_state_heat == "heat":
-            return HVACAction.HEATING
-        if running_state_heat == "off":
-            return HVACAction.OFF
-
-    @property
-    def current_temperature(self):
-        """Get the current temperature."""
-
-        if not self._mqtt_data:
-            return
-        if self.entity_description.model == MODEL_SLR2:
-            if "local_temperature_heat" in self._mqtt_data:
-                return self._mqtt_data["local_temperature_heat"]
-        else:
-            if "local_temperature" in self._mqtt_data:
-                return self._mqtt_data["local_temperature"]
-
-    @property
-    def target_temperature(self):
-        """Get the target temperature."""
-
-        if not self._mqtt_data:
-            return
-
-        if self.entity_description.model == MODEL_SLR2:
-            if "occupied_heating_setpoint_heat" in self._mqtt_data:
-                if self._mqtt_data["occupied_heating_setpoint_heat"] == 1:
-                    return self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)
-                return self._mqtt_data["occupied_heating_setpoint_heat"]
-        else:
-            if "occupied_heating_setpoint" in self._mqtt_data:
-                if self._mqtt_data["occupied_heating_setpoint"] == 1:
-                    return self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)
-                return self._mqtt_data["occupied_heating_setpoint"]
-
-    async def async_set_temperature(self, **kwargs):
-        """Set the target temperature."""
-
-        temperature = kwargs.get(ATTR_TEMPERATURE)
-
-        if self.entity_description.model == MODEL_SLR2:
-            payload = r'{"occupied_heating_setpoint_heat":' + str(temperature) + r"}"
-        else:
-            payload = r'{"occupied_heating_setpoint":' + str(temperature) + r"}"
-
-        LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-        await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
+        self.async_write_ha_state()
 
     def _climate_preset(self, mode):
         """Get the current preset."""
@@ -351,79 +326,98 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             (k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE]
         )
 
-    @property
-    def preset_mode(self):
-        """Get the preset mode."""
-
-        if not self._mqtt_data:
-            return
-
-        if self.entity_description.model == MODEL_SLR2:
-            if "system_mode_heat" in self._mqtt_data:
-                return self._climate_preset(self._mqtt_data["system_mode_heat"])
-        else:
-            if "system_mode" in self._mqtt_data:
-                return self._climate_preset(self._mqtt_data["system_mode"])
-
-    async def async_set_preset_mode(self, preset_mode):
-        """Set the preset mode."""
-
-        if preset_mode == "boost":
-            self._pre_boost_hvac_mode = self.hvac_mode
-            self._pre_boost_occupied_heating_setpoint_heat = self.target_temperature
-
-            if self.entity_description.model == MODEL_SLR2:
-                payload = (
-                    r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
-                    + str(
-                        int(
-                            self.get_entity_value(
-                                "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES
-                            )
-                        )
-                    )
-                    + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
-                    + str(
-                        self.get_entity_value(
-                            "heating_boost_temperature",
-                            DEFAULT_HEATING_BOOST_TEMPERATURE,
-                        )
-                    )
-                    + r"}"
-                )
-            else:
-                payload = (
-                    r'{"system_mode":"emergency_heating","temperature_setpoint_hold_duration":'
-                    + str(
-                        int(
-                            self.get_entity_value(
-                                "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES
-                            )
-                        )
-                    )
-                    + r',"temperature_setpoint_hold":1,"occupied_heating_setpoint":'
-                    + str(
-                        self.get_entity_value(
-                            "heating_boost_temperature",
-                            DEFAULT_HEATING_BOOST_TEMPERATURE,
-                        )
-                    )
-                    + r"}"
-                )
-
-            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
-        else:
-            if self._pre_boost_hvac_mode is not None:
-                await self.async_set_hvac_mode(self._pre_boost_hvac_mode)
-                self._pre_boost_hvac_mode = None
-                self._pre_boost_occupied_heating_setpoint_heat = None
-
     def process_update(self, mqtt_data) -> None:
         """Update the state of the sensor."""
 
         self._mqtt_data = mqtt_data
-        if (
-            self.hass is not None
-        ):  # this is a hack to get around the fact that the entity is not yet initialized at first
-            self.async_schedule_update_ha_state()
+
+        # This is a hack to get around the fact that the entity is not yet initialized at first
+        if self.hass is not None:
+            return
+
+        # Current Temperature
+        if self.entity_description.model == MODEL_SLR2:
+            if "local_temperature_heat" in self._mqtt_data:
+                self._attr_current_temperature = self._mqtt_data["local_temperature_heat"]
+        else:
+            if "local_temperature" in self._mqtt_data:
+                self._attr_current_temperature = self._mqtt_data["local_temperature"]
+
+        # Target Temperature
+        if self.entity_description.model == MODEL_SLR2:
+            if "occupied_heating_setpoint_heat" in self._mqtt_data:
+                if self._mqtt_data["occupied_heating_setpoint_heat"] == 1:
+                    self._attr_target_temperature = self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)
+                else:
+                    self._attr_target_temperature = self._mqtt_data["occupied_heating_setpoint_heat"]
+        else:
+            if "occupied_heating_setpoint" in self._mqtt_data:
+                if self._mqtt_data["occupied_heating_setpoint"] == 1:
+                    self._attr_target_temperature = self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)
+                else:
+                    self._attr_target_temperature = self._mqtt_data["occupied_heating_setpoint"]
+
+        # Preset Mode
+        self._attr_preset_mode = None
+        if self.entity_description.model == MODEL_SLR2:
+            if "system_mode_heat" in self._mqtt_data:
+                self._attr_preset_mode = self._climate_preset(self._mqtt_data["system_mode_heat"])
+        else:
+            if "system_mode" in self._mqtt_data:
+                self._attr_preset_mode = self._climate_preset(self._mqtt_data["system_mode"])
+
+        # HVAC Action
+        self._attr_hvac_action = None
+        if self.entity_description.model == MODEL_SLR2:
+            if "running_state_heat" not in self._mqtt_data:
+                self._attr_hvac_action = HVACAction.PREHEATING
+            running_state_heat = self._mqtt_data["running_state_heat"]
+        else:
+            if "running_state" not in self._mqtt_data:
+                self._attr_hvac_action = HVACAction.PREHEATING
+            running_state_heat = self._mqtt_data["running_state"]
+
+        if not self._attr_hvac_action:
+            if running_state_heat == "idle":
+                self._attr_hvac_action = HVACAction.IDLE
+            if running_state_heat == "" or running_state_heat is None:
+                self._attr_hvac_action = HVACAction.PREHEATING
+            if running_state_heat == "heat":
+                self._attr_hvac_action = HVACAction.HEATING
+            if running_state_heat == "off":
+                self._attr_hvac_action = HVACAction.OFF
+
+        # HVAC Mode
+        self._attr_hvac_mode = None
+        if self.entity_description.model == MODEL_SLR2:
+            if (
+                self._mqtt_data["system_mode_heat"] == "heat"
+                and self._mqtt_data["temperature_setpoint_hold_duration_heat"] != 65535
+            ):
+                self._attr_hvac_mode = HVACMode.AUTO
+            if self._mqtt_data["system_mode_heat"] == "emergency_heating":
+                self._attr_hvac_mode = HVACMode.HEAT
+            if (
+                self._mqtt_data["system_mode_heat"] == "heat"
+                and self._mqtt_data["temperature_setpoint_hold_duration_heat"] == 65535
+            ):
+                self._attr_hvac_mode = HVACMode.HEAT
+            if self._mqtt_data["system_mode_heat"] == "off":
+                self._attr_hvac_mode = HVACMode.OFF
+        else:
+            if (
+                self._mqtt_data["system_mode"] == "heat"
+                and self._mqtt_data["temperature_setpoint_hold_duration"] != 65535
+            ):
+                self._attr_hvac_mode = HVACMode.AUTO
+            if self._mqtt_data["system_mode"] == "emergency_heating":
+                self._attr_hvac_mode = HVACMode.HEAT
+            if (
+                self._mqtt_data["system_mode"] == "heat"
+                and self._mqtt_data["temperature_setpoint_hold_duration"] == 65535
+            ):
+                self._attr_hvac_mode = HVACMode.HEAT
+            if self._mqtt_data["system_mode"] == "off":
+                self._attr_hvac_mode = HVACMode.OFF
+
+        self.async_schedule_update_ha_state()
