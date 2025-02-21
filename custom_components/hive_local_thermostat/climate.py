@@ -96,6 +96,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.AUTO]
+        self._attr_hvac_mode = None
+        self._attr_preset_modes = list(PRESET_MAP.keys())
+        self._attr_preset_mode = None
 
         # Setting the new TURN_ON / TURN_OFF features isn't enough to make stop the
         # warning message about not setting them
@@ -106,7 +109,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             | ClimateEntityFeature.TARGET_TEMPERATURE
             | ClimateEntityFeature.PRESET_MODE
         )
-        self._attr_preset_modes = list(PRESET_MAP.keys())
+
         self._attr_max_temp = 32
         self._attr_min_temp = 15
         self._attr_target_temperature_step = 0.5
@@ -120,7 +123,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
     async def async_set_temperature(self, **kwargs):
         """Set the target temperature."""
         if temperature := kwargs.get(ATTR_TEMPERATURE):
-            self._target_temp = temperature
+            self._attr_target_temperature = temperature
 
         if hvac_mode := kwargs.get(ATTR_HVAC_MODE):
             await self.async_set_hvac_mode(hvac_mode)
@@ -332,7 +335,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._mqtt_data = mqtt_data
 
         # This is a hack to get around the fact that the entity is not yet initialized at first
-        if self.hass is not None:
+        if self.hass is None:
             return
 
         # Current Temperature
