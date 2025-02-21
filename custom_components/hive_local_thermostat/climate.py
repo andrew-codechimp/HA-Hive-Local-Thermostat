@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from asyncio import sleep
 from dataclasses import dataclass
+from math import floor
 
 from homeassistant.components.climate import (
     ATTR_HVAC_MODE,
@@ -116,28 +117,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         self._pre_boost_hvac_mode: HVACMode | None = None
         self._pre_boost_occupied_heating_setpoint_heat: float | None = None
+        self._hvac_mode_set_from_temperature = False
 
         super().__init__(entity_description)
-
-    async def async_set_temperature(self, **kwargs):
-        """Set the target temperature."""
-        if temperature := kwargs.get(ATTR_TEMPERATURE):
-            self._attr_target_temperature = temperature
-
-        if hvac_mode := kwargs.get(ATTR_HVAC_MODE):
-            await self.async_set_hvac_mode(hvac_mode)
-
-        if temperature:
-            if self.entity_description.model == MODEL_SLR2:
-               payload = r'{"occupied_heating_setpoint_heat":' + str(temperature) + r"}"
-            else:
-                payload = r'{"occupied_heating_setpoint":' + str(temperature) + r"}"
-
-            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
-
-        # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
-        self.async_write_ha_state()
 
     async def async_set_preset_mode(self, preset_mode):
         """Set the preset mode."""
@@ -198,6 +180,27 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
 
+    async def async_set_temperature(self, **kwargs):
+        """Set the target temperature."""
+        if temperature := kwargs.get(ATTR_TEMPERATURE):
+            self._attr_target_temperature = temperature
+
+        if hvac_mode := kwargs.get(ATTR_HVAC_MODE):
+            self._hvac_mode_set_from_temperature = True
+            await self.async_set_hvac_mode(hvac_mode)
+
+        if temperature:
+            if self.entity_description.model == MODEL_SLR2:
+               payload = r'{"occupied_heating_setpoint_heat":' + str(temperature) + r"}"
+            else:
+                payload = r'{"occupied_heating_setpoint":' + str(temperature) + r"}"
+
+            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
+            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+
+        # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
+        self.async_write_ha_state()
+
     async def async_set_hvac_mode(self, hvac_mode):
         """Set the hvac mode."""
 
@@ -242,6 +245,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                         + r'}'
                     )
             else:
+                if not self._hvac_mode_set_from_temperature:
+                    # Get the current temperature and round down to nearest .5
+                    self._attr_target_temperature = floor(self._attr_current_temperature * 2) / 2
                 if self.entity_description.model == MODEL_SLR2:
                     payload = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
@@ -269,9 +275,11 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
             LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
             await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
-            await sleep(0.5)
-            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload_heating_setpoint)
+
+            if not self._hvac_mode_set_from_temperature:
+                await sleep(0.5)
+                LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
+                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload_heating_setpoint)
         elif hvac_mode == HVACMode.OFF:
             if self.entity_description.model == MODEL_SLR2:
                 payload = (
@@ -311,6 +319,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         else:
             LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
+
+        self._hvac_mode_set_from_temperature = False
 
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
