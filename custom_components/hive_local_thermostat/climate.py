@@ -243,7 +243,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                         + r'}'
                     )
             else:
-                heating_default_temperature = str(self._target_temp or
+                heating_default_temperature = str(self._attr_target_temperature or
                             self.get_entity_value(
                                 "heating_default_temperature",
                                 DEFAULT_HEATING_TEMPERATURE,
@@ -334,10 +334,6 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         self._mqtt_data = mqtt_data
 
-        # This is a hack to get around the fact that the entity is not yet initialized at first
-        if self.hass is None:
-            return
-
         # Current Temperature
         if self.entity_description.model == MODEL_SLR2:
             if "local_temperature_heat" in self._mqtt_data:
@@ -423,4 +419,6 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             if self._mqtt_data["system_mode"] == "off":
                 self._attr_hvac_mode = HVACMode.OFF
 
-        self.async_schedule_update_ha_state()
+        # This is a hack to get around the fact that the entity is not yet initialized at first
+        if self.hass is not None:
+            self.async_schedule_update_ha_state()
