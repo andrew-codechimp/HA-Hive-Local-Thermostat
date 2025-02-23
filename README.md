@@ -30,7 +30,7 @@ The integration supports native boost and native schedules. With schedules you c
 
 The numeric entities allow you to set defaults for boost times, heating boost temperature and also frost protection. Frost protection should be set to match what you have set on the Hive thermostat for an accurate display.
 
-Two actions are provided to natively boost the Heating and Water (SLR2 only), these can optionally take a duration and temperature (heating only), these actions allow you to make custom buttons/scripts/automations to add additional control over the default boost buttons.
+Two actions are provided to natively boost the Heating `hive_local_thermostat.boost_heating` and Water `hive_local_thermostat.boost_water` (SLR2 only), these can optionally take a duration and temperature (heating only), these actions allow you to make custom buttons/scripts/automations to add additional control over the default boost buttons.
 
 ![Hive Screenshot](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/blob/main/images/screenshot.png "Hive Controls")
 
