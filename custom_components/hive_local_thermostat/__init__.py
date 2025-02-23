@@ -98,10 +98,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass, topic, mqtt_message_received, 1
     )
 
+    # Send an initial message to get the current state
     await sleep(2)
-
-    # Send a message to get the current state
-    topic = entry.options[CONF_MQTT_TOPIC]
     payload = r'{"system_mode":""}'
     LOGGER.debug("Sending to %s/get message %s", topic, payload)
     await mqtt_client.async_publish(hass, topic + "/get", payload)
