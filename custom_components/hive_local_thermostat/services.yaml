@@ -11,7 +11,7 @@ boost_heating:
       required: true
       selector:
         number:
-          min: 1
+          min: 15
           max: 180
           mode: box
     temperature_to_boost:
@@ -37,6 +37,6 @@ boost_water:
       required: true
       selector:
         number:
-          min: 1
+          min: 15
           max: 180
           mode: box
