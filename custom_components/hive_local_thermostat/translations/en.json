@@ -129,11 +129,11 @@
                 },
                 "temperature_to_boost": {
                     "name": "Temperature",
-                    "description": "Temperature to boost to (or use default if omitted)."
+                    "description": "Temperature to boost to."
                 },
                 "minutes_to_boost": {
                     "name": "Minutes",
-                    "description": "Number of minutes to boost (or use default if omitted)."
+                    "description": "Number of minutes to boost."
                 }
             }
         },
@@ -147,7 +147,7 @@
                 },
                 "minutes_to_boost": {
                     "name": "Minutes",
-                    "description": "Number of minutes to boost (or use default if omitted)."
+                    "description": "Number of minutes to boost."
                 }
             }
         }
