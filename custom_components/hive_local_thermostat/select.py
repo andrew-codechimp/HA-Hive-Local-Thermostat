@@ -89,15 +89,14 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
 
     def process_update(self, mqtt_data: dict[str, Any]) -> None:
         """Update the state of the sensor."""
-        self._mqtt_data = mqtt_data
 
-        if self._mqtt_data["system_mode_water"] == "heat" and self._mqtt_data["temperature_setpoint_hold_duration_water"] !=65535:
+        if mqtt_data["system_mode_water"] == "heat" and mqtt_data["temperature_setpoint_hold_duration_water"] !=65535:
             new_value = "auto"
-        if self._mqtt_data["system_mode_water"] == "emergency_heating":
+        if mqtt_data["system_mode_water"] == "emergency_heating":
             new_value = "boost"
-        if self._mqtt_data["system_mode_water"] == "heat" and self._mqtt_data["temperature_setpoint_hold_duration_water"] ==65535:
+        if mqtt_data["system_mode_water"] == "heat" and mqtt_data["temperature_setpoint_hold_duration_water"] ==65535:
             new_value = "heat"
-        if self._mqtt_data["system_mode_water"] == "off":
+        if mqtt_data["system_mode_water"] == "off":
             new_value = "off"
 
         if new_value not in self.options:
@@ -139,7 +138,7 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         elif option == "off":
             payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
 
-        LOGGER.debug("Sending to {self._topic}/set message {payload}")
+        LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
         await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
 
         self._attr_current_option = option

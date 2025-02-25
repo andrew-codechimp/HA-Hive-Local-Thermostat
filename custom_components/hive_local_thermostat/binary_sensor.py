@@ -76,7 +76,7 @@ async def async_setup_entry(
                 translation_key="heat_boost",
                 icon="mdi:rocket-launch",
                 name=config_entry.title,
-                value_fn=lambda js: js["system_mode_heat"]=="emergency_heating",
+                value_fn=lambda js: js["system_mode"]=="emergency_heating",
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],

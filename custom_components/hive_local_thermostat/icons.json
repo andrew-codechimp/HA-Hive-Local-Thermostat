@@ -1,0 +1,10 @@
+{
+  "services": {
+    "boost_heating": {
+      "service": "mdi:rocket-launch"
+    },
+    "boost_water": {
+      "service": "mdi:rocket-launch"
+    }
+  }
+}

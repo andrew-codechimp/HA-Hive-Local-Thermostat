@@ -7,6 +7,7 @@ https://github.com/andrew-codechimp/HA_Hive_Local_Thermostat
 from __future__ import annotations
 
 import json
+from asyncio import sleep
 
 from awesomeversion.awesomeversion import AwesomeVersion
 from homeassistant.components.mqtt import client as mqtt_client
@@ -26,6 +27,7 @@ from .const import (
     MIN_HA_VERSION,
     MODEL_SLR2,
 )
+from .services import setup_services
 
 PLATFORMS_SLR1: list[Platform] = [
     Platform.SENSOR, Platform.CLIMATE, Platform.NUMBER, Platform.BUTTON, Platform.BINARY_SENSOR
@@ -56,6 +58,8 @@ async def async_setup(
         LOGGER.critical(msg)
         return False
 
+    setup_services(hass)
+
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -77,7 +81,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         topic = message.topic
         payload = message.payload
         LOGGER.debug("Received message: %s", topic)
-        LOGGER.debug("  Payload: %s", payload)
+        LOGGER.debug("Payload: %s", payload)
 
         parsed_data = json.loads(payload)
 
@@ -93,6 +97,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await mqtt_client.async_subscribe(
         hass, topic, mqtt_message_received, 1
     )
+
+    # Send an initial message to get the current state
+    await sleep(2)
+    payload = r'{"system_mode":""}'
+    LOGGER.debug("Sending to %s/get message %s", topic, payload)
+    await mqtt_client.async_publish(hass, topic + "/get", payload)
 
     return True
 
