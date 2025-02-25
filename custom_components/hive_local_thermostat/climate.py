@@ -245,8 +245,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                     )
             else:
                 if not self._hvac_mode_set_from_temperature:
-                    # Get the current temperature and round down to nearest .5
-                    self._attr_target_temperature = floor(self._attr_current_temperature * 2) / 2
+                    if self._attr_current_temperature:
+                        # Get the current temperature and round down to nearest .5
+                        self._attr_target_temperature = floor((self._attr_current_temperature) * 2) / 2
                 if self.entity_description.model == MODEL_SLR2:
                     payload = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
