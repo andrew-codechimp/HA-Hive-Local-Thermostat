@@ -17,6 +17,9 @@ from homeassistant.helpers import config_validation as cv
 from .const import (
     CONF_MODEL,
     CONF_MQTT_TOPIC,
+    DEFAULT_HEATING_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_TEMPERATURE,
+    DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
     MODEL_SLR2,
@@ -34,15 +37,15 @@ ATTR_CONFIG_ENTRY_ID = "config_entry_id"
 SERVICE_HEATING_BOOST_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_CONFIG_ENTRY_ID): str,
-        vol.Required(SERVICE_DATA_HEATING_BOOST_MINUTES): cv.positive_int,
-        vol.Required(SERVICE_DATA_HEATING_BOOST_TEMPERATURE): cv.positive_float,
+        vol.Optional(SERVICE_DATA_HEATING_BOOST_MINUTES): cv.positive_int,
+        vol.Optional(SERVICE_DATA_HEATING_BOOST_TEMPERATURE): cv.positive_float,
     }
 )
 
 SERVICE_WATER_BOOST_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_CONFIG_ENTRY_ID): str,
-        vol.Required(SERVICE_DATA_WATER_BOOST_MINUTES): cv.positive_int,
+        vol.Optional(SERVICE_DATA_WATER_BOOST_MINUTES): cv.positive_int,
     }
 )
 
@@ -65,6 +68,14 @@ def async_get_entry(hass: HomeAssistant, config_entry_id: str) -> ConfigEntry:
         )
     return entry
 
+def get_entity_value(hass: HomeAssistant, entry_id: str, entity_key: str, default: float) -> float:
+    """Get an entities value store in hass data."""
+    if entry_id not in hass.data[DOMAIN]:
+        return default
+
+    return cast(float, hass.data[DOMAIN][entry_id].get(entity_key, default))
+
+
 def setup_services(hass: HomeAssistant) -> None:
     """Set up the services used by Hive Local Thermostat component."""
 
@@ -72,9 +83,13 @@ def setup_services(hass: HomeAssistant) -> None:
         """Handle the service call."""
         entry = async_get_entry(hass, call.data[ATTR_CONFIG_ENTRY_ID])
 
-        boost_minutes = cast(int, call.data.get(SERVICE_DATA_HEATING_BOOST_MINUTES))
+        boost_minutes = cast(int, call.data.get(SERVICE_DATA_HEATING_BOOST_MINUTES,
+            get_entity_value(hass, entry.entry_id, "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES)
+        ))
 
-        boost_temperature = cast(float, call.data.get(SERVICE_DATA_HEATING_BOOST_TEMPERATURE))
+        boost_temperature = cast(float, call.data.get(SERVICE_DATA_HEATING_BOOST_TEMPERATURE,
+            get_entity_value(hass, entry.entry_id, "heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)
+        ))
 
         model=entry.options[CONF_MODEL]
         mqtt_topic=entry.options[CONF_MQTT_TOPIC]
@@ -105,7 +120,9 @@ def setup_services(hass: HomeAssistant) -> None:
         """Handle the service call."""
         entry = async_get_entry(hass, call.data[ATTR_CONFIG_ENTRY_ID])
 
-        boost_minutes = cast(int, call.data.get(SERVICE_DATA_WATER_BOOST_MINUTES))
+        boost_minutes = cast(int, call.data.get(SERVICE_DATA_WATER_BOOST_MINUTES,
+            get_entity_value(hass, entry.entry_id, "water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)
+        ))
 
         model=entry.options[CONF_MODEL]
         mqtt_topic=entry.options[CONF_MQTT_TOPIC]

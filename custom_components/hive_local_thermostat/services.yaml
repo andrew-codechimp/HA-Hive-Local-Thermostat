@@ -7,8 +7,8 @@ boost_heating:
           integration: hive_local_thermostat
     minutes_to_boost:
       name: Minutes
-      description: Number of minutes to boost.
-      required: true
+      description: Number of minutes to boost (or use default if omitted).
+      required: false
       selector:
         number:
           min: 15
@@ -16,8 +16,8 @@ boost_heating:
           mode: box
     temperature_to_boost:
       name: Temperature
-      description: Target temperature to boost to.
-      required: true
+      description: Target temperature to boost to (or use default if omitted).
+      required: false
       selector:
         number:
           min: 12
@@ -33,8 +33,8 @@ boost_water:
           integration: hive_local_thermostat
     minutes_to_boost:
       name: Minutes
-      description: Number of minutes to boost.
-      required: true
+      description: Number of minutes to boost (or use default if omitted).
+      required: false
       selector:
         number:
           min: 15
