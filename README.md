@@ -6,11 +6,10 @@
 [![License][license-shield]](LICENSE)
 [![hacs][hacsbadge]][hacs]
 
-
 Local Hive Thermostat MQTT integration for Home Assistant
 
-*Please :star: this repo if you find it useful*  
-*If you want to show your support please*
+_Please :star: this repo if you find it useful_  
+_If you want to show your support please_
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/codechimp)
 
