@@ -19,7 +19,7 @@ Zigbee2MQTT will expose the native sensors but Hive requires specific message st
 
 SLR1x and SLR2x thermostats are supported, this has been tested with an SLR2c and an SLR1c. If you have thoroughly tested a different model please let me know and I'll add it to the list of confirmed devices. As long as you have one of these receivers this integration will work with either the Hive mini or regular controller.
 
-Once you have the thermostat receiver added to Zigbee2MQTT, add a device via this integration and specify a friendly name, the Zibee2MQTT topic which should look something like this `zigbee2mqtt/HiveReceiver` (note this is case sensitive).
+Once you have the thermostat receiver added to Zigbee2MQTT, add a device via this integration and specify a friendly name, the Zigbee2MQTT topic which should look something like this `zigbee2mqtt/HiveReceiver` (note this is case sensitive).
 
 The new device created will have new sensors/controls available that will accurately show/send status changes.
 
