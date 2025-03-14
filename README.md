@@ -39,9 +39,9 @@ Two actions are provided to natively boost the Heating `hive_local_thermostat.bo
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=andrew-codechimp&repository=HA-Hive-Local-Thermostat&category=Integration)
 
-Restart Home Assistant  
+Restart Home Assistant
 
-In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Hive Local Thermostat"  
+In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Hive Local Thermostat"
 
 ### Manual Installation
 
@@ -56,12 +56,12 @@ Installation via HACS is recommended, but a manual setup is supported.
 
 </details>
 
-***
+---
 
 [commits-shield]: https://img.shields.io/github/commit-activity/y/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
 [commits]: https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/commits/main
 [hacs]: https://github.com/hacs/integration
-[hacsbadge]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge
+[hacsbadge]: https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge
 [exampleimg]: example.png
 [license-shield]: https://img.shields.io/github/license/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
