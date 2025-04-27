@@ -33,6 +33,8 @@ Two actions are provided to natively boost the Heating `hive_local_thermostat.bo
 
 ![Hive Screenshot](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/blob/main/images/screenshot.png "Hive Controls")
 
+This project is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by Hive.
+
 ## Installation
 
 ### HACS
@@ -55,7 +57,6 @@ Installation via HACS is recommended, but a manual setup is supported.
 1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Hive Local Thermostat"
 
 </details>
-
 ---
 
 [commits-shield]: https://img.shields.io/github/commit-activity/y/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
@@ -67,3 +68,4 @@ Installation via HACS is recommended, but a manual setup is supported.
 [releases-shield]: https://img.shields.io/github/release/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
 [releases]: https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/releases
 [download-latest-shield]: https://img.shields.io/github/downloads/andrew-codechimp/HA-Hive-Local-Thermostat/latest/total?style=for-the-badge
+
