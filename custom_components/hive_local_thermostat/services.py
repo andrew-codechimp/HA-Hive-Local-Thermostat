@@ -10,6 +10,7 @@ from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
     ServiceResponse,
+    callback,
 )
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
@@ -75,87 +76,85 @@ def get_entity_value(hass: HomeAssistant, entry_id: str, entity_key: str, defaul
 
     return cast(float, hass.data[DOMAIN][entry_id].get(entity_key, default))
 
-
-def setup_services(hass: HomeAssistant) -> None:
-    """Set up the services used by Hive Local Thermostat component."""
-
-    async def handle_heating_boost(call: ServiceCall) -> ServiceResponse:
-        """Handle the service call."""
-        entry = async_get_entry(hass, call.data[ATTR_CONFIG_ENTRY_ID])
-
-        boost_minutes = cast(int, call.data.get(SERVICE_DATA_HEATING_BOOST_MINUTES,
-            get_entity_value(hass, entry.entry_id, "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES)
-        ))
-
-        boost_temperature = cast(float, call.data.get(SERVICE_DATA_HEATING_BOOST_TEMPERATURE,
-            get_entity_value(hass, entry.entry_id, "heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)
-        ))
-
-        model=entry.options[CONF_MODEL]
-        mqtt_topic=entry.options[CONF_MQTT_TOPIC]
-
-        if model == MODEL_SLR2:
-            payload = (
-                r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
-                + str(boost_minutes)
-                + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
-                + str(boost_temperature)
-                + r"}"
-            )
-        else:
-            payload = (
-                r'{"system_mode":"emergency_heating","temperature_setpoint_hold_duration":'
-                + str(boost_minutes)
-                + r',"temperature_setpoint_hold":1,"occupied_heating_setpoint":'
-                + str(boost_temperature)
-                + r"}"
-            )
-
-        LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
-        await mqtt_client.async_publish(hass, mqtt_topic + "/set", payload)
-
-        return None
-
-    async def handle_water_boost(call: ServiceCall) -> ServiceResponse:
-        """Handle the service call."""
-        entry = async_get_entry(hass, call.data[ATTR_CONFIG_ENTRY_ID])
-
-        boost_minutes = cast(int, call.data.get(SERVICE_DATA_WATER_BOOST_MINUTES,
-            get_entity_value(hass, entry.entry_id, "water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)
-        ))
-
-        model=entry.options[CONF_MODEL]
-        mqtt_topic=entry.options[CONF_MQTT_TOPIC]
-
-        if model == MODEL_SLR2:
-            payload = (
-                r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
-                + str(boost_minutes)
-                + r',"temperature_setpoint_hold_water":1}'
-            )
-
-            LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
-            await mqtt_client.async_publish(hass, mqtt_topic + "/set", payload)
-        else:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="wrong_model",
-            )
-
-        return None
-
-
+@callback
+def async_setup_services(hass: HomeAssistant) -> None:
+    """Set up the services for the Mastodon integration."""
 
     hass.services.async_register(
         DOMAIN,
         SERVICE_HEATING_BOOST,
-        handle_heating_boost,
+        _async_heating_boost,
         schema=SERVICE_HEATING_BOOST_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
         SERVICE_WATER_BOOST,
-        handle_water_boost,
+        _async_water_boost,
         schema=SERVICE_WATER_BOOST_SCHEMA,
     )
+
+async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
+    """Handle the service call."""
+    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+
+    boost_minutes = cast(int, call.data.get(SERVICE_DATA_HEATING_BOOST_MINUTES,
+        get_entity_value(call.hass, entry.entry_id, "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES)
+    ))
+
+    boost_temperature = cast(float, call.data.get(SERVICE_DATA_HEATING_BOOST_TEMPERATURE,
+        get_entity_value(call.hass, entry.entry_id, "heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)
+    ))
+
+    model=entry.options[CONF_MODEL]
+    mqtt_topic=entry.options[CONF_MQTT_TOPIC]
+
+    if model == MODEL_SLR2:
+        payload = (
+            r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
+            + str(boost_minutes)
+            + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
+            + str(boost_temperature)
+            + r"}"
+        )
+    else:
+        payload = (
+            r'{"system_mode":"emergency_heating","temperature_setpoint_hold_duration":'
+            + str(boost_minutes)
+            + r',"temperature_setpoint_hold":1,"occupied_heating_setpoint":'
+            + str(boost_temperature)
+            + r"}"
+        )
+
+    LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
+    await mqtt_client.async_publish(call.hass, mqtt_topic + "/set", payload)
+
+    return None
+
+async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
+    """Handle the service call."""
+    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+
+    boost_minutes = cast(int, call.data.get(SERVICE_DATA_WATER_BOOST_MINUTES,
+        get_entity_value(call.hass, entry.entry_id, "water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)
+    ))
+
+    model=entry.options[CONF_MODEL]
+    mqtt_topic=entry.options[CONF_MQTT_TOPIC]
+
+    if model == MODEL_SLR2:
+        payload = (
+            r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
+            + str(boost_minutes)
+            + r',"temperature_setpoint_hold_water":1}'
+        )
+
+        LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
+        await mqtt_client.async_publish(call.hass, mqtt_topic + "/set", payload)
+    else:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="wrong_model",
+        )
+
+    return None

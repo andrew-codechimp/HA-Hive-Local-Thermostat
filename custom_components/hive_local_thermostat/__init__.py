@@ -27,7 +27,7 @@ from .const import (
     MIN_HA_VERSION,
     MODEL_SLR2,
 )
-from .services import setup_services
+from .services import async_setup_services
 
 PLATFORMS_SLR1: list[Platform] = [
     Platform.SENSOR, Platform.CLIMATE, Platform.NUMBER, Platform.BUTTON, Platform.BINARY_SENSOR
@@ -58,7 +58,7 @@ async def async_setup(
         LOGGER.critical(msg)
         return False
 
-    setup_services(hass)
+    async_setup_services(hass)
 
     return True
 
