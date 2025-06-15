@@ -83,6 +83,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         LOGGER.debug("Received message: %s", topic)
         LOGGER.debug("Payload: %s", payload)
 
+        if not payload:
+            LOGGER.error("Received empty payload on topic %s, check that you have the correct topic name", topic)
+            return
+
         parsed_data = json.loads(payload)
 
         if entry.entry_id not in hass.data[DOMAIN]:
