@@ -27,7 +27,7 @@ from .const import (
     MIN_HA_VERSION,
     MODEL_SLR2,
 )
-from .services import setup_services
+from .services import async_setup_services
 
 PLATFORMS_SLR1: list[Platform] = [
     Platform.SENSOR, Platform.CLIMATE, Platform.NUMBER, Platform.BUTTON, Platform.BINARY_SENSOR
@@ -58,7 +58,7 @@ async def async_setup(
         LOGGER.critical(msg)
         return False
 
-    setup_services(hass)
+    async_setup_services(hass)
 
     return True
 
@@ -82,6 +82,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         payload = message.payload
         LOGGER.debug("Received message: %s", topic)
         LOGGER.debug("Payload: %s", payload)
+
+        if not payload:
+            LOGGER.error("Received empty payload on topic %s, check that you have the correct topic name", topic)
+            return
 
         parsed_data = json.loads(payload)
 

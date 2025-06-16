@@ -2,6 +2,6 @@
     "name": "Hive Local Thermostat",
     "filename": "hive_local_thermostat.zip",
     "hide_default_branch": true,
-    "homeassistant": "2024.12.0",
+    "homeassistant": "2025.3.0",
     "zip_release": true
 }
