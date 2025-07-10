@@ -30,18 +30,29 @@ from .const import (
 from .services import async_setup_services
 
 PLATFORMS_SLR1: list[Platform] = [
-    Platform.SENSOR, Platform.CLIMATE, Platform.NUMBER, Platform.BUTTON, Platform.BINARY_SENSOR
+    Platform.SENSOR,
+    Platform.CLIMATE,
+    Platform.NUMBER,
+    Platform.BUTTON,
+    Platform.BINARY_SENSOR,
 ]
 
 PLATFORMS_SLR2: list[Platform] = [
-    Platform.SENSOR, Platform.CLIMATE, Platform.NUMBER, Platform.SELECT, Platform.BUTTON, Platform.BINARY_SENSOR
+    Platform.SENSOR,
+    Platform.CLIMATE,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.BUTTON,
+    Platform.BINARY_SENSOR,
 ]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
+
 def get_platforms(model: str) -> list[Platform]:
     """Return platforms for model."""
     return PLATFORMS_SLR2 if model == MODEL_SLR2 else PLATFORMS_SLR1
+
 
 async def async_setup(
     hass: HomeAssistant,  # pylint: disable=unused-argument
@@ -51,9 +62,9 @@ async def async_setup(
 
     if AwesomeVersion(HA_VERSION) < AwesomeVersion(MIN_HA_VERSION):  # pragma: no cover
         msg = (
-            "This integration requires at least HomeAssistant version "
+            "This integration requires at least Home Assistant version "
             f" {MIN_HA_VERSION}, you are running version {HA_VERSION}."
-            " Please upgrade HomeAssistant to continue use this integration."
+            " Please upgrade Home Assistant to continue using this integration."
         )
         LOGGER.critical(msg)
         return False
@@ -61,6 +72,7 @@ async def async_setup(
     async_setup_services(hass)
 
     return True
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
@@ -70,8 +82,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id][CONF_ENTITIES] = []
 
     await hass.config_entries.async_forward_entry_setups(
-        entry,
-        get_platforms(entry.options[CONF_MODEL]))
+        entry, get_platforms(entry.options[CONF_MODEL])
+    )
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
@@ -84,7 +96,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         LOGGER.debug("Payload: %s", payload)
 
         if not payload:
-            LOGGER.error("Received empty payload on topic %s, check that you have the correct topic name", topic)
+            LOGGER.error(
+                "Received empty payload on topic %s, check that you have the correct topic name",
+                topic,
+            )
             return
 
         parsed_data = json.loads(payload)
@@ -96,11 +111,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             for entity in hass.data[DOMAIN][entry.entry_id][platform]:
                 entity.process_update(parsed_data)
 
-    topic=entry.options[CONF_MQTT_TOPIC]
+    topic = entry.options[CONF_MQTT_TOPIC]
 
-    await mqtt_client.async_subscribe(
-        hass, topic, mqtt_message_received, 1
-    )
+    await mqtt_client.async_subscribe(hass, topic, mqtt_message_received, 1)
 
     # Send an initial message to get the current state
     await sleep(2)
@@ -114,8 +127,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
     if unloaded := await hass.config_entries.async_unload_platforms(
-        entry,
-        get_platforms(entry.options[CONF_MODEL])):
+        entry, get_platforms(entry.options[CONF_MODEL])
+    ):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unloaded
 
