@@ -21,6 +21,7 @@ from .const import (
     DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
+    MODEL_OTR1,
     MODEL_SLR1,
     WATER_MODES,
 )
@@ -42,7 +43,7 @@ async def async_setup_entry(
     ) -> None:
     """Set up the sensor platform."""
 
-    if config_entry.options[CONF_MODEL] == MODEL_SLR1:
+    if config_entry.options[CONF_MODEL] in [MODEL_SLR1, MODEL_OTR1]:
         return
 
     ENTITY_DESCRIPTIONS = (
