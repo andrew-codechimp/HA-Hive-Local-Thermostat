@@ -18,7 +18,7 @@ To use this integration your Hive thermostat receiver must be added to [Zigbee2M
 
 Zigbee2MQTT will expose the native sensors but Hive requires specific message structures to be sent for setting modes and a combination of sensor values to determine the modes, this integration creates controls and sensors that correctly interface with the native Hive values/methods.
 
-SLR1x, SLR2x and OTR1 (choose SLR1) thermostats are supported, this has been tested with an SLR2c, SLR1c and OTR1. If you have thoroughly tested a different model please let me know and I'll add it to the list of confirmed devices. As long as you have one of these receivers this integration will work with either the Hive mini or regular controller.
+SLR1x, SLR2x and OTR1 thermostats are supported, this has been tested with an SLR2c, SLR1c and OTR1. If you have thoroughly tested a different model please let me know and I'll add it to the list of confirmed devices. As long as you have one of these receivers this integration will work with either the Hive mini or regular controller.
 
 Once you have the thermostat receiver added to Zigbee2MQTT, add a device via this integration and specify a friendly name, the Zigbee2MQTT topic which should look something like this `zigbee2mqtt/HiveReceiver` (note this is case sensitive).
 
