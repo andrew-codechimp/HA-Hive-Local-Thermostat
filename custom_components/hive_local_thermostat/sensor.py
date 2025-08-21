@@ -203,7 +203,10 @@ class HiveSensor(HiveEntity, SensorEntity):
         try:
             new_value = self._func(mqtt_data)
         except KeyError:
-            new_value = ""
+            if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
+                new_value = 0
+            else:
+                new_value = ""
 
         if self.entity_description.running_state:
             if new_value == "" or new_value is None:

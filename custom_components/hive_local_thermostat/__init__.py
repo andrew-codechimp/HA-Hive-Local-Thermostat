@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from asyncio import sleep
+from dataclasses import dataclass
 
 from awesomeversion.awesomeversion import AwesomeVersion
 from homeassistant.components.mqtt import client as mqtt_client
@@ -48,6 +49,13 @@ PLATFORMS_SLR2: list[Platform] = [
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
+@dataclass
+class HiveData:
+    """Hive data type."""
+
+    platforms: list[Platform]
+
+type HiveConfigEntry = ConfigEntry[HiveData]
 
 def get_platforms(model: str) -> list[Platform]:
     """Return platforms for model."""
@@ -55,7 +63,7 @@ def get_platforms(model: str) -> list[Platform]:
 
 
 async def async_setup(
-    hass: HomeAssistant,  # pylint: disable=unused-argument
+    hass: HomeAssistant,
     config: ConfigType,  # pylint: disable=unused-argument
 ) -> bool:
     """Integration setup."""
@@ -74,18 +82,20 @@ async def async_setup(
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
 
     hass.data[DOMAIN][entry.entry_id] = {}
     hass.data[DOMAIN][entry.entry_id][CONF_ENTITIES] = []
 
-    await hass.config_entries.async_forward_entry_setups(
-        entry, get_platforms(entry.options[CONF_MODEL])
-    )
+    platforms = get_platforms(entry.options[CONF_MODEL])
 
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    entry.runtime_data = HiveData(platforms=platforms)
+
+    await hass.config_entries.async_forward_entry_setups(
+        entry, platforms
+    )
 
     @callback
     async def mqtt_message_received(message: ReceiveMessage) -> None:
@@ -104,6 +114,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         parsed_data = json.loads(payload)
 
+        if entry.options[CONF_MODEL] == MODEL_SLR2:
+            if "system_mode_heat" not in parsed_data:
+                LOGGER.error(
+                    "Received data does not contain 'system_mode_heat' for SLR2, check you have the correct mode set"
+                )
+                return
+        else:
+            if "system_mode_water" in parsed_data:
+                LOGGER.error(
+                    "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
+                )
+                return
+
         if entry.entry_id not in hass.data[DOMAIN]:
             return
 
@@ -113,7 +136,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     topic = entry.options[CONF_MQTT_TOPIC]
 
-    await mqtt_client.async_subscribe(hass, topic, mqtt_message_received, 1)
+    LOGGER.debug("Subscribing to MQTT topic: %s, will parse platforms for %s", topic, entry.options[CONF_MODEL])
+
+    entry.async_on_unload(
+        await mqtt_client.async_subscribe(hass, topic, mqtt_message_received, 1)
+    )
 
     # Send an initial message to get the current state
     await sleep(2)
@@ -121,25 +148,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     LOGGER.debug("Sending to %s/get message %s", topic, payload)
     await mqtt_client.async_publish(hass, topic + "/get", payload)
 
+    entry.async_on_unload(entry.add_update_listener(config_entry_update_listener))
+
     return True
 
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     """Handle removal of an entry."""
     if unloaded := await hass.config_entries.async_unload_platforms(
-        entry, get_platforms(entry.options[CONF_MODEL])
+        entry, entry.runtime_data.platforms
     ):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unloaded
 
+async def config_entry_update_listener(hass: HomeAssistant, entry: HiveConfigEntry) -> None:
+    """Update listener, called when the config entry options are changed."""
 
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
-
-
-@callback
-async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Update options."""
     await hass.config_entries.async_reload(entry.entry_id)
