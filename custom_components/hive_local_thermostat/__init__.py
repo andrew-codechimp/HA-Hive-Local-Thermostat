@@ -117,7 +117,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
         if entry.options[CONF_MODEL] == MODEL_SLR2:
             if "system_mode_heat" not in parsed_data:
                 LOGGER.error(
-                    "Received data does not contain 'system_mode_heat' for SLR2, check you have the correct mode set"
+                    "Received data does not contain 'system_mode_heat' for SLR2, check you have the correct model set"
                 )
                 return
         else:
