@@ -114,18 +114,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
 
         parsed_data = json.loads(payload)
 
-        if entry.options[CONF_MODEL] == MODEL_SLR2:
-            if "system_mode_heat" not in parsed_data:
-                LOGGER.error(
-                    "Received data does not contain 'system_mode_heat' for SLR2, check you have the correct model set"
-                )
-                return
-        else:
-            if "system_mode_water" in parsed_data:
-                LOGGER.error(
-                    "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
-                )
-                return
+        # if entry.options[CONF_MODEL] == MODEL_SLR2:
+        #     if "system_mode_heat" not in parsed_data:
+        #         LOGGER.error(
+        #             "Received data does not contain 'system_mode_heat' for SLR2, check you have the correct model set"
+        #         )
+        #         return
+        # else:
+        #     if "system_mode_water" in parsed_data:
+        #         LOGGER.error(
+        #             "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
+        #         )
+        #         return
 
         if entry.entry_id not in hass.data[DOMAIN]:
             return
