@@ -28,6 +28,7 @@ from .const import (
     MIN_HA_VERSION,
     MODEL_SLR2,
 )
+from .entity import HiveEntity
 from .services import async_setup_services
 
 PLATFORMS_SLR1: list[Platform] = [
@@ -132,7 +133,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
 
         for platform in get_platforms(entry.options[CONF_MODEL]):
             for entity in hass.data[DOMAIN][entry.entry_id][platform]:
-                entity.process_update(parsed_data)
+                if isinstance(entity, HiveEntity):
+                    entity.process_update(parsed_data)
 
     topic = entry.options[CONF_MQTT_TOPIC]
 

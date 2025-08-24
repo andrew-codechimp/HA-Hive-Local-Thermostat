@@ -117,7 +117,7 @@ class HiveBinarySensor(HiveEntity, BinarySensorEntity):
 
         super().__init__(entity_description)
 
-    def process_update(self, mqtt_data) -> None:
+    def process_update(self, mqtt_data):
         """Update the state of the sensor."""
 
         try:

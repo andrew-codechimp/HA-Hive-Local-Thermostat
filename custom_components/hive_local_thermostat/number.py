@@ -198,7 +198,7 @@ class HiveNumber(HiveEntity, RestoreNumber):
 
         self.async_write_ha_state()
 
-    def process_update(self, mqtt_data) -> None:
+    def process_update(self, mqtt_data):
         """Update the state of the sensor."""
         if (
             self.hass is not None

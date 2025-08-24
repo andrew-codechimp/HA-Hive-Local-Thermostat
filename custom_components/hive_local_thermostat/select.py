@@ -88,7 +88,7 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
 
         super().__init__(entity_description)
 
-    def process_update(self, mqtt_data: dict[str, Any]) -> None:
+    def process_update(self, mqtt_data: dict[str, Any]):
         """Update the state of the sensor."""
 
         if mqtt_data["system_mode_water"] == "heat" and mqtt_data["temperature_setpoint_hold_duration_water"] !=65535:

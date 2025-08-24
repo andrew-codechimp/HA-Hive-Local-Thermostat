@@ -43,7 +43,7 @@ class HiveEntity(Entity):
             self.entity_id = description.entity_id
 
     @abc.abstractmethod
-    def process_update(self, mqtt_data: dict[str, Any]) -> float | None:
+    def process_update(self, mqtt_data: dict[str, Any]):
         """To be implemented by entities to process updates from MQTT."""
         raise NotImplementedError('users must define process_update to use this base class')
 
