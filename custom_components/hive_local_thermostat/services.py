@@ -78,7 +78,7 @@ def get_entity_value(hass: HomeAssistant, entry_id: str, entity_key: str, defaul
 
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
-    """Set up the services for the Mastodon integration."""
+    """Set up the services for the hive_local_thermostat integration."""
 
     hass.services.async_register(
         DOMAIN,
