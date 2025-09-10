@@ -59,6 +59,16 @@ Installation via HACS is recommended, but a manual setup is supported.
 
 </details>
 
+## FAQ's
+
+- My boost remaining sensors are not counting down
+
+  By default Zigbee2MQTT will not send frequent updates to track boosts by the minute, they will update but this is typically every 10 minutes.
+
+  To change this within Zigbee2MQTT go into the receiver's reporting settings and change the following;  
+  Min Rep Change of any tempSetpointHoldDuration to 1  
+  If you have heat and water you will have two values under different Enpoints, with heat only you will have one.
+
 [commits-shield]: https://img.shields.io/github/commit-activity/y/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
 [commits]: https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/commits/main
 [hacs]: https://github.com/hacs/integration
