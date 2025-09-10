@@ -67,7 +67,7 @@ Installation via HACS is recommended, but a manual setup is supported.
 
   To change this within Zigbee2MQTT go into the receiver's reporting settings and change the following;  
   Min Rep Change of any tempSetpointHoldDuration to 1  
-  If you have heat and water you will have two values under different Enpoints, with heat only you will have one.
+  If you have heat and water you will have two values under different Endpoints, with heat only you will have one.
 
 [commits-shield]: https://img.shields.io/github/commit-activity/y/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
 [commits]: https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/commits/main
