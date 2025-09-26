@@ -400,7 +400,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             if mqtt_data["system_mode_heat"] == "off":
                 self._attr_hvac_mode = HVACMode.OFF
         else:
-            if mqtt_data["system_mode_heat"] == "heat":
+            if mqtt_data["system_mode"] == "heat":
                 if mqtt_data["temperature_setpoint_hold"] is False:
                     self._attr_hvac_mode = HVACMode.AUTO
                 else:
