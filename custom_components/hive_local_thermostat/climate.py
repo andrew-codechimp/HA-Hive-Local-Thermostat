@@ -390,32 +390,22 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         # HVAC Mode
         self._attr_hvac_mode = None
         if self.entity_description.model == MODEL_SLR2:
-            if (
-                mqtt_data["system_mode_heat"] == "heat"
-                and mqtt_data["temperature_setpoint_hold_duration_heat"] != 65535
-            ):
-                self._attr_hvac_mode = HVACMode.AUTO
+            if mqtt_data["system_mode_heat"] == "heat":
+                if mqtt_data["temperature_setpoint_hold_heat"] is False:
+                    self._attr_hvac_mode = HVACMode.AUTO
+                else:
+                    self._attr_hvac_mode = HVACMode.HEAT
             if mqtt_data["system_mode_heat"] == "emergency_heating":
-                self._attr_hvac_mode = HVACMode.HEAT
-            if (
-                mqtt_data["system_mode_heat"] == "heat"
-                and mqtt_data["temperature_setpoint_hold_duration_heat"] == 65535
-            ):
                 self._attr_hvac_mode = HVACMode.HEAT
             if mqtt_data["system_mode_heat"] == "off":
                 self._attr_hvac_mode = HVACMode.OFF
         else:
-            if (
-                mqtt_data["system_mode"] == "heat"
-                and mqtt_data["temperature_setpoint_hold_duration"] != 65535
-            ):
-                self._attr_hvac_mode = HVACMode.AUTO
+            if mqtt_data["system_mode_heat"] == "heat":
+                if mqtt_data["temperature_setpoint_hold"] is False:
+                    self._attr_hvac_mode = HVACMode.AUTO
+                else:
+                    self._attr_hvac_mode = HVACMode.HEAT
             if mqtt_data["system_mode"] == "emergency_heating":
-                self._attr_hvac_mode = HVACMode.HEAT
-            if (
-                mqtt_data["system_mode"] == "heat"
-                and mqtt_data["temperature_setpoint_hold_duration"] == 65535
-            ):
                 self._attr_hvac_mode = HVACMode.HEAT
             if mqtt_data["system_mode"] == "off":
                 self._attr_hvac_mode = HVACMode.OFF
