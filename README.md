@@ -69,6 +69,18 @@ Installation via HACS is recommended, but a manual setup is supported.
   Min Rep Change of any tempSetpointHoldDuration to 1  
   If you have heat and water you will have two values under different Endpoints, with heat only you will have one.
 
+- How do I get beta versions with HACS
+  - Within Home Assistant go to Settings -> Integrations -> HACS
+  - Select Services
+  - Select Hive Local Thermostat
+  - In the Diagnostics panel select the +1 entity not shown
+  - Select Pre-release
+  - Select the cog icon
+  - Select Enable
+  - Select Update and wait for the entity to be enabled
+  - Turn on the Pre-release toggle
+  - HACS will now show updates available for pre-releases if there are any
+
 [commits-shield]: https://img.shields.io/github/commit-activity/y/andrew-codechimp/HA-Hive-Local-Thermostat.svg?style=for-the-badge
 [commits]: https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/commits/main
 [hacs]: https://github.com/hacs/integration
