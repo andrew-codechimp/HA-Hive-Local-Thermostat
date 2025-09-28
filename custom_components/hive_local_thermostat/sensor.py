@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, cast
 
 from homeassistant.components.sensor import (
@@ -18,6 +19,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.temperature import display_temp as show_temp
 
@@ -163,6 +165,21 @@ async def async_setup_entry(
                 model=config_entry.options[CONF_MODEL],
             ),
         ]
+
+    entity_descriptions.append(
+        HiveSensorEntityDescription(
+            key="last_seen",
+            translation_key="last_seen",
+            icon="mdi:clock",
+            name=config_entry.title,
+            device_class=SensorDeviceClass.TIMESTAMP,
+            entity_category=EntityCategory.DIAGNOSTIC,
+            value_fn=lambda data: datetime.fromisoformat(data["last_seen"]) if data.get("last_seen") else None,
+            topic=config_entry.options[CONF_MQTT_TOPIC],
+            entry_id=config_entry.entry_id,
+            model=config_entry.options[CONF_MODEL],
+        )
+    )
 
     _entities = [
         HiveSensor(
