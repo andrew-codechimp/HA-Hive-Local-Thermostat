@@ -14,7 +14,7 @@ _If you want to show your support please_
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/codechimp)
 
-To use this integration your Hive thermostat receiver must be added to [Zigbee2MQTT](https://www.zigbee2mqtt.io/supported-devices/#v=Hive) and a MQTT broker and the MQTT integration within Home Assistant must be correctly configured.
+To use this integration your Hive thermostat receiver must be added to [Zigbee2MQTT](https://www.zigbee2mqtt.io/supported-devices/#v=Hive) and an MQTT broker and the MQTT integration within Home Assistant must be correctly configured. It is important to follow the pairing steps within the Zigbee2MQTT documentation, the thermostat remote control must be paired directly to the thermostat receiver.
 
 Zigbee2MQTT will expose the native sensors but Hive requires specific message structures to be sent for setting modes and a combination of sensor values to determine the modes, this integration creates controls and sensors that correctly interface with the native Hive values/methods.
 
@@ -26,7 +26,7 @@ The new device created will have new sensors/controls available that will accura
 
 You can optionally hide/disable the native Hive device created by Zigbee2MQTT within HomeAssistant.
 
-The integration supports native boost and native schedules. With schedules you can switch on/off schedule mode but you cannot modify the schedule details via the integration. You can of course ignore the schedule mode and setup automations within Home Assistant to control when heating/water is on or off and set a temperature for heating.
+The integration supports native boost and native schedules (auto). With schedules you can switch on/off schedule mode but you cannot modify the schedule details via the integration. You can of course ignore the schedule mode and setup automations within Home Assistant to control when heating/water is on or off and set a temperature for heating.
 
 The numeric entities allow you to set defaults for boost times, heating boost temperature and also frost protection. Frost protection should be set to match what you have set on the Hive thermostat for an accurate display.
 
@@ -59,6 +59,18 @@ Installation via HACS is recommended, but a manual setup is supported.
 
 </details>
 
+## Climate Control Operation
+
+Ensure that you are using the climate control created by this integration, not the one that Zigbee2MQTT creates, otherwise your commands will not work correctly (to tell them apart, this integration has a preset selector for None and Boost).
+
+The climate control provides 3 modes
+
+- Off - turns the Hive off, it will only ever heat if the temperature is below the Hive thermostats preset frost protection temperature. No schedules you have on the Hive thermostat will activate.
+- Heat - turns the Hive on and will heat to the temperature specified and maintain that temperature.
+- Auto - turns the Hive to its inbuilt schedule mode, the schedules created on the Hive thermostat will be active, you can adjust the temperature either within this integration or via the Hive thermostat and it will override the temperature until the next scheduled temperature.
+
+The presets provide the facility to boost the heating. Selecting Boost will trigger your predefined boost temperature and duration specified in this integrations device configuration section, selecting None will cancel any active boost.
+
 ## FAQ's
 
 - My boost remaining sensors are not counting down
@@ -68,6 +80,14 @@ Installation via HACS is recommended, but a manual setup is supported.
   To change this within Zigbee2MQTT go into the receiver's reporting settings and change the following;  
   Min Rep Change of any tempSetpointHoldDuration to 1  
   If you have heat and water you will have two values under different Endpoints, with heat only you will have one.
+
+- I have changed thermostat settings within Zigbee2MQTT but it does not work properly.
+
+  Zigbee2MQTT's UI exposes the current state of each value in a generic way, it does not have the logic to correctly send/intepret the values required to control the Hive thermostat, the documentation for each thermostat within Zigbee2MQTT explains the messages required to change things, this integration provides a wrapper around all this complexity for you but there is nothing stopping you from creating your own MQTT messages to do this.
+
+- Can this be used with ZHA?
+
+  No, this integration requires sending/receiving messages via MQTT to the Hive thermostat, ZHA does not work like this.
 
 - How do I get beta versions with HACS
   - Within Home Assistant go to Settings -> Integrations -> HACS
