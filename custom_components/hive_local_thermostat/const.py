@@ -3,7 +3,6 @@
 import json
 from logging import Logger, getLogger
 from pathlib import Path
-from typing import Final
 
 LOGGER: Logger = getLogger(__package__)
 
