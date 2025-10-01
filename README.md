@@ -73,6 +73,10 @@ The presets provide the facility to boost the heating. Selecting Boost will trig
 
 ## FAQ's
 
+- What are running states
+
+  Running states are whether your boiler is actually active, you can see in the above screenshot that my thermostat is on Auto (schedule on the Hive thermostat), the current temperature is above my target temperature therefore the running state is idle. This will change to heating when the current temperature goes below my target and the boiler is triggered to heat.
+
 - My boost remaining sensors are not counting down
 
   By default Zigbee2MQTT will not send frequent updates to track boosts by the minute, they will update but this is typically every 10 minutes.
