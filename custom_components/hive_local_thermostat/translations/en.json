@@ -51,9 +51,9 @@
     "selector": {
         "model": {
             "options": {
-                "OTR1": "OTR1",
-                "SLR1": "SLR1",
-                "SLR2": "SLR2"
+                "otr1": "OTR1",
+                "slr1": "SLR1",
+                "slr2": "SLR2"
             }
         }
     },

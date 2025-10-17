@@ -33,12 +33,6 @@ MODELS = [
     MODEL_SLR2,
 ]
 
-MODELS = [
-    MODEL_OTR1,
-    MODEL_SLR1,
-    MODEL_SLR2,
-]
-
 HIVE_BOOST = "emergency_heat"
 
 DEFAULT_FROST_TEMPERATURE = 12
