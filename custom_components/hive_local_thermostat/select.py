@@ -18,12 +18,12 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from .const import (
     CONF_MODEL,
     CONF_MQTT_TOPIC,
+    CONF_SHOW_WATER_SCHEDULE_MODE,
     DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
     MODEL_OTR1,
     MODEL_SLR1,
-    WATER_MODES,
 )
 from .entity import HiveEntity, HiveEntityDescription
 
@@ -34,6 +34,7 @@ class HiveSelectEntityDescription(
     SelectEntityDescription,
 ):
     """Class describing Hive sensor entities."""
+    show_schedule_mode: bool = True
 
 
 async def async_setup_entry(
@@ -46,6 +47,13 @@ async def async_setup_entry(
     if config_entry.options[CONF_MODEL] in [MODEL_SLR1, MODEL_OTR1]:
         return
 
+    if config_entry.options.get(CONF_SHOW_WATER_SCHEDULE_MODE, True):
+        show_schedule_mode = True
+        water_modes = ["auto", "heat", "off", "boost"]
+    else:
+        show_schedule_mode = False
+        water_modes = ["heat", "off", "boost"]
+
     ENTITY_DESCRIPTIONS = (
         HiveSelectEntityDescription(
             key="system_mode_water",
@@ -55,7 +63,8 @@ async def async_setup_entry(
             topic=config_entry.options[CONF_MQTT_TOPIC],
             entry_id=config_entry.entry_id,
             model=config_entry.options[CONF_MODEL],
-            options=WATER_MODES,
+            options=water_modes,
+            show_schedule_mode=show_schedule_mode,
         ),
     )
 
@@ -93,7 +102,10 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
 
         if mqtt_data["system_mode_water"] == "heat":
             if mqtt_data["temperature_setpoint_hold_water"] is False:
-                new_value = "auto"
+                if self.entity_description.show_schedule_mode:
+                    new_value = "auto"
+                else:
+                    new_value = "heat"
             else:
                 new_value = "heat"
         if mqtt_data["system_mode_water"] == "emergency_heating":

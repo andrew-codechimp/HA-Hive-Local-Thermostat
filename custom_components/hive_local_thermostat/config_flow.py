@@ -17,6 +17,7 @@ from homeassistant.helpers.schema_config_entry_flow import (
 
 from . import const
 
+
 def required(
     key: str, options: dict[str, Any], default: Any | None = None
 ) -> vol.Required:
@@ -57,6 +58,12 @@ async def general_options_schema(
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
+            required(const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
+                    selector.BooleanSelectorConfig(),
+                ),
+            required(const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
+                    selector.BooleanSelectorConfig(),
+                ),
         }
     )
 
@@ -75,6 +82,12 @@ async def general_config_schema(
                         translation_key="model",
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
+                ),
+            required(const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
+                    selector.BooleanSelectorConfig(),
+                ),
+            required(const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
+                    selector.BooleanSelectorConfig(),
                 ),
         }
     )

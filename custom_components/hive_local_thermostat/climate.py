@@ -29,6 +29,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     CONF_MODEL,
     CONF_MQTT_TOPIC,
+    CONF_SHOW_HEAT_SCHEDULE_MODE,
     DEFAULT_FROST_TEMPERATURE,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
@@ -51,6 +52,7 @@ class HiveClimateEntityDescription(
     ClimateEntityDescription,
 ):
     """Class describing Hive sensor entities."""
+    show_schedule_mode: bool = True
 
 
 async def async_setup_entry(
@@ -67,6 +69,7 @@ async def async_setup_entry(
         topic=config_entry.options[CONF_MQTT_TOPIC],
         entry_id=config_entry.entry_id,
         model=config_entry.options[CONF_MODEL],
+        show_schedule_mode=config_entry.options.get(CONF_SHOW_HEAT_SCHEDULE_MODE, True),
     )
 
     _entities = [HiveClimateEntity(entity_description=hive_climate_entity_description)]
@@ -95,7 +98,11 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._topic = entity_description.topic
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
-        self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.AUTO]
+
+        if entity_description.show_schedule_mode:
+            self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.AUTO]
+        else:
+            self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT]
         self._attr_hvac_mode = None
         self._attr_preset_modes = list(PRESET_MAP.keys())
         self._attr_preset_mode = None
@@ -391,8 +398,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._attr_hvac_mode = None
         if self.entity_description.model == MODEL_SLR2:
             if mqtt_data["system_mode_heat"] == "heat":
-                if mqtt_data["temperature_setpoint_hold_heat"] is False:
-                    self._attr_hvac_mode = HVACMode.AUTO
+                if mqtt_data["temperature_setpoint_hold_heat"] is False and self.entity_description.show_schedule_mode:
+                        self._attr_hvac_mode = HVACMode.AUTO
                 else:
                     self._attr_hvac_mode = HVACMode.HEAT
             if mqtt_data["system_mode_heat"] == "emergency_heating":
@@ -401,8 +408,8 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                 self._attr_hvac_mode = HVACMode.OFF
         else:
             if mqtt_data["system_mode"] == "heat":
-                if mqtt_data["temperature_setpoint_hold"] is False:
-                    self._attr_hvac_mode = HVACMode.AUTO
+                if mqtt_data["temperature_setpoint_hold"] is False and self.entity_description.show_schedule_mode:
+                        self._attr_hvac_mode = HVACMode.AUTO
                 else:
                     self._attr_hvac_mode = HVACMode.HEAT
             if mqtt_data["system_mode"] == "emergency_heating":

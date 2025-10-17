@@ -7,10 +7,14 @@
                 "data": {
                     "name": "Friendly name",
                     "mqtt_topic": "MQTT topic",
-                    "model": "Model"
+                    "model": "Model",
+                    "show_heat_schedule_mode": "Show heat schedule mode",
+                    "show_water_schedule_mode": "Show water schedule mode"
                 },
                 "data_description": {
-                    "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver"
+                    "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver",
+                    "show_heat_schedule_mode": "Enable if you want to use the Hive thermostat built in schedules for heating, shows as Auto in the climate control",
+                    "show_water_schedule_mode": "Enable if you want to use the Hive thermostat built in schedules for water, ignore if your model does not support water"
                 }
             }
         },
@@ -29,15 +33,28 @@
                 "description": "Enter the entity name and configure parameters.",
                 "data": {
                     "mqtt_topic": "MQTT topic",
-                    "model": "Model"
+                    "model": "Model",
+                    "show_heat_schedule_mode": "Show heat schedule mode",
+                    "show_water_schedule_mode": "Show water schedule mode"
                 },
                 "data_description": {
-                    "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver"
+                    "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver",
+                    "show_heat_schedule_mode": "Enable if you want to use the Hive thermostat built in schedules for heating, shows as Auto in the climate control",
+                    "show_water_schedule_mode": "Enable if you want to use the Hive thermostat built in schedules for water, ignore if your model does not support water"
                 }
             }
         },
         "error": {
             "value": "Invalid value. Please check your input!"
+        }
+    },
+    "selector": {
+        "model": {
+            "options": {
+                "otr1": "OTR1",
+                "slr1": "SLR1",
+                "slr2": "SLR2"
+            }
         }
     },
     "entity": {
