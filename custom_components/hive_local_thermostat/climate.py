@@ -399,7 +399,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if self.entity_description.model == MODEL_SLR2:
             if mqtt_data["system_mode_heat"] == "heat":
                 if mqtt_data["temperature_setpoint_hold_heat"] is False and self.entity_description.show_schedule_mode:
-                        self._attr_hvac_mode = HVACMode.AUTO
+                    self._attr_hvac_mode = HVACMode.AUTO
                 else:
                     self._attr_hvac_mode = HVACMode.HEAT
             if mqtt_data["system_mode_heat"] == "emergency_heating":
@@ -409,7 +409,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         else:
             if mqtt_data["system_mode"] == "heat":
                 if mqtt_data["temperature_setpoint_hold"] is False and self.entity_description.show_schedule_mode:
-                        self._attr_hvac_mode = HVACMode.AUTO
+                    self._attr_hvac_mode = HVACMode.AUTO
                 else:
                     self._attr_hvac_mode = HVACMode.HEAT
             if mqtt_data["system_mode"] == "emergency_heating":
