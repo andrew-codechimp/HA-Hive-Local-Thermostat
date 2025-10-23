@@ -13,8 +13,8 @@
                 },
                 "data_description": {
                     "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver",
-                    "show_heat_schedule_mode": "Enable if you want to use the Hive thermostat built in schedules for heating, shows as Auto in the climate control",
-                    "show_water_schedule_mode": "Enable if you want to use the Hive thermostat built in schedules for water, ignore if your model does not support water"
+                    "show_heat_schedule_mode": "Enable if you want to have the option to use the Hive thermostat built in schedules for heating, shows as Auto in the climate control.",
+                    "show_water_schedule_mode": "Enable if you want to have the option to use the Hive thermostat built in schedules for water, ignore if your model does not support water."
                 }
             }
         },
@@ -39,8 +39,8 @@
                 },
                 "data_description": {
                     "mqtt_topic": "Must be exact case, e.g. zigbee2mqtt/HiveReceiver",
-                    "show_heat_schedule_mode": "Enable if you want to use the Hive thermostat built in schedules for heating, shows as Auto in the climate control",
-                    "show_water_schedule_mode": "Enable if you want to use the Hive thermostat built in schedules for water, ignore if your model does not support water"
+                    "show_heat_schedule_mode": "Enable if you want to have the option to use the Hive thermostat built in schedules for heating, shows as Auto in the climate control.",
+                    "show_water_schedule_mode": "Enable if you want to have the option to use the Hive thermostat built in schedules for water, ignore if your model does not support water."
                 }
             }
         },
