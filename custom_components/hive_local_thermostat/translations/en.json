@@ -17,13 +17,6 @@
                     "show_water_schedule_mode": "Enable if you want to have the option to use the Hive thermostat built in schedules for water, ignore if your model does not support water."
                 }
             }
-        },
-        "error": {
-            "value": "Invalid value. Please check your input!",
-            "icon": "Icons should be specified in the form 'prefix:name'."
-        },
-        "abort": {
-            "single_instance_allowed": "Only a single configuration of Holidays is allowed."
         }
     },
     "options": {
@@ -43,9 +36,6 @@
                     "show_water_schedule_mode": "Enable if you want to have the option to use the Hive thermostat built in schedules for water, ignore if your model does not support water."
                 }
             }
-        },
-        "error": {
-            "value": "Invalid value. Please check your input!"
         }
     },
     "selector": {
