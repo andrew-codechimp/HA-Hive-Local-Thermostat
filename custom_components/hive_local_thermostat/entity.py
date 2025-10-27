@@ -20,6 +20,7 @@ class HiveEntityDescription(EntityDescription):
     entry_id: str
     model: str | None = None
 
+
 class HiveEntity(Entity):
     """HiveEntity class."""
 
@@ -34,7 +35,9 @@ class HiveEntity(Entity):
         super().__init__()
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self.entity_description.entry_id)},
-            name=self.entity_description.name if isinstance(self.entity_description.name, str) else None,
+            name=self.entity_description.name
+            if isinstance(self.entity_description.name, str)
+            else None,
             model=self.entity_description.model,
             manufacturer="Hive",
         )
@@ -45,11 +48,18 @@ class HiveEntity(Entity):
     @abc.abstractmethod
     def process_update(self, mqtt_data: dict[str, Any]) -> float | None:
         """To be implemented by entities to process updates from MQTT."""
-        raise NotImplementedError('users must define process_update to use this base class')  # noqa: EM101
+        raise NotImplementedError(
+            "users must define process_update to use this base class"
+        )  # noqa: EM101
 
     def get_entity_value(self, entity_key: str, default: float) -> float:
         """Get an entities value store in hass data."""
         if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             return default
 
-        return cast("float", self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default))
+        return cast(
+            "float",
+            self.hass.data[DOMAIN][self.entity_description.entry_id].get(
+                entity_key, default
+            ),
+        )

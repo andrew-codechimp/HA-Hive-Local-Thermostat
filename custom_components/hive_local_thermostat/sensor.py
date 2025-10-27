@@ -103,7 +103,12 @@ async def async_setup_entry(
                 translation_key="boost_remaining_heat",
                 icon="mdi:timer-outline",
                 name=config_entry.title,
-                value_fn=lambda data: cast("int", data["temperature_setpoint_hold_duration_heat"] if data["system_mode_heat"] == "emergency_heating" else 0),
+                value_fn=lambda data: cast(
+                    "int",
+                    data["temperature_setpoint_hold_duration_heat"]
+                    if data["system_mode_heat"] == "emergency_heating"
+                    else 0,
+                ),
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
@@ -113,7 +118,12 @@ async def async_setup_entry(
                 translation_key="boost_remaining_water",
                 icon="mdi:timer-outline",
                 name=config_entry.title,
-                value_fn=lambda data: cast("int", data["temperature_setpoint_hold_duration_water"] if data["system_mode_water"] == "emergency_heating" else 0),
+                value_fn=lambda data: cast(
+                    "int",
+                    data["temperature_setpoint_hold_duration_water"]
+                    if data["system_mode_water"] == "emergency_heating"
+                    else 0,
+                ),
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
@@ -157,7 +167,12 @@ async def async_setup_entry(
                 icon="mdi:timer-outline",
                 name=config_entry.title,
                 suggested_display_precision=1,
-                value_fn=lambda data: cast("int", data["temperature_setpoint_hold_duration"] if data["system_mode"] == "emergency_heating" else 0),
+                value_fn=lambda data: cast(
+                    "int",
+                    data["temperature_setpoint_hold_duration"]
+                    if data["system_mode"] == "emergency_heating"
+                    else 0,
+                ),
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
                 model=config_entry.options[CONF_MODEL],
@@ -222,7 +237,8 @@ class HiveSensor(HiveEntity, SensorEntity):
             new_value = show_temp(
                 self.hass,
                 cast("float", new_value),
-                self.entity_description.native_unit_of_measurement or UnitOfTemperature.CELSIUS,
+                self.entity_description.native_unit_of_measurement
+                or UnitOfTemperature.CELSIUS,
                 PRECISION_TENTHS,
             )
 

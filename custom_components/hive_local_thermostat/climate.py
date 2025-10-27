@@ -135,7 +135,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         if preset_mode == "boost":
             self._pre_boost_hvac_mode = self._attr_hvac_mode
-            self._pre_boost_occupied_heating_setpoint_heat = self._attr_target_temperature
+            self._pre_boost_occupied_heating_setpoint_heat = (
+                self._attr_target_temperature
+            )
 
             if self.entity_description.model == MODEL_SLR2:
                 payload = (
@@ -197,7 +199,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         if temperature:
             if self.entity_description.model == MODEL_SLR2:
-               payload = r'{"occupied_heating_setpoint_heat":' + str(temperature) + r"}"
+                payload = (
+                    r'{"occupied_heating_setpoint_heat":' + str(temperature) + r"}"
+                )
             else:
                 payload = r'{"occupied_heating_setpoint":' + str(temperature) + r"}"
 
@@ -236,7 +240,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                     payload_heating_setpoint = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
                         + str(self._pre_boost_occupied_heating_setpoint_heat)
-                        + r'}'
+                        + r"}"
                     )
                 else:
                     payload = (
@@ -248,13 +252,15 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                     payload_heating_setpoint = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint":'
                         + str(self._pre_boost_occupied_heating_setpoint_heat)
-                        + r'}'
+                        + r"}"
                     )
             else:
                 if not self._hvac_mode_set_from_temperature:  # noqa: SIM102
                     if self._attr_current_temperature:
                         # Get the current temperature and round down to nearest .5
-                        self._attr_target_temperature = floor((self._attr_current_temperature) * 2) / 2
+                        self._attr_target_temperature = (
+                            floor((self._attr_current_temperature) * 2) / 2
+                        )
                 if self.entity_description.model == MODEL_SLR2:
                     payload = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
@@ -265,7 +271,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                     payload_heating_setpoint = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
                         + str(self._attr_target_temperature)
-                        + r'}'
+                        + r"}"
                     )
                 else:
                     payload = (
@@ -277,7 +283,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                     payload_heating_setpoint = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint":'
                         + str(self._attr_target_temperature)
-                        + r'}'
+                        + r"}"
                     )
 
             LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
@@ -286,7 +292,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             if not self._hvac_mode_set_from_temperature:
                 await sleep(0.5)
                 LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-                await mqtt_client.async_publish(self.hass, self._topic + "/set", payload_heating_setpoint)
+                await mqtt_client.async_publish(
+                    self.hass, self._topic + "/set", payload_heating_setpoint
+                )
         elif hvac_mode == HVACMode.OFF:
             if self.entity_description.model == MODEL_SLR2:
                 payload = (
@@ -353,12 +361,18 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if self.entity_description.model == MODEL_SLR2:
             if "occupied_heating_setpoint_heat" in mqtt_data:
                 if mqtt_data["occupied_heating_setpoint_heat"] == 1:
-                    self._attr_target_temperature = self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)
+                    self._attr_target_temperature = self.get_entity_value(
+                        "heating_frost_prevention", DEFAULT_FROST_TEMPERATURE
+                    )
                 else:
-                    self._attr_target_temperature = mqtt_data["occupied_heating_setpoint_heat"]
+                    self._attr_target_temperature = mqtt_data[
+                        "occupied_heating_setpoint_heat"
+                    ]
         elif "occupied_heating_setpoint" in mqtt_data:
             if mqtt_data["occupied_heating_setpoint"] == 1:
-                self._attr_target_temperature = self.get_entity_value("heating_frost_prevention", DEFAULT_FROST_TEMPERATURE)
+                self._attr_target_temperature = self.get_entity_value(
+                    "heating_frost_prevention", DEFAULT_FROST_TEMPERATURE
+                )
             else:
                 self._attr_target_temperature = mqtt_data["occupied_heating_setpoint"]
 
@@ -366,7 +380,9 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._attr_preset_mode = None
         if self.entity_description.model == MODEL_SLR2:
             if "system_mode_heat" in mqtt_data:
-                self._attr_preset_mode = self._climate_preset(mqtt_data["system_mode_heat"])
+                self._attr_preset_mode = self._climate_preset(
+                    mqtt_data["system_mode_heat"]
+                )
         elif "system_mode" in mqtt_data:
             self._attr_preset_mode = self._climate_preset(mqtt_data["system_mode"])
 
@@ -395,7 +411,10 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._attr_hvac_mode = None
         if self.entity_description.model == MODEL_SLR2:
             if mqtt_data["system_mode_heat"] == "heat":
-                if mqtt_data["temperature_setpoint_hold_heat"] is False and self.entity_description.show_schedule_mode:
+                if (
+                    mqtt_data["temperature_setpoint_hold_heat"] is False
+                    and self.entity_description.show_schedule_mode
+                ):
                     self._attr_hvac_mode = HVACMode.AUTO
                 else:
                     self._attr_hvac_mode = HVACMode.HEAT
@@ -405,7 +424,10 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                 self._attr_hvac_mode = HVACMode.OFF
         else:
             if mqtt_data["system_mode"] == "heat":
-                if mqtt_data["temperature_setpoint_hold"] is False and self.entity_description.show_schedule_mode:
+                if (
+                    mqtt_data["temperature_setpoint_hold"] is False
+                    and self.entity_description.show_schedule_mode
+                ):
                     self._attr_hvac_mode = HVACMode.AUTO
                 else:
                     self._attr_hvac_mode = HVACMode.HEAT
