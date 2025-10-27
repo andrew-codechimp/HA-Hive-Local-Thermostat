@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import abc
-from dataclasses import dataclass
 from typing import Any, cast
+from dataclasses import dataclass
 
-from homeassistant.helpers.entity import DeviceInfo, Entity, EntityDescription
+from homeassistant.helpers.entity import Entity, DeviceInfo, EntityDescription
 
 from .const import DOMAIN
 
@@ -45,11 +45,11 @@ class HiveEntity(Entity):
     @abc.abstractmethod
     def process_update(self, mqtt_data: dict[str, Any]) -> float | None:
         """To be implemented by entities to process updates from MQTT."""
-        raise NotImplementedError('users must define process_update to use this base class')
+        raise NotImplementedError('users must define process_update to use this base class')  # noqa: EM101
 
     def get_entity_value(self, entity_key: str, default: float) -> float:
         """Get an entities value store in hass data."""
         if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
             return default
 
-        return cast(float, self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default))
+        return cast("float", self.hass.data[DOMAIN][self.entity_description.entry_id].get(entity_key, default))

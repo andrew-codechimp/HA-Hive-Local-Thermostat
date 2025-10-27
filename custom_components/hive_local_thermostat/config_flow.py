@@ -1,17 +1,18 @@
 """Adds config flow for hive_local_thermostat."""
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import Any, cast
+from collections.abc import Mapping
 
 import voluptuous as vol
-from homeassistant.const import CONF_NAME
+
 from homeassistant.core import callback
+from homeassistant.const import CONF_NAME
 from homeassistant.helpers import selector
 from homeassistant.helpers.schema_config_entry_flow import (
-    SchemaConfigFlowHandler,
     SchemaFlowFormStep,
     SchemaFlowMenuStep,
+    SchemaConfigFlowHandler,
     SchemaOptionsFlowHandler,
 )
 
@@ -58,10 +59,10 @@ async def general_options_schema(
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
-            required(const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
+            required(const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, default=True): selector.BooleanSelector(
                     selector.BooleanSelectorConfig(),
                 ),
-            required(const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
+            required(const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, default=True): selector.BooleanSelector(
                     selector.BooleanSelectorConfig(),
                 ),
         }
@@ -83,10 +84,10 @@ async def general_config_schema(
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
-            required(const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
+            required(const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, default=True): selector.BooleanSelector(
                     selector.BooleanSelectorConfig(),
                 ),
-            required(const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
+            required(const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, default=True): selector.BooleanSelector(
                     selector.BooleanSelectorConfig(),
                 ),
         }
@@ -115,4 +116,4 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=const.DOMAIN):
         The options parameter contains config entry options, which is the union of user
         input from the config flow steps.
         """
-        return cast(str, options["name"]) if "name" in options else ""
+        return cast("str", options["name"]) if "name" in options else ""

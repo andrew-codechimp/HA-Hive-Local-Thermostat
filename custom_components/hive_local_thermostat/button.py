@@ -4,24 +4,24 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
-from homeassistant.components.mqtt import client as mqtt_client
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.mqtt import client as mqtt_client
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    CONF_MODEL,
-    CONF_MQTT_TOPIC,
-    DEFAULT_HEATING_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_TEMPERATURE,
-    DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
+    CONF_MODEL,
     MODEL_SLR2,
+    CONF_MQTT_TOPIC,
+    DEFAULT_WATER_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
 from .entity import HiveEntity, HiveEntityDescription
 

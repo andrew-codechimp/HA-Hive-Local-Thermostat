@@ -2,26 +2,26 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
 from typing import Any
+from dataclasses import dataclass
+from collections.abc import Callable
 
+from homeassistant.core import HomeAssistant
+from homeassistant.const import (
+    Platform,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    Platform,
-)
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    CONF_MODEL,
-    CONF_MQTT_TOPIC,
     DOMAIN,
+    CONF_MODEL,
     MODEL_SLR2,
+    CONF_MQTT_TOPIC,
 )
 from .entity import HiveEntity, HiveEntityDescription
 

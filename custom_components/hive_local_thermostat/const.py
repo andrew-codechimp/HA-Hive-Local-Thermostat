@@ -9,7 +9,7 @@ LOGGER: Logger = getLogger(__package__)
 MIN_HA_VERSION = "2025.4"
 
 manifestfile = Path(__file__).parent / "manifest.json"
-with open(file=manifestfile, encoding="UTF-8") as json_file:
+with manifestfile.open(encoding="UTF-8") as json_file:
     manifest_data = json.load(json_file)
 
 DOMAIN = manifest_data.get("domain")

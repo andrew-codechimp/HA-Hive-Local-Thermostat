@@ -1,29 +1,29 @@
-"""Select platform for hive_local_thermostat."""
+"""Select platform for hive_local_thermostat."""  # noqa: A005
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
+from dataclasses import dataclass
 
-from homeassistant.components.mqtt import client as mqtt_client
-from homeassistant.components.select import SelectEntity, SelectEntityDescription
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.mqtt import client as mqtt_client
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    CONF_MODEL,
-    CONF_MQTT_TOPIC,
-    CONF_SHOW_WATER_SCHEDULE_MODE,
-    DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
+    CONF_MODEL,
     MODEL_OTR1,
     MODEL_SLR1,
+    CONF_MQTT_TOPIC,
+    DEFAULT_WATER_BOOST_MINUTES,
+    CONF_SHOW_WATER_SCHEDULE_MODE,
 )
 from .entity import HiveEntity, HiveEntityDescription
 
@@ -34,6 +34,7 @@ class HiveSelectEntityDescription(
     SelectEntityDescription,
 ):
     """Class describing Hive sensor entities."""
+
     show_schedule_mode: bool = True
 
 
@@ -54,7 +55,7 @@ async def async_setup_entry(
         show_schedule_mode = False
         water_modes = ["heat", "off", "boost"]
 
-    ENTITY_DESCRIPTIONS = (
+    entity_descriptions = (
         HiveSelectEntityDescription(
             key="system_mode_water",
             translation_key="system_mode_water",
@@ -68,7 +69,7 @@ async def async_setup_entry(
         ),
     )
 
-    _entities = [HiveSelect(entity_description=entity_description,) for entity_description in ENTITY_DESCRIPTIONS]
+    _entities = [HiveSelect(entity_description=entity_description,) for entity_description in entity_descriptions]
 
     async_add_entities(
         sensorEntity for sensorEntity in _entities
@@ -114,7 +115,7 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
             new_value = "off"
 
         if new_value not in self.options:
-            raise ValueError(f"Invalid option for {self.entity_id}: {new_value}")
+            raise ValueError(f"Invalid option for {self.entity_id}: {new_value}")  # noqa: EM102
 
         self._attr_current_option = new_value
         self.async_write_ha_state()
@@ -141,7 +142,7 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
     async def async_select_option(self, option: str) -> None:
         """Update the current selected option."""
         if option not in self.options:
-            raise ValueError(f"Invalid option for {self.entity_id}: {option}")
+            raise ValueError(f"Invalid option for {self.entity_id}: {option}")  # noqa: EM102
 
         if option == "auto":
             payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'

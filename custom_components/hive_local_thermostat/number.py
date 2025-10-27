@@ -2,36 +2,36 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import datetime
+from dataclasses import dataclass
 
-from homeassistant.components.number import (
-    NumberDeviceClass,
-    NumberEntityDescription,
-    RestoreNumber,
-)
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.const import (
-    STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    STATE_UNAVAILABLE,
     Platform,
     UnitOfTemperature,
 )
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util.dt import utcnow
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity import EntityCategory
+from homeassistant.components.number import (
+    RestoreNumber,
+    NumberDeviceClass,
+    NumberEntityDescription,
+)
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    CONF_MODEL,
-    CONF_MQTT_TOPIC,
-    DEFAULT_FROST_TEMPERATURE,
-    DEFAULT_HEATING_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_TEMPERATURE,
-    DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
+    CONF_MODEL,
     MODEL_SLR2,
+    CONF_MQTT_TOPIC,
+    DEFAULT_FROST_TEMPERATURE,
+    DEFAULT_WATER_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
 from .entity import HiveEntity, HiveEntityDescription
 

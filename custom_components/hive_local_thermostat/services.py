@@ -4,26 +4,27 @@ import logging
 from typing import cast
 
 import voluptuous as vol
-from homeassistant.components.mqtt import client as mqtt_client
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
+
 from homeassistant.core import (
-    HomeAssistant,
     ServiceCall,
+    HomeAssistant,
     ServiceResponse,
     callback,
 )
-from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.exceptions import ServiceValidationError
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
+from homeassistant.components.mqtt import client as mqtt_client
 
 from .const import (
-    CONF_MODEL,
-    CONF_MQTT_TOPIC,
-    DEFAULT_HEATING_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_TEMPERATURE,
-    DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
+    CONF_MODEL,
     MODEL_SLR2,
+    CONF_MQTT_TOPIC,
+    DEFAULT_WATER_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
 
 SERVICE_HEATING_BOOST = "boost_heating"
@@ -74,7 +75,7 @@ def get_entity_value(hass: HomeAssistant, entry_id: str, entity_key: str, defaul
     if entry_id not in hass.data[DOMAIN]:
         return default
 
-    return cast(float, hass.data[DOMAIN][entry_id].get(entity_key, default))
+    return cast("float", hass.data[DOMAIN][entry_id].get(entity_key, default))
 
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
@@ -98,11 +99,11 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
     """Handle the service call."""
     entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
 
-    boost_minutes = cast(int, call.data.get(SERVICE_DATA_HEATING_BOOST_MINUTES,
+    boost_minutes = cast("int", call.data.get(SERVICE_DATA_HEATING_BOOST_MINUTES,
         get_entity_value(call.hass, entry.entry_id, "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES)
     ))
 
-    boost_temperature = cast(float, call.data.get(SERVICE_DATA_HEATING_BOOST_TEMPERATURE,
+    boost_temperature = cast("float", call.data.get(SERVICE_DATA_HEATING_BOOST_TEMPERATURE,
         get_entity_value(call.hass, entry.entry_id, "heating_boost_temperature", DEFAULT_HEATING_BOOST_TEMPERATURE)
     ))
 
@@ -135,7 +136,7 @@ async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
     """Handle the service call."""
     entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
 
-    boost_minutes = cast(int, call.data.get(SERVICE_DATA_WATER_BOOST_MINUTES,
+    boost_minutes = cast("int", call.data.get(SERVICE_DATA_WATER_BOOST_MINUTES,
         get_entity_value(call.hass, entry.entry_id, "water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)
     ))
 

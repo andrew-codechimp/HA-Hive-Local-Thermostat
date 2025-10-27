@@ -11,22 +11,26 @@ from asyncio import sleep
 from dataclasses import dataclass
 
 from awesomeversion.awesomeversion import AwesomeVersion
+
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.const import (
+    CONF_ENTITIES,
+    Platform,
+    __version__ as HA_VERSION,  # noqa: N812
+)
+from homeassistant.helpers import config_validation as cv
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_ENTITIES, Platform
-from homeassistant.const import __version__ as HA_VERSION  # noqa: N812
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.typing import ConfigType
 
 from .const import (
-    CONF_MODEL,
-    CONF_MQTT_TOPIC,
     DOMAIN,
     LOGGER,
-    MIN_HA_VERSION,
+    CONF_MODEL,
     MODEL_SLR2,
+    MIN_HA_VERSION,
+    CONF_MQTT_TOPIC,
 )
 from .services import async_setup_services
 
