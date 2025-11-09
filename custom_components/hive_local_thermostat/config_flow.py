@@ -1,17 +1,19 @@
 """Adds config flow for hive_local_thermostat."""
+
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import Any, cast
+from collections.abc import Mapping
 
 import voluptuous as vol
-from homeassistant.const import CONF_NAME
+
 from homeassistant.core import callback
+from homeassistant.const import CONF_NAME
 from homeassistant.helpers import selector
 from homeassistant.helpers.schema_config_entry_flow import (
-    SchemaConfigFlowHandler,
     SchemaFlowFormStep,
     SchemaFlowMenuStep,
+    SchemaConfigFlowHandler,
     SchemaOptionsFlowHandler,
 )
 
@@ -52,18 +54,22 @@ async def general_options_schema(
         {
             required(const.CONF_MQTT_TOPIC, handler.options): selector.TextSelector(),
             required(const.CONF_MODEL, handler.options): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=const.MODELS,
-                        translation_key="model",
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                    ),
+                selector.SelectSelectorConfig(
+                    options=const.MODELS,
+                    translation_key="model",
+                    mode=selector.SelectSelectorMode.DROPDOWN,
                 ),
-            required(const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
-                    selector.BooleanSelectorConfig(),
-                ),
-            required(const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
-                    selector.BooleanSelectorConfig(),
-                ),
+            ),
+            required(
+                const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, default=True
+            ): selector.BooleanSelector(
+                selector.BooleanSelectorConfig(),
+            ),
+            required(
+                const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, default=True
+            ): selector.BooleanSelector(
+                selector.BooleanSelectorConfig(),
+            ),
         }
     )
 
@@ -77,20 +83,25 @@ async def general_config_schema(
             required(CONF_NAME, handler.options): selector.TextSelector(),
             required(const.CONF_MQTT_TOPIC, handler.options): selector.TextSelector(),
             required(const.CONF_MODEL, handler.options): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=const.MODELS,
-                        translation_key="model",
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                    ),
+                selector.SelectSelectorConfig(
+                    options=const.MODELS,
+                    translation_key="model",
+                    mode=selector.SelectSelectorMode.DROPDOWN,
                 ),
-            required(const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
-                    selector.BooleanSelectorConfig(),
-                ),
-            required(const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, True): selector.BooleanSelector(
-                    selector.BooleanSelectorConfig(),
-                ),
+            ),
+            required(
+                const.CONF_SHOW_HEAT_SCHEDULE_MODE, handler.options, default=True
+            ): selector.BooleanSelector(
+                selector.BooleanSelectorConfig(),
+            ),
+            required(
+                const.CONF_SHOW_WATER_SCHEDULE_MODE, handler.options, default=True
+            ): selector.BooleanSelector(
+                selector.BooleanSelectorConfig(),
+            ),
         }
     )
+
 
 CONFIG_FLOW: dict[str, SchemaFlowFormStep | SchemaFlowMenuStep] = {
     "user": SchemaFlowFormStep(general_config_schema),
