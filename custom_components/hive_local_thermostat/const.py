@@ -1,4 +1,4 @@
-"""Constants for hive_local_thermostat."""
+"""Constants for Hive Local Thermostat."""
 
 import json
 from logging import Logger, getLogger

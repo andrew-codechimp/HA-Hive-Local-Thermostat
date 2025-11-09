@@ -1,4 +1,4 @@
-"""Number platform for hive_local_thermostat."""
+"""Number platform for Hive Local Thermostat."""
 
 from __future__ import annotations
 

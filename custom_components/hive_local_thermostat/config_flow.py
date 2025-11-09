@@ -1,4 +1,4 @@
-"""Adds config flow for hive_local_thermostat."""
+"""Adds config flow for Hive Local Thermostat."""
 
 from __future__ import annotations
 

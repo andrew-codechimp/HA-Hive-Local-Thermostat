@@ -1,4 +1,4 @@
-"""Binary Sensor platform for hive_local_thermostat."""
+"""Binary Sensor platform for Hive Local Thermostat."""
 
 from __future__ import annotations
 
