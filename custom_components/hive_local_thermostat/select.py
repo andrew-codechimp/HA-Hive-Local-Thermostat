@@ -2,28 +2,28 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
+from dataclasses import dataclass
 
-from homeassistant.components.mqtt import client as mqtt_client
-from homeassistant.components.select import SelectEntity, SelectEntityDescription
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.mqtt import client as mqtt_client
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    CONF_MODEL,
-    CONF_MQTT_TOPIC,
-    CONF_SHOW_WATER_SCHEDULE_MODE,
-    DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
+    CONF_MODEL,
     MODEL_OTR1,
     MODEL_SLR1,
+    CONF_MQTT_TOPIC,
+    DEFAULT_WATER_BOOST_MINUTES,
+    CONF_SHOW_WATER_SCHEDULE_MODE,
 )
 from .entity import HiveEntity, HiveEntityDescription
 
@@ -34,14 +34,15 @@ class HiveSelectEntityDescription(
     SelectEntityDescription,
 ):
     """Class describing Hive sensor entities."""
+
     show_schedule_mode: bool = True
 
 
 async def async_setup_entry(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-        async_add_entities: AddEntitiesCallback
-    ) -> None:
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up the sensor platform."""
 
     if config_entry.options[CONF_MODEL] in [MODEL_SLR1, MODEL_OTR1]:
@@ -54,7 +55,7 @@ async def async_setup_entry(
         show_schedule_mode = False
         water_modes = ["heat", "off", "boost"]
 
-    ENTITY_DESCRIPTIONS = (
+    entity_descriptions = (
         HiveSelectEntityDescription(
             key="system_mode_water",
             translation_key="system_mode_water",
@@ -68,13 +69,17 @@ async def async_setup_entry(
         ),
     )
 
-    _entities = [HiveSelect(entity_description=entity_description,) for entity_description in ENTITY_DESCRIPTIONS]
+    _entities = [
+        HiveSelect(
+            entity_description=entity_description,
+        )
+        for entity_description in entity_descriptions
+    ]
 
-    async_add_entities(
-        sensorEntity for sensorEntity in _entities
-    )
+    async_add_entities(sensorEntity for sensorEntity in _entities)
 
     hass.data[DOMAIN][config_entry.entry_id][Platform.SELECT] = _entities
+
 
 class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
     """hive_local_thermostat Select class."""
@@ -88,7 +93,9 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         """Initialize the sensor class."""
 
         self.entity_description = entity_description
-        self._attr_unique_id = f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
+        self._attr_unique_id = (
+            f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
+        )
         self._attr_has_entity_name = True
         self._topic = entity_description.topic
         self._attr_current_option = None
@@ -119,7 +126,9 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         self._attr_current_option = new_value
         self.async_write_ha_state()
 
-        if (self.hass is not None): # this is a hack to get around the fact that the entity is not yet initialized at first
+        if (
+            self.hass is not None
+        ):  # this is a hack to get around the fact that the entity is not yet initialized at first
             self.async_schedule_update_ha_state()
 
     @property
@@ -146,9 +155,19 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         if option == "auto":
             payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
         elif option == "heat":
-            payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
+            payload = (
+                r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
+            )
         elif option == "emergency_heat":
-            payload = r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":' + str(self.get_entity_value("water_boost_duration", DEFAULT_WATER_BOOST_MINUTES)) + r',"temperature_setpoint_hold_water":1}'
+            payload = (
+                r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
+                + str(
+                    self.get_entity_value(
+                        "water_boost_duration", DEFAULT_WATER_BOOST_MINUTES
+                    )
+                )
+                + r',"temperature_setpoint_hold_water":1}'
+            )
         elif option == "off":
             payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
 
