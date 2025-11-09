@@ -10,7 +10,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -23,6 +22,7 @@ from .const import (
     MODEL_SLR2,
     CONF_MQTT_TOPIC,
 )
+from .types import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 
@@ -38,8 +38,8 @@ class HiveBinarySensorEntityDescription(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    hass: HomeAssistant,  # noqa: ARG001
+    config_entry: HiveConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the binary sensor platform."""
@@ -93,7 +93,7 @@ async def async_setup_entry(
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.BINARY_SENSOR] = _entities
+    config_entry.runtime_data.entities[Platform.BINARY_SENSOR] = _entities
 
 
 class HiveBinarySensor(HiveEntity, BinarySensorEntity):

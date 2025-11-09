@@ -12,7 +12,6 @@ from homeassistant.const import (
     Platform,
     UnitOfTemperature,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
@@ -28,6 +27,7 @@ from .const import (
     ICON_UNKNOWN,
     CONF_MQTT_TOPIC,
 )
+from .types import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 
@@ -44,8 +44,8 @@ class HiveSensorEntityDescription(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    hass: HomeAssistant,  # noqa: ARG001
+    config_entry: HiveConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
@@ -188,7 +188,7 @@ async def async_setup_entry(
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.SENSOR] = _entities
+    config_entry.runtime_data.entities[Platform.SENSOR] = _entities
 
 
 class HiveSensor(HiveEntity, SensorEntity):

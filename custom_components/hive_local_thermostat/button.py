@@ -9,7 +9,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -24,6 +23,7 @@ from .const import (
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
+from .types import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 
@@ -36,8 +36,8 @@ class HiveButtonEntityDescription(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    hass: HomeAssistant,  # noqa: ARG001
+    config_entry: HiveConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
@@ -76,7 +76,7 @@ async def async_setup_entry(
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.BUTTON] = _entities
+    config_entry.runtime_data.entities[Platform.BUTTON] = _entities
 
 
 class HiveButton(HiveEntity, ButtonEntity):

@@ -9,7 +9,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -25,6 +24,7 @@ from .const import (
     DEFAULT_WATER_BOOST_MINUTES,
     CONF_SHOW_WATER_SCHEDULE_MODE,
 )
+from .types import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 
@@ -39,8 +39,8 @@ class HiveSelectEntityDescription(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    hass: HomeAssistant,  # noqa: ARG001
+    config_entry: HiveConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
@@ -78,7 +78,7 @@ async def async_setup_entry(
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.SELECT] = _entities
+    config_entry.runtime_data.entities[Platform.SELECT] = _entities
 
 
 class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):

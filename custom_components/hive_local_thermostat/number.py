@@ -13,7 +13,6 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.util.dt import utcnow
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.components.number import (
     RestoreNumber,
@@ -33,6 +32,7 @@ from .const import (
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
+from .types import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 
@@ -47,8 +47,8 @@ class HiveNumberEntityDescription(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    hass: HomeAssistant,  # noqa: ARG001
+    config_entry: HiveConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
@@ -129,7 +129,7 @@ async def async_setup_entry(
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.NUMBER] = _entities
+    config_entry.runtime_data.entities[Platform.NUMBER] = _entities
 
 
 class HiveNumber(HiveEntity, RestoreNumber):
@@ -170,12 +170,13 @@ class HiveNumber(HiveEntity, RestoreNumber):
         else:
             self._state = self.entity_description.default_value
 
-        if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
-            self.hass.data[DOMAIN][self.entity_description.entry_id] = []
-
-        self.hass.data[DOMAIN][self.entity_description.entry_id][
-            self.entity_description.key
-        ] = self._state
+        # Store value in runtime_data
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            if entry.entry_id == self.entity_description.entry_id:
+                entry.runtime_data.entity_values[self.entity_description.key] = (
+                    self._state
+                )
+                break
 
         LOGGER.debug(f"Restored {self.entity_description.key} state: {self._state}")
 
@@ -189,12 +190,11 @@ class HiveNumber(HiveEntity, RestoreNumber):
         self._state = value
         self._last_updated = utcnow()
 
-        if self.entity_description.entry_id not in self.hass.data[DOMAIN]:
-            self.hass.data[DOMAIN][self.entity_description.entry_id] = []
-
-        self.hass.data[DOMAIN][self.entity_description.entry_id][
-            self.entity_description.key
-        ] = value
+        # Store value in runtime_data
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            if entry.entry_id == self.entity_description.entry_id:
+                entry.runtime_data.entity_values[self.entity_description.key] = value
+                break
 
         self.async_write_ha_state()
 

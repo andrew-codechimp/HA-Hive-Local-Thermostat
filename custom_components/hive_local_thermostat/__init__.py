@@ -8,18 +8,15 @@ from __future__ import annotations
 
 import json
 from asyncio import sleep
-from dataclasses import dataclass
 
 from awesomeversion.awesomeversion import AwesomeVersion
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.const import (
-    CONF_ENTITIES,
     Platform,
     __version__ as HA_VERSION,  # noqa: N812
 )
 from homeassistant.helpers import config_validation as cv
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
@@ -32,6 +29,7 @@ from .const import (
     MIN_HA_VERSION,
     CONF_MQTT_TOPIC,
 )
+from .types import HiveData, HiveConfigEntry
 from .services import async_setup_services
 
 PLATFORMS_SLR1: list[Platform] = [
@@ -52,16 +50,6 @@ PLATFORMS_SLR2: list[Platform] = [
 ]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-
-
-@dataclass
-class HiveData:
-    """Hive data type."""
-
-    platforms: list[Platform]
-
-
-type HiveConfigEntry = ConfigEntry[HiveData]
 
 
 def get_platforms(model: str) -> list[Platform]:
@@ -91,10 +79,6 @@ async def async_setup(
 
 async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     """Set up this integration using UI."""
-    hass.data.setdefault(DOMAIN, {})
-
-    hass.data[DOMAIN][entry.entry_id] = {}
-    hass.data[DOMAIN][entry.entry_id][CONF_ENTITIES] = []
 
     platforms = get_platforms(entry.options[CONF_MODEL])
 
@@ -132,12 +116,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
         #         )
         #         return
 
-        if entry.entry_id not in hass.data[DOMAIN]:
-            return
-
         for platform in get_platforms(entry.options[CONF_MODEL]):
-            for entity in hass.data[DOMAIN][entry.entry_id][platform]:
-                entity.process_update(parsed_data)
+            if platform in entry.runtime_data.entities:
+                for entity in entry.runtime_data.entities[platform]:
+                    entity.process_update(parsed_data)
 
     topic = entry.options[CONF_MQTT_TOPIC]
 
@@ -164,11 +146,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
 
 async def async_unload_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     """Handle removal of an entry."""
-    if unloaded := await hass.config_entries.async_unload_platforms(
+    return await hass.config_entries.async_unload_platforms(
         entry, entry.runtime_data.platforms
-    ):
-        hass.data[DOMAIN].pop(entry.entry_id)
-    return unloaded
+    )
 
 
 async def config_entry_update_listener(

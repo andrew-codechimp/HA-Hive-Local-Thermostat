@@ -13,7 +13,6 @@ from homeassistant.const import (
     Platform,
     UnitOfTemperature,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.climate import (
     PRESET_NONE,
@@ -39,6 +38,7 @@ from .const import (
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
+from .types import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 PRESET_MAP = {
@@ -58,8 +58,8 @@ class HiveClimateEntityDescription(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    hass: HomeAssistant,  # noqa: ARG001
+    config_entry: HiveConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
@@ -78,7 +78,7 @@ async def async_setup_entry(
 
     async_add_entities(climateEntity for climateEntity in _entities)
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.CLIMATE] = _entities
+    config_entry.runtime_data.entities[Platform.CLIMATE] = _entities
 
 
 class HiveClimateEntity(HiveEntity, ClimateEntity):
