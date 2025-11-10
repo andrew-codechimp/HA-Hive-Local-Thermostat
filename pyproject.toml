@@ -75,9 +75,6 @@ ignore = [
   "W191",
   "RUF012", # Broken rule in some cases
 
-  # GitHub actions
-  "INP001",  # File is part of an implicit namespace package
-
   # Project preference
   "ERA001",  # Found commented-out code
   "RUF001", # String contains ambiguous character
