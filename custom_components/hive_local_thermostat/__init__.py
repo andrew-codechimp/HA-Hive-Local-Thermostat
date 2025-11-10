@@ -30,6 +30,7 @@ from .const import (
     CONF_MQTT_TOPIC,
 )
 from .types import HiveData, HiveConfigEntry
+from .entity import HiveEntity
 from .services import async_setup_services
 
 PLATFORMS_SLR1: list[Platform] = [
@@ -119,6 +120,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
         for platform in get_platforms(entry.options[CONF_MODEL]):
             if platform in entry.runtime_data.entities:
                 for entity in entry.runtime_data.entities[platform]:
+                    entity: HiveEntity
                     entity.process_update(parsed_data)
 
     topic = entry.options[CONF_MQTT_TOPIC]
