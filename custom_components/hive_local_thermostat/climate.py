@@ -129,7 +129,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         super().__init__(entity_description)
 
-    async def async_set_preset_mode(self, preset_mode):
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode."""
 
         self._attr_preset_mode = preset_mode
@@ -213,7 +213,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
 
-    async def async_set_hvac_mode(self, hvac_mode):  # noqa: PLR0912, PLR0915
+    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:  # noqa: PLR0912, PLR0915
         """Set the hvac mode."""
 
         if hvac_mode in self._attr_hvac_modes:
@@ -342,14 +342,14 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
 
-    def _climate_preset(self, mode):
+    def _climate_preset(self, mode: str) -> str:
         """Get the current preset."""
 
         return next(
             (k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE]
         )
 
-    def process_update(self, mqtt_data):  # noqa: C901, PLR0912, PLR0915
+    def process_update(self, mqtt_data: dict[str, Any]) -> None:  # noqa: C901, PLR0912, PLR0915
         """Update the state of the sensor."""
 
         # Current Temperature

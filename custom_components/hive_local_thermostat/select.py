@@ -132,12 +132,12 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
             self.async_schedule_update_ha_state()
 
     @property
-    def options(self):
+    def options(self) -> list[str]:
         """Return the list of possible options."""
         return self._attr_options
 
     @property
-    def current_option(self):
+    def current_option(self) -> str | None:
         """Return the currently selected option."""
         return self._attr_current_option
 

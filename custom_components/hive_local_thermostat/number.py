@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from datetime import datetime
 from dataclasses import dataclass
 
@@ -198,7 +199,7 @@ class HiveNumber(HiveEntity, RestoreNumber):
 
         self.async_write_ha_state()
 
-    def process_update(self, mqtt_data) -> None:  # noqa: ARG002
+    def process_update(self, mqtt_data: dict[str, Any]) -> None:  # noqa: ARG002
         """Update the state of the sensor."""
         if (
             self.hass is not None

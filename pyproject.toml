@@ -87,10 +87,6 @@ ignore = [
   "TC003",   # Move standard library import into a type-checking block
 
   # TODO: Temporary ignores, to review
-  "ANN001",  # Missing type annotation for function argument
-  "ANN201",  # Missing return type annotation for public function
-  "ANN202",  # Missing return type annotation for private function
-  "ANN204",  # Missing return type annotation for special method
   "EM101",   # Exception must not use a string literal, assign to variable first
   "EM102",   # Exception must not use an f-string literal, assign to variable first
   "SIM102",  # Use a single `if`-statement instead of nested `if`-statements

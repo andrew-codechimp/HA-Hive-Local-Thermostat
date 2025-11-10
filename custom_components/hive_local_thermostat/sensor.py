@@ -212,7 +212,7 @@ class HiveSensor(HiveEntity, SensorEntity):
 
         super().__init__(entity_description)
 
-    def process_update(self, mqtt_data) -> None:
+    def process_update(self, mqtt_data: dict[str, Any]) -> None:
         """Update the state of the sensor."""
 
         try:

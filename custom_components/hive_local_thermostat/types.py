@@ -16,7 +16,7 @@ class HiveData:
     entities: dict[Platform, list] = None
     entity_values: dict[str, float] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize mutable default values."""
         if self.entities is None:
             self.entities = {}
