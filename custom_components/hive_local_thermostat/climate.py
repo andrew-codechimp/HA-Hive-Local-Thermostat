@@ -257,7 +257,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                         + r"}"
                     )
             else:
-                if not self._hvac_mode_set_from_temperature:
+                if not self._hvac_mode_set_from_temperature:  # noqa: SIM102
                     if self._attr_current_temperature:
                         # Get the current temperature and round down to nearest .5
                         self._attr_target_temperature = (

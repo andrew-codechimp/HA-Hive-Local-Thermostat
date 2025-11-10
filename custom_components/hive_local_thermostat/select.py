@@ -121,7 +121,8 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
             new_value = "off"
 
         if new_value not in self.options:
-            raise ValueError(f"Invalid option for {self.entity_id}: {new_value}")
+            msg = f"Invalid option for {self.entity_id}: {new_value}"
+            raise ValueError(msg)
 
         self._attr_current_option = new_value
         self.async_write_ha_state()
@@ -150,7 +151,8 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
     async def async_select_option(self, option: str) -> None:
         """Update the current selected option."""
         if option not in self.options:
-            raise ValueError(f"Invalid option for {self.entity_id}: {option}")
+            msg = f"Invalid option for {self.entity_id}: {option}"
+            raise ValueError(msg)
 
         if option == "auto":
             payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
