@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from homeassistant.helpers.entity import Entity, DeviceInfo, EntityDescription
 
 from .const import DOMAIN
-from .types import HiveData
+from .common import HiveData
 
 
 @dataclass(frozen=True, kw_only=True)

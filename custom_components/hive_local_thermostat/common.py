@@ -1,4 +1,4 @@
-"""Type definitions for Hive Local Thermostat integration."""
+"""Common definitions for Hive Local Thermostat integration."""
 
 from __future__ import annotations
 

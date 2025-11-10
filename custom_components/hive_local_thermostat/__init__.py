@@ -29,7 +29,7 @@ from .const import (
     MIN_HA_VERSION,
     CONF_MQTT_TOPIC,
 )
-from .types import HiveData, HiveConfigEntry
+from .common import HiveData, HiveConfigEntry
 from .entity import HiveEntity
 from .services import async_setup_services
 

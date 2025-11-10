@@ -83,7 +83,6 @@ ignore = [
   "RUF001", # String contains ambiguous character
   "S101",   # Use of assert detected
   "TC001",  # Move application import into type checking
-  "A005",   # Shadows built-in name
   "TC003",   # Move standard library import into a type-checking block
   "TC006",   # Add quotes to type expression in typing.cast()
   "TRY003",  # Avoid specifying long messages outside the exception class

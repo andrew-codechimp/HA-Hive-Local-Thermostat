@@ -26,7 +26,7 @@ from .const import (
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
-from .types import HiveData
+from .common import HiveData
 
 SERVICE_HEATING_BOOST = "boost_heating"
 SERVICE_WATER_BOOST = "boost_water"

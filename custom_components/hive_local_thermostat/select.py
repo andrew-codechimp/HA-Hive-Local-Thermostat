@@ -1,4 +1,4 @@
-"""Select platform for Hive Local Thermostat."""
+"""Select platform for Hive Local Thermostat."""  # noqa: A005
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from .const import (
     DEFAULT_WATER_BOOST_MINUTES,
     CONF_SHOW_WATER_SCHEDULE_MODE,
 )
-from .types import HiveConfigEntry
+from .common import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 

@@ -22,7 +22,7 @@ from .const import (
     MODEL_SLR2,
     CONF_MQTT_TOPIC,
 )
-from .types import HiveConfigEntry
+from .common import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 
