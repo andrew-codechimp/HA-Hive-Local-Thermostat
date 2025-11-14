@@ -81,7 +81,7 @@ def get_entity_value(
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.entry_id == entry_id:
             runtime_data = cast(HiveData, entry.runtime_data)
-            return cast(float, runtime_data.entity_values.get(entity_key, default))
+            return runtime_data.entity_values.get(entity_key, default)
     return default
 
 

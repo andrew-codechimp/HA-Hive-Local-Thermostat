@@ -58,10 +58,7 @@ class HiveEntity(Entity):
         # Get the config entry from hass
         for entry in self.hass.config_entries.async_entries(DOMAIN):
             if entry.entry_id == self.entity_description.entry_id:
-                return cast(
-                    float,
-                    cast(HiveData, entry.runtime_data).entity_values.get(
-                        entity_key, default
-                    ),
+                return cast(HiveData, entry.runtime_data).entity_values.get(
+                    entity_key, default
                 )
         return default
