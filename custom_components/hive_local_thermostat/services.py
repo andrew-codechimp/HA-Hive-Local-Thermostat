@@ -26,6 +26,7 @@ from .const import (
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
+from .common import HiveData
 
 SERVICE_HEATING_BOOST = "boost_heating"
 SERVICE_WATER_BOOST = "boost_water"
@@ -75,11 +76,13 @@ def async_get_entry(hass: HomeAssistant, config_entry_id: str) -> ConfigEntry:
 def get_entity_value(
     hass: HomeAssistant, entry_id: str, entity_key: str, default: float
 ) -> float:
-    """Get an entities value store in hass data."""
-    if entry_id not in hass.data[DOMAIN]:
-        return default
-
-    return cast(float, hass.data[DOMAIN][entry_id].get(entity_key, default))
+    """Get an entities value store in runtime data."""
+    # Get the config entry from hass
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.entry_id == entry_id:
+            runtime_data = cast(HiveData, entry.runtime_data)
+            return cast(float, runtime_data.entity_values.get(entity_key, default))
+    return default
 
 
 @callback

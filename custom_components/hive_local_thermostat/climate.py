@@ -1,4 +1,4 @@
-"""Sensor platform for hive_local_thermostat."""
+"""Sensor platform for Hive Local Thermostat."""
 
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ from homeassistant.const import (
     Platform,
     UnitOfTemperature,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.climate import (
     PRESET_NONE,
@@ -39,6 +38,7 @@ from .const import (
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
+from .common import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 PRESET_MAP = {
@@ -58,8 +58,8 @@ class HiveClimateEntityDescription(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    hass: HomeAssistant,  # noqa: ARG001
+    config_entry: HiveConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
@@ -78,7 +78,7 @@ async def async_setup_entry(
 
     async_add_entities(climateEntity for climateEntity in _entities)
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.CLIMATE] = _entities
+    config_entry.runtime_data.entities[Platform.CLIMATE] = _entities
 
 
 class HiveClimateEntity(HiveEntity, ClimateEntity):
@@ -129,7 +129,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         super().__init__(entity_description)
 
-    async def async_set_preset_mode(self, preset_mode):
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode."""
 
         self._attr_preset_mode = preset_mode
@@ -213,7 +213,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
 
-    async def async_set_hvac_mode(self, hvac_mode):  # noqa: PLR0912, PLR0915
+    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:  # noqa: PLR0912, PLR0915
         """Set the hvac mode."""
 
         if hvac_mode in self._attr_hvac_modes:
@@ -257,7 +257,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                         + r"}"
                     )
             else:
-                if not self._hvac_mode_set_from_temperature:
+                if not self._hvac_mode_set_from_temperature:  # noqa: SIM102
                     if self._attr_current_temperature:
                         # Get the current temperature and round down to nearest .5
                         self._attr_target_temperature = (
@@ -342,14 +342,14 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
 
-    def _climate_preset(self, mode):
+    def _climate_preset(self, mode: str) -> str:
         """Get the current preset."""
 
         return next(
             (k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE]
         )
 
-    def process_update(self, mqtt_data):  # noqa: C901, PLR0912, PLR0915
+    def process_update(self, mqtt_data: dict[str, Any]) -> None:  # noqa: C901, PLR0912, PLR0915
         """Update the state of the sensor."""
 
         # Current Temperature

@@ -76,26 +76,13 @@ ignore = [
   "W191",
   "RUF012", # Broken rule in some cases
 
-  # GitHub actions
-  "INP001",  # File is part of an implicit namespace package
-
   # Project preference
   "ERA001",  # Found commented-out code
   "RUF001", # String contains ambiguous character
   "S101",   # Use of assert detected
   "TC001",  # Move application import into type checking
-  "A005",   # Shadows built-in name
   "TC003",   # Move standard library import into a type-checking block
-
-  # TODO: Temporary ignores, to review
-  "ANN001",  # Missing type annotation for function argument
-  "ANN201",  # Missing return type annotation for public function
-  "ANN202",  # Missing return type annotation for private function
-  "ANN204",  # Missing return type annotation for special method
-  "EM101",   # Exception must not use a string literal, assign to variable first
-  "EM102",   # Exception must not use an f-string literal, assign to variable first
-  "SIM102",  # Use a single `if`-statement instead of nested `if`-statements
-  "TC006",   # Move third-party import into a type-checking block
+  "TC006",   # Add quotes to type expression in typing.cast()
   "TRY003",  # Avoid specifying long messages outside the exception class
   "TRY400",  # Use `logging.exception` instead of `logging.error`
 ]
