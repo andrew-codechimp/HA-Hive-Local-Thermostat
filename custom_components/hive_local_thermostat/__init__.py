@@ -83,7 +83,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
 
     platforms = get_platforms(entry.options[CONF_MODEL])
 
-    entry.runtime_data = HiveData(platforms=platforms)
+    entry.runtime_data = HiveData(platforms=platforms, entities={}, entity_values={})
 
     await hass.config_entries.async_forward_entry_setups(entry, platforms)
 
@@ -119,8 +119,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
 
         for platform in get_platforms(entry.options[CONF_MODEL]):
             if platform in entry.runtime_data.entities:
+                entity: HiveEntity
                 for entity in entry.runtime_data.entities[platform]:
-                    entity: HiveEntity
                     entity.process_update(parsed_data)
 
     topic = entry.options[CONF_MQTT_TOPIC]

@@ -29,6 +29,7 @@ Changelog = "https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/releas
 dev = [
     "colorlog",
     "homeassistant==2025.4.0",
+    "mypy",
     "ruff",
 ]
 
@@ -114,6 +115,7 @@ voluptuous = "vol"
 # Specify the target platform details in config, so your developers are
 # free to run mypy on Windows, Linux, or macOS and get consistent
 # results.
+python_version = "3.13"
 platform = "linux"
 
 # show error messages from unrelated files
@@ -123,18 +125,20 @@ follow_imports = "normal"
 ignore_missing_imports = true
 
 # be strict
-# check_untyped_defs = true
-# disallow_any_generics = true
-# disallow_incomplete_defs = true
-# disallow_subclassing_any = true
-# disallow_untyped_calls = true
-# disallow_untyped_decorators = true
-# disallow_untyped_defs = true
-# no_implicit_optional = true
-# strict_optional = true
-# warn_incomplete_stub = true
-# warn_no_return = true
-# warn_redundant_casts = true
-# warn_return_any = true
-# warn_unused_configs = true
-# warn_unused_ignores = true
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+# Files to check
+files = ["custom_components/hive_local_thermostat"]
+
+# Exclude patterns
+exclude = [
+    "^config/",
+    "^scripts/",
+]

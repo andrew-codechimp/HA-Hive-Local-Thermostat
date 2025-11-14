@@ -5,12 +5,12 @@ on:
     paths:
       - "**.py" # Run if pushed commits include a change to a Python (.py) file.
       - ".github/workflows/lint.yml" # Run if pushed commits include a change to a github actions workflow file.
-      - ".pyproject.toml" # Run if project configuration file changes.
+      - "pyproject.toml" # Run if project configuration file changes.
   pull_request:
     paths:
       - "**.py" # Run if pushed commits include a change to a Python (.py) file.
       - ".github/workflows/lint.yml" # Run if pushed commits include a change to a github actions workflow file.
-      - ".pyproject.toml" # Run if project configuration file changes.
+      - "pyproject.toml" # Run if project configuration file changes.
   workflow_dispatch:
 
 jobs:
@@ -30,3 +30,24 @@ jobs:
         uses: astral-sh/ruff-action@v3
         with:
           args: format --check --diff
+
+  mypy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run mypy
+        run: uv run mypy

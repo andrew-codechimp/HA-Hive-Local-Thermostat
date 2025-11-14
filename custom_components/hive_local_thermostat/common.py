@@ -13,8 +13,8 @@ class HiveData:
     """Hive data type."""
 
     platforms: list[Platform]
-    entities: dict[Platform, list] = None
-    entity_values: dict[str, float] = None
+    entities: dict[Platform, list]
+    entity_values: dict[str, float]
 
     def __post_init__(self) -> None:
         """Initialize mutable default values."""
