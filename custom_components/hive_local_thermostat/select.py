@@ -1,4 +1,4 @@
-"""Select platform for hive_local_thermostat."""
+"""Select platform for Hive Local Thermostat."""  # noqa: A005
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -25,6 +24,7 @@ from .const import (
     DEFAULT_WATER_BOOST_MINUTES,
     CONF_SHOW_WATER_SCHEDULE_MODE,
 )
+from .common import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
 
@@ -39,8 +39,8 @@ class HiveSelectEntityDescription(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    hass: HomeAssistant,  # noqa: ARG001
+    config_entry: HiveConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
@@ -78,7 +78,7 @@ async def async_setup_entry(
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
 
-    hass.data[DOMAIN][config_entry.entry_id][Platform.SELECT] = _entities
+    config_entry.runtime_data.entities[Platform.SELECT] = _entities
 
 
 class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
@@ -121,7 +121,8 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
             new_value = "off"
 
         if new_value not in self.options:
-            raise ValueError(f"Invalid option for {self.entity_id}: {new_value}")
+            msg = f"Invalid option for {self.entity_id}: {new_value}"
+            raise ValueError(msg)
 
         self._attr_current_option = new_value
         self.async_write_ha_state()
@@ -132,12 +133,12 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
             self.async_schedule_update_ha_state()
 
     @property
-    def options(self):
+    def options(self) -> list[str]:
         """Return the list of possible options."""
         return self._attr_options
 
     @property
-    def current_option(self):
+    def current_option(self) -> str | None:
         """Return the currently selected option."""
         return self._attr_current_option
 
@@ -150,7 +151,8 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
     async def async_select_option(self, option: str) -> None:
         """Update the current selected option."""
         if option not in self.options:
-            raise ValueError(f"Invalid option for {self.entity_id}: {option}")
+            msg = f"Invalid option for {self.entity_id}: {option}"
+            raise ValueError(msg)
 
         if option == "auto":
             payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
