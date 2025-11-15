@@ -4,8 +4,5 @@ set -euo pipefail
 # Move to project root
 cd "$(dirname "$0")/.."
 
-echo "Running ruff check..."
-uv run ruff check . --fix
-
-echo "Running mypy..."
-uv run mypy
+echo "Running pre-commit checks..."
+uv run pre-commit run --all-files

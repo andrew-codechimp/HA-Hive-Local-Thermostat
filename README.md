@@ -9,7 +9,7 @@
 
 Local Hive Thermostat MQTT integration for Home Assistant
 
-_Please :star: this repo if you find it useful_  
+_Please :star: this repo if you find it useful_
 _If you want to show your support please_
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/codechimp)
@@ -81,13 +81,13 @@ The presets provide the facility to boost the heating. Selecting Boost will trig
 
   By default Zigbee2MQTT will not send frequent updates to track boosts by the minute, they will update but this is typically every 10 minutes.
 
-  To change this within Zigbee2MQTT go into the receiver's reporting settings and change the following;  
-  Min Rep Change of any tempSetpointHoldDuration to 1  
+  To change this within Zigbee2MQTT go into the receiver's reporting settings and change the following;
+  Min Rep Change of any tempSetpointHoldDuration to 1
   If you have heat and water you will have two values under different Endpoints, with heat only you will have one.
 
 - I have changed thermostat settings within Zigbee2MQTT but it does not work properly.
 
-  Zigbee2MQTT's UI exposes the current state of each value in a generic way, it does not have the logic to correctly send/intepret the values required to control the Hive thermostat, the documentation for each thermostat within Zigbee2MQTT explains the messages required to change things, this integration provides a wrapper around all this complexity for you but there is nothing stopping you from creating your own MQTT messages to do this.
+  Zigbee2MQTT's UI exposes the current state of each value in a generic way, it does not have the logic to correctly send/interpret the values required to control the Hive thermostat, the documentation for each thermostat within Zigbee2MQTT explains the messages required to change things, this integration provides a wrapper around all this complexity for you but there is nothing stopping you from creating your own MQTT messages to do this.
 
 - Can this be used with ZHA?
 
