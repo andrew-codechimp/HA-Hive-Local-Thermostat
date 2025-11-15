@@ -15,10 +15,9 @@ Pull requests are the best way to propose changes to the codebase.
 
 1. Fork the repo and create your branch from `main`.
 2. If you've changed something, update the documentation.
-3. Install pre-commit hooks: `uv sync && pre-commit install`
-4. Make sure your code lints - pre-commit will run automatically on commit, or run manually with `pre-commit run --all-files`.
-5. Test you contribution.
-6. Issue that pull request!
+3. Make sure your code lints (using `scripts/lint`).
+4. Test you contribution.
+5. Issue that pull request!
 
 ## Any contributions you make will be under the MIT Software License
 
@@ -45,24 +44,7 @@ People *love* thorough bug reports. I'm not even kidding.
 
 ## Use a Consistent Coding Style
 
-This project uses [Ruff](https://github.com/astral-sh/ruff) for linting and formatting.
-Pre-commit hooks are configured to automatically format and check your code before each commit.
-
-To manually run the checks:
-
-```bash
-# Install dependencies and pre-commit hooks
-uv sync
-pre-commit install
-
-# Run all pre-commit checks
-pre-commit run --all-files
-
-# Or run specific checks
-ruff check custom_components/
-ruff format custom_components/
-mypy custom_components/hive_local_thermostat/
-```
+Use [black](https://github.com/ambv/black) to make sure the code follows the style.
 
 ## Test your code modification
 

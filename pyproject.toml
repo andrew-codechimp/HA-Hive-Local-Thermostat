@@ -30,7 +30,6 @@ dev = [
     "colorlog",
     "homeassistant==2025.4.0",
     "mypy",
-    "pre-commit",
     "ruff",
 ]
 
