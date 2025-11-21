@@ -30,6 +30,8 @@ from .const import (
 from .common import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
 
+BOOST_REMAINING_ERROR_VALUE = 60000
+
 
 @dataclass(frozen=True, kw_only=True)
 class HiveSensorEntityDescription(
@@ -105,9 +107,14 @@ async def async_setup_entry(
                 name=config_entry.title,
                 value_fn=lambda data: cast(
                     int,
-                    data["temperature_setpoint_hold_duration_heat"]
-                    if data["system_mode_heat"] == "emergency_heating"
-                    else 0,
+                    0
+                    if data["temperature_setpoint_hold_duration_heat"]
+                    > BOOST_REMAINING_ERROR_VALUE
+                    else (
+                        data["temperature_setpoint_hold_duration_heat"]
+                        if data["system_mode_heat"] == "emergency_heating"
+                        else 0
+                    ),
                 ),
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
@@ -120,9 +127,14 @@ async def async_setup_entry(
                 name=config_entry.title,
                 value_fn=lambda data: cast(
                     int,
-                    data["temperature_setpoint_hold_duration_water"]
-                    if data["system_mode_water"] == "emergency_heating"
-                    else 0,
+                    0
+                    if data["temperature_setpoint_hold_duration_water"]
+                    > BOOST_REMAINING_ERROR_VALUE
+                    else (
+                        data["temperature_setpoint_hold_duration_water"]
+                        if data["system_mode_water"] == "emergency_heating"
+                        else 0
+                    ),
                 ),
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
@@ -169,9 +181,14 @@ async def async_setup_entry(
                 suggested_display_precision=1,
                 value_fn=lambda data: cast(
                     int,
-                    data["temperature_setpoint_hold_duration"]
-                    if data["system_mode"] == "emergency_heating"
-                    else 0,
+                    0
+                    if data["temperature_setpoint_hold_duration"]
+                    > BOOST_REMAINING_ERROR_VALUE
+                    else (
+                        data["temperature_setpoint_hold_duration"]
+                        if data["system_mode"] == "emergency_heating"
+                        else 0
+                    ),
                 ),
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
