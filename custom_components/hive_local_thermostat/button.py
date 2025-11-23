@@ -46,7 +46,6 @@ async def async_setup_entry(
         HiveButtonEntityDescription(
             key="boost_heating",
             translation_key="boost_heating",
-            icon="mdi:radiator",
             name=config_entry.title,
             topic=config_entry.options[CONF_MQTT_TOPIC],
             entry_id=config_entry.entry_id,
@@ -59,7 +58,6 @@ async def async_setup_entry(
             HiveButtonEntityDescription(
                 key="boost_water",
                 translation_key="boost_water",
-                icon="mdi:water-boiler",
                 name=config_entry.title,
                 topic=config_entry.options[CONF_MQTT_TOPIC],
                 entry_id=config_entry.entry_id,
