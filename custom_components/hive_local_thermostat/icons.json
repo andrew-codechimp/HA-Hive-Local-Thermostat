@@ -1,4 +1,69 @@
 {
+  "entity": {
+    "binary_sensor": {
+      "heat_boost": {
+        "default": "mdi:rocket-launch"
+      },
+      "water_boost": {
+        "default": "mdi:rocket-launch"
+      }
+    },
+    "button": {
+      "boost_heating": {
+        "default": "mdi:radiator"
+      },
+      "boost_water": {
+        "default": "mdi:water-boiler"
+      }
+    },
+    "number": {
+      "heating_boost_duration": {
+        "default": "mdi:timer"
+      },
+      "heating_boost_temperature": {
+        "default": "mdi:thermometer"
+      },
+      "heating_frost_prevention": {
+        "default": "mdi:snowflake-thermometer"
+      },
+      "water_boost_duration": {
+        "default": "mdi:timer"
+      }
+    },
+    "select": {
+      "system_mode_water": {
+        "default": "mdi:water-boiler"
+      }
+    },
+    "sensor": {
+      "boost_remaining_heat": {
+        "default": "mdi:timer-outline"
+      },
+      "boost_remaining_water": {
+        "default": "mdi:timer-outline"
+      },
+      "local_temperature_heat": {
+        "default": "mdi:thermometer"
+      },
+      "running_state_heat": {
+        "default": "mdi:radiator-disabled",
+        "state": {
+          "heat": "mdi:radiator",
+          "idle": "mdi:radiator-off",
+          "off": "mdi:radiator-off",
+          "preheating": "mdi:radiator"
+        }
+      },
+      "running_state_water": {
+        "default": "mdi:water-boiler-off",
+        "state": {
+          "heat": "mdi:water-boiler",
+          "idle": "mdi:water-boiler-off",
+          "off": "mdi:water-boiler-off"
+        }
+      }
+    }
+  },
   "services": {
     "boost_heating": {
       "service": "mdi:rocket-launch"

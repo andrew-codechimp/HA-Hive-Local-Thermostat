@@ -49,7 +49,6 @@ async def async_setup_entry(
             HiveBinarySensorEntityDescription(
                 key="heat_boost",
                 translation_key="heat_boost",
-                icon="mdi:rocket-launch",
                 name=config_entry.title,
                 value_fn=lambda js: js["system_mode_heat"] == "emergency_heating",
                 topic=config_entry.options[CONF_MQTT_TOPIC],
@@ -60,7 +59,6 @@ async def async_setup_entry(
             HiveBinarySensorEntityDescription(
                 key="water_boost",
                 translation_key="water_boost",
-                icon="mdi:rocket-launch",
                 name=config_entry.title,
                 value_fn=lambda js: js["system_mode_water"] == "emergency_heating",
                 topic=config_entry.options[CONF_MQTT_TOPIC],
@@ -74,7 +72,6 @@ async def async_setup_entry(
             HiveBinarySensorEntityDescription(
                 key="heat_boost",
                 translation_key="heat_boost",
-                icon="mdi:rocket-launch",
                 name=config_entry.title,
                 value_fn=lambda js: js["system_mode"] == "emergency_heating",
                 topic=config_entry.options[CONF_MQTT_TOPIC],
