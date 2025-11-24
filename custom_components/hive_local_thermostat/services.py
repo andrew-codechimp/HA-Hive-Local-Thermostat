@@ -13,12 +13,10 @@ from homeassistant.core import (
 )
 from homeassistant.helpers import config_validation as cv
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
-from homeassistant.components.mqtt import client as mqtt_client
+from homeassistant.config_entries import ConfigEntryState
 
 from .const import (
     DOMAIN,
-    LOGGER,
     CONF_MODEL,
     MODEL_SLR2,
     CONF_MQTT_TOPIC,
@@ -26,7 +24,7 @@ from .const import (
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
-from .common import HiveData
+from .common import HiveData, HiveConfigEntry, async_mqtt_publish_with_diagnostics
 
 SERVICE_HEATING_BOOST = "boost_heating"
 SERVICE_WATER_BOOST = "boost_water"
@@ -56,7 +54,7 @@ SERVICE_WATER_BOOST_SCHEMA = vol.Schema(
 _LOGGER = logging.getLogger(__name__)
 
 
-def async_get_entry(hass: HomeAssistant, config_entry_id: str) -> ConfigEntry:
+def async_get_entry(hass: HomeAssistant, config_entry_id: str) -> HiveConfigEntry:
     """Get the Hive Local Thermostat config entry."""
     if not (entry := hass.config_entries.async_get_entry(config_entry_id)):
         raise ServiceValidationError(
@@ -70,7 +68,7 @@ def async_get_entry(hass: HomeAssistant, config_entry_id: str) -> ConfigEntry:
             translation_key="not_loaded",
             translation_placeholders={"target": entry.title},
         )
-    return entry
+    return cast(HiveConfigEntry, entry)
 
 
 def get_entity_value(
@@ -154,8 +152,9 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
             + r"}"
         )
 
-    LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
-    await mqtt_client.async_publish(call.hass, mqtt_topic + "/set", payload)
+    await async_mqtt_publish_with_diagnostics(
+        call.hass, entry, mqtt_topic + "/set", payload
+    )
 
     return None
 
@@ -187,8 +186,9 @@ async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
             + r',"temperature_setpoint_hold_water":1}'
         )
 
-        LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
-        await mqtt_client.async_publish(call.hass, mqtt_topic + "/set", payload)
+        await async_mqtt_publish_with_diagnostics(
+            call.hass, entry, mqtt_topic + "/set", payload
+        )
     else:
         raise ServiceValidationError(
             translation_domain=DOMAIN,

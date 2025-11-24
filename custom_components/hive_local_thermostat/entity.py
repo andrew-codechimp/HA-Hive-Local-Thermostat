@@ -7,8 +7,9 @@ from typing import Any, cast
 from dataclasses import dataclass
 
 from homeassistant.helpers.entity import Entity, DeviceInfo, EntityDescription
+from homeassistant.components.mqtt import client as mqtt_client
 
-from .const import DOMAIN
+from .const import DOMAIN, LOGGER
 from .common import HiveData
 
 
@@ -62,3 +63,20 @@ class HiveEntity(Entity):
                     entity_key, default
                 )
         return default
+
+    def add_diagnostic_mqtt_publish(self, topic: str, payload: str) -> None:
+        """Add MQTT publish to diagnostic data."""
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            if entry.entry_id == self.entity_description.entry_id:
+                diagnostic_msg = f"PUBLISH: {topic} - {payload}"
+                cast(HiveData, entry.runtime_data).add_diagnostic_data(diagnostic_msg)
+                break
+
+    async def async_mqtt_publish(
+        self, payload: str, topic_suffix: str = "/set"
+    ) -> None:
+        """Publish MQTT message with logging and diagnostics."""
+        topic = self.entity_description.topic + topic_suffix
+        LOGGER.debug("Sending to %s message %s", topic, payload)
+        self.add_diagnostic_mqtt_publish(topic, payload)
+        await mqtt_client.async_publish(self.hass, topic, payload)

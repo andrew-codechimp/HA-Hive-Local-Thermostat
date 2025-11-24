@@ -9,14 +9,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    LOGGER,
     CONF_MODEL,
     MODEL_OTR1,
     MODEL_SLR1,
@@ -172,8 +170,7 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         elif option == "off":
             payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
 
-        LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-        await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        await self.async_mqtt_publish(payload)
 
         self._attr_current_option = option
         self.async_write_ha_state()

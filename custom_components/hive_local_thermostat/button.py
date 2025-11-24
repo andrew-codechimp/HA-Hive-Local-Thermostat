@@ -9,13 +9,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    LOGGER,
     CONF_MODEL,
     MODEL_SLR2,
     CONF_MQTT_TOPIC,
@@ -156,5 +154,4 @@ class HiveButton(HiveEntity, ButtonEntity):
                     + r"}"
                 )
 
-        LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-        await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+        await self.async_mqtt_publish(payload)

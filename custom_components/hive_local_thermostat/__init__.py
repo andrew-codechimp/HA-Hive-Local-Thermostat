@@ -29,7 +29,7 @@ from .const import (
     MIN_HA_VERSION,
     CONF_MQTT_TOPIC,
 )
-from .common import HiveData, HiveConfigEntry
+from .common import HiveData, HiveConfigEntry, async_mqtt_publish_with_diagnostics
 from .entity import HiveEntity
 from .services import async_setup_services
 
@@ -104,6 +104,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
 
         parsed_data = json.loads(payload)
 
+        # Store parsed_data for diagnostics (only unique entries based on SHA256)
+        entry.runtime_data.add_diagnostic_data(parsed_data)
+
         # if entry.options[CONF_MODEL] == MODEL_SLR2:
         #     if "system_mode_heat" not in parsed_data:
         #         LOGGER.error(
@@ -138,8 +141,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
     # Send an initial message to get the current state
     await sleep(2)
     payload = r'{"system_mode":""}'
-    LOGGER.debug("Sending to %s/get message %s", topic, payload)
-    await mqtt_client.async_publish(hass, topic + "/get", payload)
+    await async_mqtt_publish_with_diagnostics(hass, entry, topic + "/get", payload)
 
     entry.async_on_unload(entry.add_update_listener(config_entry_update_listener))
 
