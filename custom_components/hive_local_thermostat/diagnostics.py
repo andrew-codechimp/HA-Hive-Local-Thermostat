@@ -26,10 +26,10 @@ async def async_get_config_entry_diagnostics(
     return {
         "config_entry": {
             "title": entry.title,
-            "options": dict(sorted(entry.options.items())),
-            "data": dict(sorted(entry.data.items())),
             "version": entry.version,
             "minor_version": entry.minor_version,
+            "data": dict(sorted(entry.data.items())),
+            "options": dict(sorted(entry.options.items())),
         },
         "entity_values": dict(sorted(runtime_data.entity_values.items())),
         "diagnostic_data": diagnostic_data_list,
