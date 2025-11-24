@@ -5,20 +5,18 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
 
 from .common import HiveConfigEntry
 
 
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,  # noqa: ARG001
-    entry: ConfigEntry,
+    entry: HiveConfigEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    hive_entry: HiveConfigEntry = entry
 
     # Get runtime data
-    runtime_data = hive_entry.runtime_data
+    runtime_data = entry.runtime_data
 
     # Convert diagnostic data deque to list
     diagnostic_data_list = list(runtime_data.diagnostic_data)
