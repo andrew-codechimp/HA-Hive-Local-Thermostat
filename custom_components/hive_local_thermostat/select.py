@@ -159,7 +159,7 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
             payload = (
                 r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
             )
-        elif option == "emergency_heat":
+        elif option == "boost":
             payload = (
                 r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
                 + str(
