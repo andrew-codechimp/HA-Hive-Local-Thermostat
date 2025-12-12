@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
 from datetime import datetime
 from dataclasses import dataclass
 
@@ -10,7 +9,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     STATE_UNKNOWN,
     STATE_UNAVAILABLE,
-    Platform,
     UnitOfTemperature,
 )
 from homeassistant.util.dt import utcnow
@@ -27,7 +25,6 @@ from .const import (
     LOGGER,
     CONF_MODEL,
     MODEL_SLR2,
-    CONF_MQTT_TOPIC,
     DEFAULT_FROST_TEMPERATURE,
     DEFAULT_WATER_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_MINUTES,
@@ -35,6 +32,7 @@ from .const import (
 )
 from .common import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
+from .coordinator import HiveCoordinator
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -54,25 +52,23 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
+    coordinator = config_entry.runtime_data.coordinator
+
     entity_descriptions = [
         HiveNumberEntityDescription(
             key="heating_boost_duration",
             translation_key="heating_boost_duration",
             name=config_entry.title,
-            topic=config_entry.options[CONF_MQTT_TOPIC],
             entity_category=EntityCategory.CONFIG,
             native_min_value=15,
             native_max_value=180,
             native_step=1,
             default_value=DEFAULT_HEATING_BOOST_MINUTES,
-            entry_id=config_entry.entry_id,
-            model=config_entry.options[CONF_MODEL],
         ),
         HiveNumberEntityDescription(
             key="heating_frost_prevention",
             translation_key="heating_frost_prevention",
             name=config_entry.title,
-            topic=config_entry.options[CONF_MQTT_TOPIC],
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -80,14 +76,11 @@ async def async_setup_entry(
             native_max_value=16,
             native_step=0.5,
             default_value=DEFAULT_FROST_TEMPERATURE,
-            entry_id=config_entry.entry_id,
-            model=config_entry.options[CONF_MODEL],
         ),
         HiveNumberEntityDescription(
             key="heating_boost_temperature",
             translation_key="heating_boost_temperature",
             name=config_entry.title,
-            topic=config_entry.options[CONF_MQTT_TOPIC],
             entity_category=EntityCategory.CONFIG,
             device_class=NumberDeviceClass.TEMPERATURE,
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -95,8 +88,6 @@ async def async_setup_entry(
             native_max_value=32,
             native_step=0.5,
             default_value=DEFAULT_HEATING_BOOST_TEMPERATURE,
-            entry_id=config_entry.entry_id,
-            model=config_entry.options[CONF_MODEL],
         ),
     ]
 
@@ -106,27 +97,23 @@ async def async_setup_entry(
                 key="water_boost_duration",
                 translation_key="water_boost_duration",
                 name=config_entry.title,
-                topic=config_entry.options[CONF_MQTT_TOPIC],
                 entity_category=EntityCategory.CONFIG,
                 native_min_value=15,
                 native_max_value=180,
                 native_step=1,
                 default_value=DEFAULT_WATER_BOOST_MINUTES,
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
             )
         )
 
     _entities = [
         HiveNumber(
             entity_description=entity_description,
+            coordinator=coordinator,
         )
         for entity_description in entity_descriptions
     ]
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
-
-    config_entry.runtime_data.entities[Platform.NUMBER] = _entities
 
 
 class HiveNumber(HiveEntity, RestoreNumber):
@@ -139,6 +126,7 @@ class HiveNumber(HiveEntity, RestoreNumber):
     def __init__(
         self,
         entity_description: HiveNumberEntityDescription,
+        coordinator: HiveCoordinator,
     ) -> None:
         """Initialize the sensor class."""
 
@@ -147,11 +135,10 @@ class HiveNumber(HiveEntity, RestoreNumber):
             f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         )
         self._attr_has_entity_name = True
-        self._topic = entity_description.topic
         self._state = None
         self._last_updated = None
 
-        super().__init__(entity_description)
+        super().__init__(entity_description, coordinator)
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
@@ -167,13 +154,8 @@ class HiveNumber(HiveEntity, RestoreNumber):
         else:
             self._state = self.entity_description.default_value
 
-        # Store value in runtime_data
-        for entry in self.hass.config_entries.async_entries(DOMAIN):
-            if entry.entry_id == self.entity_description.entry_id:
-                entry.runtime_data.entity_values[self.entity_description.key] = (
-                    self._state
-                )
-                break
+        # Store value in coordinator
+        setattr(self.coordinator, self.entity_description.key, self._state)
 
         LOGGER.debug(f"Restored {self.entity_description.key} state: {self._state}")
 
@@ -187,17 +169,13 @@ class HiveNumber(HiveEntity, RestoreNumber):
         self._state = value
         self._last_updated = utcnow()
 
-        # Store value in runtime_data
-        for entry in self.hass.config_entries.async_entries(DOMAIN):
-            if entry.entry_id == self.entity_description.entry_id:
-                entry.runtime_data.entity_values[self.entity_description.key] = value
-                break
+        # Store value in coordinator
+        setattr(self.coordinator, self.entity_description.key, value)
 
         self.async_write_ha_state()
 
-    def process_update(self, mqtt_data: dict[str, Any]) -> None:  # noqa: ARG002
-        """Update the state of the sensor."""
-        if (
-            self.hass is not None
-        ):  # this is a hack to get around the fact that the entity is not yet initialized at first
-            self.async_schedule_update_ha_state()
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        # Number entities don't need to process MQTT data updates
+        # They only update through user input
+        self.async_write_ha_state()

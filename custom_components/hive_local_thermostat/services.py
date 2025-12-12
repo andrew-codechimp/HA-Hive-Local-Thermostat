@@ -22,9 +22,6 @@ from .const import (
     CONF_MODEL,
     MODEL_SLR2,
     CONF_MQTT_TOPIC,
-    DEFAULT_WATER_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
 from .common import HiveData
 
@@ -73,18 +70,6 @@ def async_get_entry(hass: HomeAssistant, config_entry_id: str) -> ConfigEntry:
     return entry
 
 
-def get_entity_value(
-    hass: HomeAssistant, entry_id: str, entity_key: str, default: float
-) -> float:
-    """Get an entities value store in runtime data."""
-    # Get the config entry from hass
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.entry_id == entry_id:
-            runtime_data = cast(HiveData, entry.runtime_data)
-            return runtime_data.entity_values.get(entity_key, default)
-    return default
-
-
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
     """Set up the services for the hive_local_thermostat integration."""
@@ -107,17 +92,13 @@ def async_setup_services(hass: HomeAssistant) -> None:
 async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
     """Handle the service call."""
     entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+    coordinator = cast(HiveData, entry.runtime_data).coordinator
 
     boost_minutes = cast(
         int,
         call.data.get(
             SERVICE_DATA_HEATING_BOOST_MINUTES,
-            get_entity_value(
-                call.hass,
-                entry.entry_id,
-                "heating_boost_duration",
-                DEFAULT_HEATING_BOOST_MINUTES,
-            ),
+            coordinator.heating_boost_duration,
         ),
     )
 
@@ -125,12 +106,7 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
         float,
         call.data.get(
             SERVICE_DATA_HEATING_BOOST_TEMPERATURE,
-            get_entity_value(
-                call.hass,
-                entry.entry_id,
-                "heating_boost_temperature",
-                DEFAULT_HEATING_BOOST_TEMPERATURE,
-            ),
+            coordinator.heating_boost_temperature,
         ),
     )
 
@@ -163,17 +139,13 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
 async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
     """Handle the service call."""
     entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+    coordinator = cast(HiveData, entry.runtime_data).coordinator
 
     boost_minutes = cast(
         int,
         call.data.get(
             SERVICE_DATA_WATER_BOOST_MINUTES,
-            get_entity_value(
-                call.hass,
-                entry.entry_id,
-                "water_boost_duration",
-                DEFAULT_WATER_BOOST_MINUTES,
-            ),
+            coordinator.water_boost_duration,
         ),
     )
 

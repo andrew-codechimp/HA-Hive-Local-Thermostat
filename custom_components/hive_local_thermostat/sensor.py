@@ -9,7 +9,6 @@ from collections.abc import Callable
 from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     PRECISION_TENTHS,
-    Platform,
     UnitOfTemperature,
 )
 from homeassistant.components.sensor import (
@@ -24,10 +23,10 @@ from .const import (
     DOMAIN,
     CONF_MODEL,
     MODEL_SLR2,
-    CONF_MQTT_TOPIC,
 )
 from .common import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
+from .coordinator import HiveCoordinator
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -49,6 +48,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
+    coordinator = config_entry.runtime_data.coordinator
+
     if config_entry.options[CONF_MODEL] == MODEL_SLR2:
         entity_descriptions = [
             HiveSensorEntityDescription(
@@ -56,9 +57,6 @@ async def async_setup_entry(
                 translation_key="running_state_heat",
                 name=config_entry.title,
                 value_fn=lambda js: js["running_state_heat"],
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
                 running_state=True,
             ),
             HiveSensorEntityDescription(
@@ -69,18 +67,12 @@ async def async_setup_entry(
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 suggested_display_precision=1,
                 value_fn=lambda data: cast(float, data["local_temperature_heat"]),
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
             ),
             HiveSensorEntityDescription(
                 key="running_state_water",
                 translation_key="running_state_water",
                 name=config_entry.title,
                 value_fn=lambda data: cast(str, data["running_state_water"]),
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
                 running_state=True,
             ),
             HiveSensorEntityDescription(
@@ -93,9 +85,6 @@ async def async_setup_entry(
                     if data["system_mode_heat"] == "emergency_heating"
                     else 0,
                 ),
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
             ),
             HiveSensorEntityDescription(
                 key="boost_remaining_water",
@@ -107,9 +96,6 @@ async def async_setup_entry(
                     if data["system_mode_water"] == "emergency_heating"
                     else 0,
                 ),
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
             ),
         ]
     else:
@@ -119,9 +105,6 @@ async def async_setup_entry(
                 translation_key="running_state_heat",
                 name=config_entry.title,
                 value_fn=lambda data: cast(str, data["running_state"]),
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
                 running_state=True,
             ),
             HiveSensorEntityDescription(
@@ -132,9 +115,6 @@ async def async_setup_entry(
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 suggested_display_precision=1,
                 value_fn=lambda data: cast(float, data["local_temperature"]),
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
             ),
             HiveSensorEntityDescription(
                 key="boost_remaining_heat",
@@ -147,22 +127,18 @@ async def async_setup_entry(
                     if data["system_mode"] == "emergency_heating"
                     else 0,
                 ),
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
             ),
         ]
 
     _entities = [
         HiveSensor(
             entity_description=entity_description,
+            coordinator=coordinator,
         )
         for entity_description in entity_descriptions
     ]
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
-
-    config_entry.runtime_data.entities[Platform.SENSOR] = _entities
 
 
 class HiveSensor(HiveEntity, SensorEntity):
@@ -173,6 +149,7 @@ class HiveSensor(HiveEntity, SensorEntity):
     def __init__(
         self,
         entity_description: HiveSensorEntityDescription,
+        coordinator: HiveCoordinator,
     ) -> None:
         """Initialize the sensor class."""
 
@@ -182,12 +159,12 @@ class HiveSensor(HiveEntity, SensorEntity):
         )
         self._attr_has_entity_name = True
         self._func = entity_description.value_fn
-        self._topic = entity_description.topic
 
-        super().__init__(entity_description)
+        super().__init__(entity_description, coordinator)
 
-    def process_update(self, mqtt_data: dict[str, Any]) -> None:
-        """Update the state of the sensor."""
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        mqtt_data = self.coordinator.data
 
         try:
             new_value = self._func(mqtt_data)
@@ -212,7 +189,4 @@ class HiveSensor(HiveEntity, SensorEntity):
             )
 
         self._attr_native_value = new_value
-        if (
-            self.hass is not None
-        ):  # this is a hack to get around the fact that the entity is not yet initialized at first
-            self.async_schedule_update_ha_state()
+        self.async_write_ha_state()

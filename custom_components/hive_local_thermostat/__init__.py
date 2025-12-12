@@ -6,12 +6,11 @@ https://github.com/andrew-codechimp/HA_Hive_Local_Thermostat
 
 from __future__ import annotations
 
-import json
 from asyncio import sleep
 
 from awesomeversion.awesomeversion import AwesomeVersion
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     Platform,
     __version__ as HA_VERSION,  # noqa: N812
@@ -19,7 +18,6 @@ from homeassistant.const import (
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components.mqtt import client as mqtt_client
-from homeassistant.components.mqtt.models import ReceiveMessage
 
 from .const import (
     DOMAIN,
@@ -30,8 +28,8 @@ from .const import (
     CONF_MQTT_TOPIC,
 )
 from .common import HiveData, HiveConfigEntry
-from .entity import HiveEntity
 from .services import async_setup_services
+from .coordinator import HiveCoordinator
 
 PLATFORMS_SLR1: list[Platform] = [
     Platform.SENSOR,
@@ -83,45 +81,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
 
     platforms = get_platforms(entry.options[CONF_MODEL])
 
-    entry.runtime_data = HiveData(platforms=platforms, entities={}, entity_values={})
+    coordinator = HiveCoordinator(
+        hass,
+        entry.entry_id,
+        entry.options[CONF_MODEL],
+        entry.options[CONF_MQTT_TOPIC],
+    )
+
+    entry.runtime_data = HiveData(
+        platforms=platforms,
+        coordinator=coordinator,
+    )
 
     await hass.config_entries.async_forward_entry_setups(entry, platforms)
-
-    @callback
-    async def mqtt_message_received(message: ReceiveMessage) -> None:
-        """Handle received MQTT message."""
-        topic = message.topic
-        payload = message.payload
-        LOGGER.debug("Received message: %s", topic)
-        LOGGER.debug("Payload: %s", payload)
-
-        if not payload:
-            LOGGER.error(
-                "Received empty payload on topic %s, check that you have the correct topic name",
-                topic,
-            )
-            return
-
-        parsed_data = json.loads(payload)
-
-        # if entry.options[CONF_MODEL] == MODEL_SLR2:
-        #     if "system_mode_heat" not in parsed_data:
-        #         LOGGER.error(
-        #             "Received data does not contain 'system_mode_heat' for SLR2, check you have the correct model set"
-        #         )
-        #         return
-        # else:
-        #     if "system_mode_water" in parsed_data:
-        #         LOGGER.error(
-        #             "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
-        #         )
-        #         return
-
-        for platform in get_platforms(entry.options[CONF_MODEL]):
-            if platform in entry.runtime_data.entities:
-                entity: HiveEntity
-                for entity in entry.runtime_data.entities[platform]:
-                    entity.process_update(parsed_data)
 
     topic = entry.options[CONF_MQTT_TOPIC]
 
@@ -131,8 +103,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
         entry.options[CONF_MODEL],
     )
 
+    # Subscribe to MQTT and have the coordinator handle messages
     entry.async_on_unload(
-        await mqtt_client.async_subscribe(hass, topic, mqtt_message_received, 1)
+        await mqtt_client.async_subscribe(
+            hass, topic, coordinator.handle_mqtt_message, 1
+        )
     )
 
     # Send an initial message to get the current state

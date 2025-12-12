@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     ATTR_TEMPERATURE,
-    Platform,
     UnitOfTemperature,
 )
 from homeassistant.components.mqtt import client as mqtt_client
@@ -29,17 +28,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_MODEL,
     HIVE_BOOST,
     MODEL_SLR2,
-    CONF_MQTT_TOPIC,
-    DEFAULT_FROST_TEMPERATURE,
     CONF_SHOW_HEAT_SCHEDULE_MODE,
-    DEFAULT_HEATING_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
 from .common import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
+from .coordinator import HiveCoordinator
 
 PRESET_MAP = {
     PRESET_NONE: "",
@@ -64,21 +59,22 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
+    coordinator = config_entry.runtime_data.coordinator
+
     hive_climate_entity_description = HiveClimateEntityDescription(
         key="climate",
         translation_key="climate",
         name=config_entry.title,
-        topic=config_entry.options[CONF_MQTT_TOPIC],
-        entry_id=config_entry.entry_id,
-        model=config_entry.options[CONF_MODEL],
         show_schedule_mode=config_entry.options.get(CONF_SHOW_HEAT_SCHEDULE_MODE, True),
     )
 
-    _entities = [HiveClimateEntity(entity_description=hive_climate_entity_description)]
+    _entities = [
+        HiveClimateEntity(
+            entity_description=hive_climate_entity_description, coordinator=coordinator
+        )
+    ]
 
     async_add_entities(climateEntity for climateEntity in _entities)
-
-    config_entry.runtime_data.entities[Platform.CLIMATE] = _entities
 
 
 class HiveClimateEntity(HiveEntity, ClimateEntity):
@@ -89,6 +85,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
     def __init__(
         self,
         entity_description: HiveClimateEntityDescription,
+        coordinator: HiveCoordinator,
     ) -> None:
         """Initialize the sensor class."""
 
@@ -97,7 +94,6 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         )
         self._attr_has_entity_name = True
-        self._topic = entity_description.topic
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
 
@@ -127,7 +123,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._pre_boost_occupied_heating_setpoint_heat: float | None = None
         self._hvac_mode_set_from_temperature = False
 
-        super().__init__(entity_description)
+        super().__init__(entity_description, coordinator)
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode."""
@@ -140,47 +136,29 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                 self._attr_target_temperature
             )
 
-            if self.entity_description.model == MODEL_SLR2:
+            if self.coordinator.model == MODEL_SLR2:
                 payload = (
                     r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
-                    + str(
-                        int(
-                            self.get_entity_value(
-                                "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES
-                            )
-                        )
-                    )
+                    + str(int(self.coordinator.heating_boost_duration))
                     + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
-                    + str(
-                        self.get_entity_value(
-                            "heating_boost_temperature",
-                            DEFAULT_HEATING_BOOST_TEMPERATURE,
-                        )
-                    )
+                    + str(self.coordinator.heating_boost_temperature)
                     + r"}"
                 )
             else:
                 payload = (
                     r'{"system_mode":"emergency_heating","temperature_setpoint_hold_duration":'
-                    + str(
-                        int(
-                            self.get_entity_value(
-                                "heating_boost_duration", DEFAULT_HEATING_BOOST_MINUTES
-                            )
-                        )
-                    )
+                    + str(int(self.coordinator.heating_boost_duration))
                     + r',"temperature_setpoint_hold":1,"occupied_heating_setpoint":'
-                    + str(
-                        self.get_entity_value(
-                            "heating_boost_temperature",
-                            DEFAULT_HEATING_BOOST_TEMPERATURE,
-                        )
-                    )
+                    + str(self.coordinator.heating_boost_temperature)
                     + r"}"
                 )
 
-            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            LOGGER.debug(
+                "Sending to %s/set message %s", self.coordinator.topic, payload
+            )
+            await mqtt_client.async_publish(
+                self.hass, self.coordinator.topic + "/set", payload
+            )
         elif self._pre_boost_hvac_mode is not None:
             await self.async_set_hvac_mode(self._pre_boost_hvac_mode)
             self._pre_boost_hvac_mode = None
@@ -200,15 +178,19 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             await self.async_set_hvac_mode(hvac_mode)
 
         if temperature:
-            if self.entity_description.model == MODEL_SLR2:
+            if self.coordinator.model == MODEL_SLR2:
                 payload = (
                     r'{"occupied_heating_setpoint_heat":' + str(temperature) + r"}"
                 )
             else:
                 payload = r'{"occupied_heating_setpoint":' + str(temperature) + r"}"
 
-            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            LOGGER.debug(
+                "Sending to %s/set message %s", self.coordinator.topic, payload
+            )
+            await mqtt_client.async_publish(
+                self.hass, self.coordinator.topic + "/set", payload
+            )
 
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
@@ -223,16 +205,20 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             return
 
         if hvac_mode == HVACMode.AUTO:
-            if self.entity_description.model == MODEL_SLR2:
+            if self.coordinator.model == MODEL_SLR2:
                 payload = r'{"system_mode_heat":"heat","temperature_setpoint_hold_heat":"0","temperature_setpoint_hold_duration_heat":"0"}'
             else:
                 payload = r'{"system_mode":"heat","temperature_setpoint_hold":"0","temperature_setpoint_hold_duration":"0"}'
 
-            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            LOGGER.debug(
+                "Sending to %s/set message %s", self.coordinator.topic, payload
+            )
+            await mqtt_client.async_publish(
+                self.hass, self.coordinator.topic + "/set", payload
+            )
         elif hvac_mode == HVACMode.HEAT:
             if self._pre_boost_occupied_heating_setpoint_heat:
-                if self.entity_description.model == MODEL_SLR2:
+                if self.coordinator.model == MODEL_SLR2:
                     payload = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
                         + str(self._pre_boost_occupied_heating_setpoint_heat)
@@ -263,7 +249,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                         self._attr_target_temperature = (
                             floor((self._attr_current_temperature) * 2) / 2
                         )
-                if self.entity_description.model == MODEL_SLR2:
+                if self.coordinator.model == MODEL_SLR2:
                     payload = (
                         r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
                         + str(self._attr_target_temperature)
@@ -288,51 +274,57 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
                         + r"}"
                     )
 
-            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            LOGGER.debug(
+                "Sending to %s/set message %s", self.coordinator.topic, payload
+            )
+            await mqtt_client.async_publish(
+                self.hass, self.coordinator.topic + "/set", payload
+            )
 
             if not self._hvac_mode_set_from_temperature:
                 await sleep(0.5)
-                LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
+                LOGGER.debug(
+                    "Sending to %s/set message %s", self.coordinator.topic, payload
+                )
                 await mqtt_client.async_publish(
-                    self.hass, self._topic + "/set", payload_heating_setpoint
+                    self.hass, self.coordinator.topic + "/set", payload_heating_setpoint
                 )
         elif hvac_mode == HVACMode.OFF:
-            if self.entity_description.model == MODEL_SLR2:
+            if self.coordinator.model == MODEL_SLR2:
                 payload = (
                     r'{"system_mode_heat":"off","temperature_setpoint_hold_heat":"0"}'
                 )
             else:
                 payload = r'{"system_mode":"off","temperature_setpoint_hold":"0"}'
 
-            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            LOGGER.debug(
+                "Sending to %s/set message %s", self.coordinator.topic, payload
+            )
+            await mqtt_client.async_publish(
+                self.hass, self.coordinator.topic + "/set", payload
+            )
 
             await sleep(0.5)
 
-            if self.entity_description.model == MODEL_SLR2:
+            if self.coordinator.model == MODEL_SLR2:
                 payload = (
                     r'{"occupied_heating_setpoint_heat":'
-                    + str(
-                        self.get_entity_value(
-                            "heating_frost_prevention", DEFAULT_FROST_TEMPERATURE
-                        )
-                    )
+                    + str(self.coordinator.heating_frost_prevention)
                     + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat:"65535"}'
                 )
             else:
                 payload = (
                     r'{"occupied_heating_setpoint":'
-                    + str(
-                        self.get_entity_value(
-                            "heating_frost_prevention", DEFAULT_FROST_TEMPERATURE
-                        )
-                    )
+                    + str(self.coordinator.heating_frost_prevention)
                     + r',"temperature_setpoint_hold":"1","temperature_setpoint_hold_duration:"65535"}'
                 )
 
-            LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-            await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            LOGGER.debug(
+                "Sending to %s/set message %s", self.coordinator.topic, payload
+            )
+            await mqtt_client.async_publish(
+                self.hass, self.coordinator.topic + "/set", payload
+            )
 
         else:
             LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
@@ -349,38 +341,35 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             (k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE]
         )
 
-    def process_update(self, mqtt_data: dict[str, Any]) -> None:  # noqa: C901, PLR0912, PLR0915
-        """Update the state of the sensor."""
+    def _handle_coordinator_update(self) -> None:  # noqa: C901, PLR0912, PLR0915
+        """Handle updated data from the coordinator."""
+        mqtt_data = self.coordinator.data
 
         # Current Temperature
-        if self.entity_description.model == MODEL_SLR2:
+        if self.coordinator.model == MODEL_SLR2:
             if "local_temperature_heat" in mqtt_data:
                 self._attr_current_temperature = mqtt_data["local_temperature_heat"]
         elif "local_temperature" in mqtt_data:
             self._attr_current_temperature = mqtt_data["local_temperature"]
 
         # Target Temperature
-        if self.entity_description.model == MODEL_SLR2:
+        if self.coordinator.model == MODEL_SLR2:
             if "occupied_heating_setpoint_heat" in mqtt_data:
                 if mqtt_data["occupied_heating_setpoint_heat"] == 1:
-                    self._attr_target_temperature = self.get_entity_value(
-                        "heating_frost_prevention", DEFAULT_FROST_TEMPERATURE
-                    )
+                    self._attr_target_temperature = self.coordinator.heating_frost_prevention
                 else:
                     self._attr_target_temperature = mqtt_data[
                         "occupied_heating_setpoint_heat"
                     ]
         elif "occupied_heating_setpoint" in mqtt_data:
             if mqtt_data["occupied_heating_setpoint"] == 1:
-                self._attr_target_temperature = self.get_entity_value(
-                    "heating_frost_prevention", DEFAULT_FROST_TEMPERATURE
-                )
+                self._attr_target_temperature = self.coordinator.heating_frost_prevention
             else:
                 self._attr_target_temperature = mqtt_data["occupied_heating_setpoint"]
 
         # Preset Mode
         self._attr_preset_mode = None
-        if self.entity_description.model == MODEL_SLR2:
+        if self.coordinator.model == MODEL_SLR2:
             if "system_mode_heat" in mqtt_data:
                 self._attr_preset_mode = self._climate_preset(
                     mqtt_data["system_mode_heat"]
@@ -390,7 +379,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         # HVAC Action
         self._attr_hvac_action = None
-        if self.entity_description.model == MODEL_SLR2:
+        if self.coordinator.model == MODEL_SLR2:
             if "running_state_heat" not in mqtt_data:
                 self._attr_hvac_action = HVACAction.PREHEATING
             running_state_heat = mqtt_data["running_state_heat"]
@@ -411,7 +400,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         # HVAC Mode
         self._attr_hvac_mode = None
-        if self.entity_description.model == MODEL_SLR2:
+        if self.coordinator.model == MODEL_SLR2:
             if mqtt_data["system_mode_heat"] == "heat":
                 if (
                     mqtt_data["temperature_setpoint_hold_heat"] is False
@@ -438,6 +427,5 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             if mqtt_data["system_mode"] == "off":
                 self._attr_hvac_mode = HVACMode.OFF
 
-        # This is a hack to get around the fact that the entity is not yet initialized at first
-        if self.hass is not None:
-            self.async_schedule_update_ha_state()
+        # Update HA state
+        self.async_write_ha_state()

@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from dataclasses import dataclass
 
 from homeassistant.const import Platform
 from homeassistant.config_entries import ConfigEntry
+
+if TYPE_CHECKING:
+    from .coordinator import HiveCoordinator
 
 
 @dataclass
@@ -13,15 +17,7 @@ class HiveData:
     """Hive data type."""
 
     platforms: list[Platform]
-    entities: dict[Platform, list]
-    entity_values: dict[str, float]
-
-    def __post_init__(self) -> None:
-        """Initialize mutable default values."""
-        if self.entities is None:
-            self.entities = {}
-        if self.entity_values is None:
-            self.entity_values = {}
+    coordinator: HiveCoordinator
 
 
 type HiveConfigEntry = ConfigEntry[HiveData]

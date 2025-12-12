@@ -7,9 +7,6 @@ from dataclasses import dataclass
 from collections.abc import Callable
 
 from homeassistant.core import HomeAssistant
-from homeassistant.const import (
-    Platform,
-)
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -20,10 +17,10 @@ from .const import (
     DOMAIN,
     CONF_MODEL,
     MODEL_SLR2,
-    CONF_MQTT_TOPIC,
 )
 from .common import HiveConfigEntry
 from .entity import HiveEntity, HiveEntityDescription
+from .coordinator import HiveCoordinator
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -44,6 +41,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up the binary sensor platform."""
 
+    coordinator = config_entry.runtime_data.coordinator
+
     if config_entry.options[CONF_MODEL] == MODEL_SLR2:
         entity_descriptions = [
             HiveBinarySensorEntityDescription(
@@ -51,9 +50,6 @@ async def async_setup_entry(
                 translation_key="heat_boost",
                 name=config_entry.title,
                 value_fn=lambda js: js["system_mode_heat"] == "emergency_heating",
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
                 running_state=True,
             ),
             HiveBinarySensorEntityDescription(
@@ -61,9 +57,6 @@ async def async_setup_entry(
                 translation_key="water_boost",
                 name=config_entry.title,
                 value_fn=lambda js: js["system_mode_water"] == "emergency_heating",
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
                 running_state=True,
             ),
         ]
@@ -74,9 +67,6 @@ async def async_setup_entry(
                 translation_key="heat_boost",
                 name=config_entry.title,
                 value_fn=lambda js: js["system_mode"] == "emergency_heating",
-                topic=config_entry.options[CONF_MQTT_TOPIC],
-                entry_id=config_entry.entry_id,
-                model=config_entry.options[CONF_MODEL],
                 running_state=True,
             ),
         ]
@@ -84,13 +74,12 @@ async def async_setup_entry(
     _entities = [
         HiveBinarySensor(
             entity_description=entity_description,
+            coordinator=coordinator,
         )
         for entity_description in entity_descriptions
     ]
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
-
-    config_entry.runtime_data.entities[Platform.BINARY_SENSOR] = _entities
 
 
 class HiveBinarySensor(HiveEntity, BinarySensorEntity):
@@ -101,6 +90,7 @@ class HiveBinarySensor(HiveEntity, BinarySensorEntity):
     def __init__(
         self,
         entity_description: HiveBinarySensorEntityDescription,
+        coordinator: HiveCoordinator,
     ) -> None:
         """Initialize the binary sensor class."""
 
@@ -110,12 +100,12 @@ class HiveBinarySensor(HiveEntity, BinarySensorEntity):
         )
         self._attr_has_entity_name = True
         self._func = entity_description.value_fn
-        self._topic = entity_description.topic
 
-        super().__init__(entity_description)
+        super().__init__(entity_description, coordinator)
 
-    def process_update(self, mqtt_data: dict[str, Any]) -> None:
-        """Update the state of the sensor."""
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        mqtt_data = self.coordinator.data
 
         try:
             new_value = self._func(mqtt_data)
@@ -123,8 +113,4 @@ class HiveBinarySensor(HiveEntity, BinarySensorEntity):
             new_value = None
 
         self._attr_is_on = new_value
-
-        if (
-            self.hass is not None
-        ):  # this is a hack to get around the fact that the entity is not yet initialized at first
-            self.async_schedule_update_ha_state()
+        self.async_write_ha_state()
