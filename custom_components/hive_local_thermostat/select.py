@@ -5,14 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    LOGGER,
     MODEL_OTR1,
     MODEL_SLR1,
     CONF_SHOW_WATER_SCHEDULE_MODE,
@@ -142,24 +140,13 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
             raise ValueError(msg)
 
         if option == "auto":
-            payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
+            await self.coordinator.async_water_scheduled()
         elif option == "heat":
-            payload = (
-                r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
-            )
+            await self.coordinator.async_water_always_on()
         elif option == "boost":
-            payload = None
-            await self.coordinator.async_boost_water()
+            await self.coordinator.async_water_boost()
         elif option == "off":
-            payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
-
-        if payload is not None:
-            LOGGER.debug(
-                "Sending to %s message %s", self.coordinator.topic_set, payload
-            )
-            await mqtt_client.async_publish(
-                self.hass, self.coordinator.topic_set, payload
-            )
+            await self.coordinator.async_water_always_off()
 
         self._attr_current_option = option
         self.async_write_ha_state()

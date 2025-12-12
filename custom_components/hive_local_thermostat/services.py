@@ -110,7 +110,7 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
         ),
     )
 
-    await coordinator.async_boost_heating(boost_minutes, boost_temperature)
+    await coordinator.async_heating_boost(boost_minutes, boost_temperature)
 
     return None
 
@@ -134,6 +134,6 @@ async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
             translation_key="wrong_model",
         )
 
-    await coordinator.async_boost_water(boost_minutes)
+    await coordinator.async_water_boost(boost_minutes)
 
     return None

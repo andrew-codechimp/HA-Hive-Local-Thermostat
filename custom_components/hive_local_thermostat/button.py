@@ -85,6 +85,6 @@ class HiveButton(HiveEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Press the button."""
         if self.entity_description.key == "boost_water":
-            await self.coordinator.async_boost_water()
+            await self.coordinator.async_water_boost()
         elif self.entity_description.key == "boost_heating":
-            await self.coordinator.async_boost_heating()
+            await self.coordinator.async_heating_boost()

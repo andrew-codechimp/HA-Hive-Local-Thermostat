@@ -103,7 +103,39 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         LOGGER.debug("Sending to %s message %s", self.topic_set, payload)
         await mqtt_client.async_publish(self.hass, self.topic_set, payload)
 
-    async def async_boost_heating(
+    async def async_water_boost(
+        self, boost_duration_minutes: int | None = None
+    ) -> None:
+        """Send water boost command."""
+
+        duration = str(boost_duration_minutes or self.water_boost_duration)
+        payload = (
+            r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
+            + duration
+            + r',"temperature_setpoint_hold_water":1}'
+        )
+
+        await self.async_publish_set(payload)
+
+    async def async_water_scheduled(self) -> None:
+        """Send water scheduled command."""
+
+        payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
+        await self.async_publish_set(payload)
+
+    async def async_water_always_on(self) -> None:
+        """Send water always on command."""
+
+        payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
+        await self.async_publish_set(payload)
+
+    async def async_water_always_off(self) -> None:
+        """Send water always off command."""
+
+        payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
+        await self.async_publish_set(payload)
+
+    async def async_heating_boost(
         self,
         boost_duration_minutes: int | None = None,
         boost_temperature: float | None = None,
@@ -130,21 +162,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 + r"}"
             )
 
-        await self.async_publish_set(self, payload)
-
-    async def async_boost_water(
-        self, boost_duration_minutes: int | None = None
-    ) -> None:
-        """Send water boost command."""
-
-        duration = str(boost_duration_minutes or self.water_boost_duration)
-        payload = (
-            r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
-            + duration
-            + r',"temperature_setpoint_hold_water":1}'
-        )
-
-        await self.async_publish_set(self, payload)
+        await self.async_publish_set(payload)
 
     async def async_set_temperature(self, temperature: float) -> None:
         """Set temperature."""
@@ -154,7 +172,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             payload = r'{"occupied_heating_setpoint":' + str(temperature) + r"}"
 
-        await self.async_publish_set(self, payload)
+        await self.async_publish_set(payload)
 
     async def async_set_hvac_mode_off(self) -> None:
         """Set HVAC mode to off."""
@@ -164,7 +182,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             payload = r'{"system_mode":"off","temperature_setpoint_hold":"0"}'
 
-        await self.async_publish_set(self, payload)
+        await self.async_publish_set(payload)
 
         await sleep(0.5)
 
@@ -181,7 +199,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 + r',"temperature_setpoint_hold":"1","temperature_setpoint_hold_duration:"65535"}'
             )
 
-        await self.async_publish_set(self, payload)
+        await self.async_publish_set(payload)
 
     async def async_set_hvac_mode_auto(self) -> None:
         """Set HVAC mode to auto."""
@@ -191,4 +209,4 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             payload = r'{"system_mode":"heat","temperature_setpoint_hold":"0","temperature_setpoint_hold_duration":"0"}'
 
-        await self.async_publish_set(self, payload)
+        await self.async_publish_set(payload)
