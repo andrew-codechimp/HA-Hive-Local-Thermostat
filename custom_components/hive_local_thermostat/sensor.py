@@ -21,7 +21,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    CONF_MODEL,
     MODEL_SLR2,
 )
 from .common import HiveConfigEntry
@@ -50,7 +49,7 @@ async def async_setup_entry(
 
     coordinator = config_entry.runtime_data.coordinator
 
-    if config_entry.options[CONF_MODEL] == MODEL_SLR2:
+    if coordinator.model == MODEL_SLR2:
         entity_descriptions = [
             HiveSensorEntityDescription(
                 key="running_state_heat",

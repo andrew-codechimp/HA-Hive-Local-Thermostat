@@ -23,7 +23,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_MODEL,
     MODEL_SLR2,
     DEFAULT_FROST_TEMPERATURE,
     DEFAULT_WATER_BOOST_MINUTES,
@@ -91,7 +90,7 @@ async def async_setup_entry(
         ),
     ]
 
-    if config_entry.options[CONF_MODEL] == MODEL_SLR2:
+    if coordinator.model == MODEL_SLR2:
         entity_descriptions.append(
             HiveNumberEntityDescription(
                 key="water_boost_duration",

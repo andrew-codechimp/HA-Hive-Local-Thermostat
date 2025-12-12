@@ -13,7 +13,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_MODEL,
     MODEL_OTR1,
     MODEL_SLR1,
     CONF_SHOW_WATER_SCHEDULE_MODE,
@@ -40,10 +39,10 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
-    if config_entry.options[CONF_MODEL] in [MODEL_SLR1, MODEL_OTR1]:
-        return
-
     coordinator = config_entry.runtime_data.coordinator
+
+    if coordinator.model in [MODEL_SLR1, MODEL_OTR1]:
+        return
 
     if config_entry.options.get(CONF_SHOW_WATER_SCHEDULE_MODE, True):
         show_schedule_mode = True
@@ -71,7 +70,6 @@ async def async_setup_entry(
     ]
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
-
 
 
 class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
@@ -158,10 +156,8 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
         elif option == "off":
             payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
 
-        LOGGER.debug("Sending to %s/set message %s", self.coordinator.topic, payload)
-        await mqtt_client.async_publish(
-            self.hass, self.coordinator.topic + "/set", payload
-        )
+        LOGGER.debug("Sending to %s message %s", self.coordinator.topic_set, payload)
+        await mqtt_client.async_publish(self.hass, self.coordinator.topic_set, payload)
 
         self._attr_current_option = option
         self.async_write_ha_state()

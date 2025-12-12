@@ -79,14 +79,14 @@ async def async_setup(
 async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     """Set up this integration using UI."""
 
-    platforms = get_platforms(entry.options[CONF_MODEL])
-
     coordinator = HiveCoordinator(
         hass,
         entry.entry_id,
         entry.options[CONF_MODEL],
         entry.options[CONF_MQTT_TOPIC],
     )
+
+    platforms = get_platforms(coordinator.model)
 
     entry.runtime_data = HiveData(
         platforms=platforms,
@@ -95,26 +95,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
 
     await hass.config_entries.async_forward_entry_setups(entry, platforms)
 
-    topic = entry.options[CONF_MQTT_TOPIC]
-
     LOGGER.debug(
         "Subscribing to MQTT topic: %s, will parse platforms for %s",
-        topic,
-        entry.options[CONF_MODEL],
+        coordinator.topic,
+        coordinator.model,
     )
 
     # Subscribe to MQTT and have the coordinator handle messages
     entry.async_on_unload(
         await mqtt_client.async_subscribe(
-            hass, topic, coordinator.handle_mqtt_message, 1
+            hass, coordinator.topic, coordinator.handle_mqtt_message, 1
         )
     )
 
     # Send an initial message to get the current state
     await sleep(2)
     payload = r'{"system_mode":""}'
-    LOGGER.debug("Sending to %s/get message %s", topic, payload)
-    await mqtt_client.async_publish(hass, topic + "/get", payload)
+    LOGGER.debug("Sending to %s/get message %s", coordinator.topic, payload)
+    await mqtt_client.async_publish(hass, coordinator.topic_get, payload)
 
     entry.async_on_unload(entry.add_update_listener(config_entry_update_listener))
 

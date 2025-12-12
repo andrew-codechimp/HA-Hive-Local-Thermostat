@@ -12,7 +12,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_MODEL,
     MODEL_SLR2,
 )
 from .common import HiveConfigEntry
@@ -45,7 +44,7 @@ async def async_setup_entry(
         ),
     ]
 
-    if config_entry.options[CONF_MODEL] == MODEL_SLR2:
+    if coordinator.model == MODEL_SLR2:
         entity_descriptions.append(
             HiveButtonEntityDescription(
                 key="boost_water",
@@ -63,7 +62,6 @@ async def async_setup_entry(
     ]
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
-
 
 
 class HiveButton(HiveEntity, ButtonEntity):
@@ -117,7 +115,5 @@ class HiveButton(HiveEntity, ButtonEntity):
                     + r"}"
                 )
 
-        LOGGER.debug("Sending to %s/set message %s", self.coordinator.topic, payload)
-        await mqtt_client.async_publish(
-            self.hass, self.coordinator.topic + "/set", payload
-        )
+        LOGGER.debug("Sending to %s message %s", self.coordinator.topic_set, payload)
+        await mqtt_client.async_publish(self.hass, self.coordinator.topic_set, payload)

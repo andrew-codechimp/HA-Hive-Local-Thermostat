@@ -15,7 +15,6 @@ from homeassistant.components.binary_sensor import (
 
 from .const import (
     DOMAIN,
-    CONF_MODEL,
     MODEL_SLR2,
 )
 from .common import HiveConfigEntry
@@ -43,7 +42,7 @@ async def async_setup_entry(
 
     coordinator = config_entry.runtime_data.coordinator
 
-    if config_entry.options[CONF_MODEL] == MODEL_SLR2:
+    if coordinator.model == MODEL_SLR2:
         entity_descriptions = [
             HiveBinarySensorEntityDescription(
                 key="heat_boost",

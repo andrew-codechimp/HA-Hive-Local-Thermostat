@@ -42,6 +42,16 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.heating_frost_prevention: float = DEFAULT_FROST_TEMPERATURE
         self.water_boost_duration: float = DEFAULT_WATER_BOOST_MINUTES
 
+    @property
+    def topic_get(self) -> str:
+        """Return the topic getter."""
+        return self.topic + "/get"
+
+    @property
+    def topic_set(self) -> str:
+        """Return the topic setter."""
+        return self.topic + "/set"
+
     @callback
     def handle_mqtt_message(self, message: ReceiveMessage) -> None:
         """Handle received MQTT message."""
