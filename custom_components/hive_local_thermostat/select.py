@@ -148,16 +148,18 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
                 r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
             )
         elif option == "boost":
-            payload = (
-                r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
-                + str(self.coordinator.water_boost_duration)
-                + r',"temperature_setpoint_hold_water":1}'
-            )
+            payload = None
+            await self.coordinator.async_boost_water()
         elif option == "off":
             payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
 
-        LOGGER.debug("Sending to %s message %s", self.coordinator.topic_set, payload)
-        await mqtt_client.async_publish(self.hass, self.coordinator.topic_set, payload)
+        if payload is not None:
+            LOGGER.debug(
+                "Sending to %s message %s", self.coordinator.topic_set, payload
+            )
+            await mqtt_client.async_publish(
+                self.hass, self.coordinator.topic_set, payload
+            )
 
         self._attr_current_option = option
         self.async_write_ha_state()

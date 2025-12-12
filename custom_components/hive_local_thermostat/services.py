@@ -14,11 +14,9 @@ from homeassistant.core import (
 from homeassistant.helpers import config_validation as cv
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
-from homeassistant.components.mqtt import client as mqtt_client
 
 from .const import (
     DOMAIN,
-    LOGGER,
     MODEL_SLR2,
 )
 from .common import HiveData
@@ -32,17 +30,21 @@ SERVICE_DATA_WATER_BOOST_MINUTES = "minutes_to_boost"
 
 ATTR_CONFIG_ENTRY_ID = "config_entry_id"
 
-SERVICE_HEATING_BOOST_SCHEMA = vol.Schema(
+SERVICE_BASE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_CONFIG_ENTRY_ID): str,
+    }
+)
+
+SERVICE_HEATING_BOOST_SCHEMA = SERVICE_BASE_SCHEMA.extend(
+    {
         vol.Optional(SERVICE_DATA_HEATING_BOOST_MINUTES): cv.positive_int,
         vol.Optional(SERVICE_DATA_HEATING_BOOST_TEMPERATURE): cv.positive_float,
     }
 )
 
-SERVICE_WATER_BOOST_SCHEMA = vol.Schema(
+SERVICE_WATER_BOOST_SCHEMA = SERVICE_BASE_SCHEMA.extend(
     {
-        vol.Required(ATTR_CONFIG_ENTRY_ID): str,
         vol.Optional(SERVICE_DATA_WATER_BOOST_MINUTES): cv.positive_int,
     }
 )
@@ -108,25 +110,7 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
         ),
     )
 
-    if coordinator.model == MODEL_SLR2:
-        payload = (
-            r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
-            + str(boost_minutes)
-            + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
-            + str(boost_temperature)
-            + r"}"
-        )
-    else:
-        payload = (
-            r'{"system_mode":"emergency_heating","temperature_setpoint_hold_duration":'
-            + str(boost_minutes)
-            + r',"temperature_setpoint_hold":1,"occupied_heating_setpoint":'
-            + str(boost_temperature)
-            + r"}"
-        )
-
-    LOGGER.debug("Sending to %s message %s", coordinator.topic_set, payload)
-    await mqtt_client.async_publish(call.hass, coordinator.topic_set, payload)
+    await coordinator.async_boost_heating(boost_minutes, boost_temperature)
 
     return None
 
@@ -144,19 +128,12 @@ async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
         ),
     )
 
-    if coordinator.model == MODEL_SLR2:
-        payload = (
-            r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
-            + str(boost_minutes)
-            + r',"temperature_setpoint_hold_water":1}'
-        )
-
-        LOGGER.debug("Sending to %s message %s", coordinator.topic_set, payload)
-        await mqtt_client.async_publish(call.hass, coordinator.topic_set, payload)
-    else:
+    if coordinator.model != MODEL_SLR2:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="wrong_model",
         )
+
+    await coordinator.async_boost_water(boost_minutes)
 
     return None
