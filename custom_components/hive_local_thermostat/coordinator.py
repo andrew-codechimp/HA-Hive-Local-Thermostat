@@ -214,7 +214,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_set_hvac_mode_heat(
         self,
         temperature: float,
-        set_from_temperature: bool,  # noqa: FBT001
+        set_from_temperature: bool = False,  # noqa: FBT001, FBT002
     ) -> None:
         """Set HVAC mode to heat."""
 

@@ -135,7 +135,16 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             await self.coordinator.async_heating_boost()
 
         elif self.coordinator.pre_boost_hvac_mode is not None:
-            await self.async_set_hvac_mode(self.coordinator.pre_boost_hvac_mode)
+            if (
+                self.coordinator.pre_boost_hvac_mode == HVACMode.HEAT
+                and self.coordinator.pre_boost_occupied_heating_setpoint_heat
+                is not None
+            ):
+                await self.coordinator.async_set_hvac_mode_heat(
+                    self.coordinator.pre_boost_occupied_heating_setpoint_heat,
+                )
+            else:
+                await self.async_set_hvac_mode(self.coordinator.pre_boost_hvac_mode)
             self.coordinator.pre_boost_hvac_mode = None
             self.coordinator.pre_boost_occupied_heating_setpoint_heat = None
 
