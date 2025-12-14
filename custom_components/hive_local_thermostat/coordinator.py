@@ -89,10 +89,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             #     )
             #     return
 
-            # Update the coordinator data with the new MQTT data
-            self.data.update(parsed_data)
-            # Notify all listeners (entities) that data has been updated
-            self.async_set_updated_data(self.data)
+            self.async_set_updated_data(parsed_data)
         except json.JSONDecodeError:
             LOGGER.error("Failed to parse JSON from MQTT payload: %s", payload)
         except Exception as err:  # noqa: BLE001
