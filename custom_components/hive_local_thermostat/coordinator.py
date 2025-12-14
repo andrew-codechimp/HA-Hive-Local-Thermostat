@@ -98,7 +98,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception as err:  # noqa: BLE001
             LOGGER.error("Error handling MQTT message: %s", err)
 
-    async def async_publish_set(self, payload: str) -> None:
+    async def _async_publish_set(self, payload: str) -> None:
         """Publish MQTT set message."""
         LOGGER.debug("Sending to %s message %s", self.topic_set, payload)
         await mqtt_client.async_publish(self.hass, self.topic_set, payload)
@@ -115,25 +115,25 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             + r',"temperature_setpoint_hold_water":1}'
         )
 
-        await self.async_publish_set(payload)
+        await self._async_publish_set(payload)
 
     async def async_water_scheduled(self) -> None:
         """Send water scheduled command."""
 
         payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
-        await self.async_publish_set(payload)
+        await self._async_publish_set(payload)
 
     async def async_water_always_on(self) -> None:
         """Send water always on command."""
 
         payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
-        await self.async_publish_set(payload)
+        await self._async_publish_set(payload)
 
     async def async_water_always_off(self) -> None:
         """Send water always off command."""
 
         payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
-        await self.async_publish_set(payload)
+        await self._async_publish_set(payload)
 
     async def async_heating_boost(
         self,
@@ -162,7 +162,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 + r"}"
             )
 
-        await self.async_publish_set(payload)
+        await self._async_publish_set(payload)
 
     async def async_set_temperature(self, temperature: float) -> None:
         """Set temperature."""
@@ -172,7 +172,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             payload = r'{"occupied_heating_setpoint":' + str(temperature) + r"}"
 
-        await self.async_publish_set(payload)
+        await self._async_publish_set(payload)
 
     async def async_set_hvac_mode_off(self) -> None:
         """Set HVAC mode to off."""
@@ -182,7 +182,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             payload = r'{"system_mode":"off","temperature_setpoint_hold":"0"}'
 
-        await self.async_publish_set(payload)
+        await self._async_publish_set(payload)
 
         await sleep(0.5)
 
@@ -199,7 +199,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 + r',"temperature_setpoint_hold":"1","temperature_setpoint_hold_duration:"65535"}'
             )
 
-        await self.async_publish_set(payload)
+        await self._async_publish_set(payload)
 
     async def async_set_hvac_mode_auto(self) -> None:
         """Set HVAC mode to auto."""
@@ -209,4 +209,42 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             payload = r'{"system_mode":"heat","temperature_setpoint_hold":"0","temperature_setpoint_hold_duration":"0"}'
 
-        await self.async_publish_set(payload)
+        await self._async_publish_set(payload)
+
+    async def async_set_hvac_mode_heat(
+        self,
+        temperature: float,
+        set_from_temperature: bool,  # noqa: FBT001
+    ) -> None:
+        """Set HVAC mode to heat."""
+
+        if self.model == MODEL_SLR2:
+            payload = (
+                r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
+                + str(temperature)
+                + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
+            )
+
+            payload_heating_setpoint = (
+                r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
+                + str(temperature)
+                + r"}"
+            )
+        else:
+            payload = (
+                r'{"system_mode":"heat","occupied_heating_setpoint":'
+                + str(temperature)
+                + r',"temperature_setpoint_hold":"1","temperature_setpoint_hold_duration":"0"}'
+            )
+
+            payload_heating_setpoint = (
+                r'{"system_mode":"heat","occupied_heating_setpoint":'
+                + str(temperature)
+                + r"}"
+            )
+
+        await self._async_publish_set(payload)
+
+        if not set_from_temperature:
+            await sleep(0.5)
+            await self._async_publish_set(payload_heating_setpoint)

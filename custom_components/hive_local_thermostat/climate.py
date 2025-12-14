@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from math import floor
 from typing import Any
-from asyncio import sleep
 from dataclasses import dataclass
 
 from homeassistant.core import HomeAssistant
@@ -159,7 +158,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
 
-    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:  # noqa: PLR0912
+    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set the hvac mode."""
 
         if hvac_mode in self._attr_hvac_modes:
@@ -170,74 +169,28 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         if hvac_mode == HVACMode.AUTO:
             await self.coordinator.async_set_hvac_mode_auto()
-        elif hvac_mode == HVACMode.HEAT:
+        if hvac_mode == HVACMode.HEAT:
             if self.coordinator.pre_boost_occupied_heating_setpoint_heat:
-                if self.coordinator.model == MODEL_SLR2:
-                    payload = (
-                        r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
-                        + str(self.coordinator.pre_boost_occupied_heating_setpoint_heat)
-                        + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
-                    )
-
-                    payload_heating_setpoint = (
-                        r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
-                        + str(self.coordinator.pre_boost_occupied_heating_setpoint_heat)
-                        + r"}"
-                    )
-                else:
-                    payload = (
-                        r'{"system_mode":"heat","occupied_heating_setpoint":'
-                        + str(self.coordinator.pre_boost_occupied_heating_setpoint_heat)
-                        + r',"temperature_setpoint_hold":"1","temperature_setpoint_hold_duration":"0"}'
-                    )
-
-                    payload_heating_setpoint = (
-                        r'{"system_mode_heat":"heat","occupied_heating_setpoint":'
-                        + str(self.coordinator.pre_boost_occupied_heating_setpoint_heat)
-                        + r"}"
-                    )
+                await self.coordinator.async_set_hvac_mode_heat(
+                    self.coordinator.pre_boost_occupied_heating_setpoint_heat,
+                    self._hvac_mode_set_from_temperature,
+                )
             else:
-                if not self._hvac_mode_set_from_temperature:  # noqa: SIM102
-                    if self._attr_current_temperature:
-                        # Get the current temperature and round down to nearest .5
-                        self._attr_target_temperature = (
-                            floor((self._attr_current_temperature) * 2) / 2
-                        )
-                if self.coordinator.model == MODEL_SLR2:
-                    payload = (
-                        r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
-                        + str(self._attr_target_temperature)
-                        + r',"temperature_setpoint_hold_heat":"1","temperature_setpoint_hold_duration_heat":"0"}'
+                if (
+                    not self._hvac_mode_set_from_temperature
+                    and self._attr_current_temperature
+                ):
+                    # Get the current temperature and round down to nearest .5
+                    self._attr_target_temperature = (
+                        floor((self._attr_current_temperature) * 2) / 2
                     )
+                assert self._attr_target_temperature is not None
+                await self.coordinator.async_set_hvac_mode_heat(
+                    self._attr_target_temperature, self._hvac_mode_set_from_temperature
+                )
 
-                    payload_heating_setpoint = (
-                        r'{"system_mode_heat":"heat","occupied_heating_setpoint_heat":'
-                        + str(self._attr_target_temperature)
-                        + r"}"
-                    )
-                else:
-                    payload = (
-                        r'{"system_mode":"heat","occupied_heating_setpoint":'
-                        + str(self._attr_target_temperature)
-                        + r',"temperature_setpoint_hold":"1","temperature_setpoint_hold_duration":"0"}'
-                    )
-
-                    payload_heating_setpoint = (
-                        r'{"system_mode":"heat","occupied_heating_setpoint":'
-                        + str(self._attr_target_temperature)
-                        + r"}"
-                    )
-
-            await self.coordinator.async_publish_set(payload)
-
-            if not self._hvac_mode_set_from_temperature:
-                await sleep(0.5)
-                await self.coordinator.async_publish_set(payload_heating_setpoint)
-        elif hvac_mode == HVACMode.OFF:
+        if hvac_mode == HVACMode.OFF:
             await self.coordinator.async_set_hvac_mode_off()
-
-        else:
-            LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
 
         self._hvac_mode_set_from_temperature = False
 
