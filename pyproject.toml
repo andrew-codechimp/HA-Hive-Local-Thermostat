@@ -85,6 +85,9 @@ ignore = [
   "TC006",   # Add quotes to type expression in typing.cast()
   "TRY003",  # Avoid specifying long messages outside the exception class
   "TRY400",  # Use `logging.exception` instead of `logging.error`
+  "FIX002", # Allow TODO
+  "TD002", # Missing TODO auther
+  "TD003" # Missing TODO link
 ]
 
 

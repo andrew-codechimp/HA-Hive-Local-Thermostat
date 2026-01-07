@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from asyncio import sleep
+from datetime import datetime
 from typing import Any, cast
 
 from homeassistant.components.climate.const import HVACAction, HVACMode
@@ -11,6 +12,7 @@ from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util.dt import utcnow
 
 from .const import (
     DEFAULT_FROST_TEMPERATURE,
@@ -19,6 +21,7 @@ from .const import (
     DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
+    MAXIMUM_BOOST_MINUTES,
     MODEL_SLR2,
 )
 
@@ -26,7 +29,13 @@ from .const import (
 class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Class to manage fetching Hive data from MQTT."""
 
-    # Last reported state values
+    boost_in_progress_heat: bool = False
+    boost_in_progress_water: bool = False
+    boost_started_heat: datetime | None = None
+    boost_started_water: datetime | None = None
+    boost_started_duration_heat: int = 0
+    boost_started_duration_water: int = 0
+
     boost_remaining_heat: int = 0
     boost_remaining_water: int = 0
     running_state_heat: str = ""
@@ -79,7 +88,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return None
 
     @callback
-    def handle_mqtt_message(self, message: ReceiveMessage) -> None:
+    def handle_mqtt_message(self, message: ReceiveMessage) -> None:  # noqa: PLR0912, PLR0915
         """Handle received MQTT message."""
         topic = message.topic
         payload = message.payload
@@ -109,13 +118,13 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 return
 
             if self.model == MODEL_SLR2:
-                self.boost_remaining_heat = cast(
+                reported_boost_remaining_heat = cast(
                     int,
                     parsed_data["temperature_setpoint_hold_duration_heat"]
                     if parsed_data["system_mode_heat"] == "emergency_heating"
                     else 0,
                 )
-                self.boost_remaining_water = cast(
+                reported_boost_remaining_water = cast(
                     int,
                     parsed_data["temperature_setpoint_hold_duration_water"]
                     if parsed_data["system_mode_water"] == "emergency_heating"
@@ -134,7 +143,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     else "preheating",
                 )
             else:
-                self.boost_remaining_heat = cast(
+                reported_boost_remaining_heat = cast(
                     int,
                     parsed_data["temperature_setpoint_hold_duration"]
                     if parsed_data["system_mode"] == "emergency_heating"
@@ -146,6 +155,37 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if parsed_data.get("running_state")
                     else "preheating",
                 )
+
+            # Handle boost fix on incorrect values
+            # TODO: calculate remaining time based on start
+            if reported_boost_remaining_heat > MAXIMUM_BOOST_MINUTES:
+                if self.model == MODEL_SLR2:
+                    boost_temperature = parsed_data["occupied_heating_setpoint_heat"]
+                else:
+                    boost_temperature = parsed_data["occupied_heating_setpoint"]
+                self.async_heating_boost(self.boost_remaining_heat, boost_temperature)
+
+            if reported_boost_remaining_water > MAXIMUM_BOOST_MINUTES:
+                self.async_water_boost(self.boost_remaining_water)
+
+            # Manage boost state tracking
+            if self.boost_remaining_heat > 0 and not self.boost_in_progress_heat:
+                self.boost_in_progress_heat = True
+                self.boost_started_heat = utcnow()
+                self.boost_started_duration_heat = self.boost_remaining_heat
+            else:
+                self.boost_in_progress_heat = False
+                self.boost_started_heat = None
+                self.boost_started_duration_heat = 0
+
+            if self.boost_remaining_water > 0 and not self.boost_in_progress_water:
+                self.boost_in_progress_water = True
+                self.boost_started_water = utcnow()
+                self.boost_started_duration_water = self.boost_remaining_water
+            else:
+                self.boost_in_progress_water = False
+                self.boost_started_water = None
+                self.boost_started_duration_water = 0
 
             self.async_set_updated_data(parsed_data)
         except json.JSONDecodeError:
@@ -169,6 +209,10 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             + duration
             + r',"temperature_setpoint_hold_water":1}'
         )
+
+        self.boost_in_progress_water = True
+        self.boost_started_water = utcnow()
+        self.boost_started_duration_water = int(duration)
 
         await self._async_publish_set(payload)
 
@@ -216,6 +260,10 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 + temperature
                 + r"}"
             )
+
+        self.boost_in_progress_heat = True
+        self.boost_started_heat = utcnow()
+        self.boost_started_duration_heat = int(duration)
 
         await self._async_publish_set(payload)
 
