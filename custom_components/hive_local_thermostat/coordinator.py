@@ -26,6 +26,12 @@ from .const import (
 class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Class to manage fetching Hive data from MQTT."""
 
+    # Last reported state values
+    boost_remaining_heat: int = 0
+    boost_remaining_water: int = 0
+    running_state_heat: str = ""
+    running_state_water: str = ""
+
     def __init__(
         self, hass: HomeAssistant, entry_id: str, model: str, topic: str
     ) -> None:
@@ -48,10 +54,6 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.heating_boost_temperature: float = DEFAULT_HEATING_BOOST_TEMPERATURE
         self.heating_frost_prevention: float = DEFAULT_FROST_TEMPERATURE
         self.water_boost_duration: float = DEFAULT_WATER_BOOST_MINUTES
-
-        # Last reported state values
-        self.boost_remaining_heat: int = 0
-        self.boost_remaining_water: int = 0
 
     @property
     def topic_get(self) -> str:
@@ -79,12 +81,12 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         try:
-            parsed_data = json.loads(payload)
+            parsed_data: dict[str, Any] = json.loads(payload)
 
             # if self.model == MODEL_SLR2:
-            #     if "system_mode_heat" not in parsed_data:
+            #     if "system_mode" in parsed_data:
             #         LOGGER.error(
-            #             "Received data does not contain 'system_mode_heat' for SLR2, check you have the correct model set"
+            #             "Received data contains 'system_mode' for SLR2, check you have the correct model set"
             #         )
             #         return
             # elif "system_mode_water" in parsed_data:
@@ -106,12 +108,30 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if parsed_data["system_mode_water"] == "emergency_heating"
                     else 0,
                 )
+                self.running_state_heat = cast(
+                    str,
+                    parsed_data.get("running_state_heat")
+                    if parsed_data.get("running_state_heat")
+                    else "preheating",
+                )
+                self.running_state_water = cast(
+                    str,
+                    parsed_data.get("running_state_water")
+                    if parsed_data.get("running_state_water")
+                    else "preheating",
+                )
             else:
                 self.boost_remaining_heat = cast(
                     int,
                     parsed_data["temperature_setpoint_hold_duration"]
                     if parsed_data["system_mode"] == "emergency_heating"
                     else 0,
+                )
+                self.running_state_heat = cast(
+                    str,
+                    parsed_data.get("running_state")
+                    if parsed_data.get("running_state")
+                    else "preheating",
                 )
 
             self.async_set_updated_data(parsed_data)

@@ -65,13 +65,11 @@ async def async_setup_entry(
                 device_class=SensorDeviceClass.TEMPERATURE,
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 suggested_display_precision=1,
-                value_fn=lambda data: cast(float, data["local_temperature_heat"]),
             ),
             HiveSensorEntityDescription(
                 key="running_state_water",
                 translation_key="running_state_water",
                 name=config_entry.title,
-                value_fn=lambda data: cast(str, data["running_state_water"]),
                 running_state=True,
             ),
             HiveSensorEntityDescription(
@@ -91,7 +89,6 @@ async def async_setup_entry(
                 key="running_state_heat",
                 translation_key="running_state_heat",
                 name=config_entry.title,
-                value_fn=lambda data: cast(str, data["running_state"]),
                 running_state=True,
             ),
             HiveSensorEntityDescription(
