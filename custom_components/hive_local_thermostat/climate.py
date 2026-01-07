@@ -2,37 +2,37 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from math import floor
 from typing import Any
-from dataclasses import dataclass
 
-from homeassistant.core import HomeAssistant
+from homeassistant.components.climate import (
+    ATTR_HVAC_MODE,
+    PRESET_BOOST,
+    PRESET_NONE,
+    ClimateEntity,
+    ClimateEntityDescription,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
+)
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     UnitOfTemperature,
 )
-from homeassistant.components.climate import (
-    PRESET_NONE,
-    PRESET_BOOST,
-    ATTR_HVAC_MODE,
-    HVACMode,
-    HVACAction,
-    ClimateEntity,
-    ClimateEntityFeature,
-    ClimateEntityDescription,
-)
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    DOMAIN,
-    LOGGER,
-    HIVE_BOOST,
-    MODEL_SLR2,
-    CONF_SHOW_HEAT_SCHEDULE_MODE,
-)
 from .common import HiveConfigEntry
-from .entity import HiveEntity, HiveEntityDescription
+from .const import (
+    CONF_SHOW_HEAT_SCHEDULE_MODE,
+    DOMAIN,
+    HIVE_BOOST,
+    LOGGER,
+    MODEL_SLR2,
+)
 from .coordinator import HiveCoordinator
+from .entity import HiveEntity, HiveEntityDescription
 
 PRESET_MAP = {
     PRESET_NONE: "",

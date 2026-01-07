@@ -2,24 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Any
-from dataclasses import dataclass
 from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .common import HiveConfigEntry
 from .const import (
     DOMAIN,
     MODEL_SLR2,
 )
-from .common import HiveConfigEntry
-from .entity import HiveEntity, HiveEntityDescription
 from .coordinator import HiveCoordinator
+from .entity import HiveEntity, HiveEntityDescription
 
 
 @dataclass(frozen=True, kw_only=True)

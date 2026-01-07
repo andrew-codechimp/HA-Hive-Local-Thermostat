@@ -2,30 +2,30 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
-from dataclasses import dataclass
 from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any, cast
 
-from homeassistant.core import HomeAssistant
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+)
 from homeassistant.const import (
     PRECISION_TENTHS,
     UnitOfTemperature,
 )
-from homeassistant.components.sensor import (
-    SensorEntity,
-    SensorDeviceClass,
-    SensorEntityDescription,
-)
-from homeassistant.helpers.temperature import display_temp as show_temp
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.temperature import display_temp as show_temp
 
+from .common import HiveConfigEntry
 from .const import (
     DOMAIN,
     MODEL_SLR2,
 )
-from .common import HiveConfigEntry
-from .entity import HiveEntity, HiveEntityDescription
 from .coordinator import HiveCoordinator
+from .entity import HiveEntity, HiveEntityDescription
 
 
 @dataclass(frozen=True, kw_only=True)

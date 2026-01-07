@@ -3,23 +3,23 @@
 from __future__ import annotations
 
 import json
-from typing import Any
 from asyncio import sleep
+from typing import Any, cast
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.components.climate.const import HVACMode
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
-from homeassistant.components.climate.const import HVACMode
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
+    DEFAULT_FROST_TEMPERATURE,
+    DEFAULT_HEATING_BOOST_MINUTES,
+    DEFAULT_HEATING_BOOST_TEMPERATURE,
+    DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
     MODEL_SLR2,
-    DEFAULT_FROST_TEMPERATURE,
-    DEFAULT_WATER_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
 
 
@@ -48,6 +48,10 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.heating_boost_temperature: float = DEFAULT_HEATING_BOOST_TEMPERATURE
         self.heating_frost_prevention: float = DEFAULT_FROST_TEMPERATURE
         self.water_boost_duration: float = DEFAULT_WATER_BOOST_MINUTES
+
+        # Last reported state values
+        self.heating_boost_remaining: int = 0
+        self.water_boost_remaining: int = 0
 
     @property
     def topic_get(self) -> str:
@@ -88,6 +92,27 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             #         "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
             #     )
             #     return
+
+            if self.model == MODEL_SLR2:
+                self.heating_boost_remaining = cast(
+                    int,
+                    parsed_data["temperature_setpoint_hold_duration_heat"]
+                    if parsed_data["system_mode_heat"] == "emergency_heating"
+                    else 0,
+                )
+                self.water_boost_remaining = cast(
+                    int,
+                    parsed_data["temperature_setpoint_hold_duration_water"]
+                    if parsed_data["system_mode_water"] == "emergency_heating"
+                    else 0,
+                )
+            else:
+                self.heating_boost_remaining = cast(
+                    int,
+                    parsed_data["temperature_setpoint_hold_duration"]
+                    if parsed_data["system_mode"] == "emergency_heating"
+                    else 0,
+                )
 
             self.async_set_updated_data(parsed_data)
         except json.JSONDecodeError:

@@ -10,26 +10,26 @@ from asyncio import sleep
 
 from awesomeversion.awesomeversion import AwesomeVersion
 
-from homeassistant.core import HomeAssistant
+from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.const import (
     Platform,
     __version__ as HA_VERSION,  # noqa: N812
 )
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.components.mqtt import client as mqtt_client
 
+from .common import HiveConfigEntry, HiveData
 from .const import (
+    CONF_MODEL,
+    CONF_MQTT_TOPIC,
     DOMAIN,
     LOGGER,
-    CONF_MODEL,
-    MODEL_SLR2,
     MIN_HA_VERSION,
-    CONF_MQTT_TOPIC,
+    MODEL_SLR2,
 )
-from .common import HiveData, HiveConfigEntry
-from .services import async_setup_services
 from .coordinator import HiveCoordinator
+from .services import async_setup_services
 
 PLATFORMS_SLR1: list[Platform] = [
     Platform.SENSOR,

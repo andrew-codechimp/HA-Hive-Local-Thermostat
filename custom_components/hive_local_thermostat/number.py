@@ -2,36 +2,37 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import (
-    STATE_UNKNOWN,
-    STATE_UNAVAILABLE,
-    UnitOfTemperature,
-)
-from homeassistant.util.dt import utcnow
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.components.number import (
-    RestoreNumber,
     NumberDeviceClass,
     NumberEntityDescription,
+    RestoreNumber,
 )
+from homeassistant.const import (
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
+    UnitOfTemperature,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.util.dt import utcnow
 
+from .common import HiveConfigEntry
 from .const import (
-    DOMAIN,
-    LOGGER,
-    MODEL_SLR2,
     DEFAULT_FROST_TEMPERATURE,
-    DEFAULT_WATER_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_MINUTES,
     DEFAULT_HEATING_BOOST_TEMPERATURE,
+    DEFAULT_WATER_BOOST_MINUTES,
+    DOMAIN,
+    LOGGER,
+    MAXIMUM_BOOST_MINUTES,
+    MODEL_SLR2,
 )
-from .common import HiveConfigEntry
-from .entity import HiveEntity, HiveEntityDescription
 from .coordinator import HiveCoordinator
+from .entity import HiveEntity, HiveEntityDescription
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -60,7 +61,7 @@ async def async_setup_entry(
             name=config_entry.title,
             entity_category=EntityCategory.CONFIG,
             native_min_value=15,
-            native_max_value=180,
+            native_max_value=MAXIMUM_BOOST_MINUTES,
             native_step=1,
             default_value=DEFAULT_HEATING_BOOST_MINUTES,
         ),
@@ -98,7 +99,7 @@ async def async_setup_entry(
                 name=config_entry.title,
                 entity_category=EntityCategory.CONFIG,
                 native_min_value=15,
-                native_max_value=180,
+                native_max_value=MAXIMUM_BOOST_MINUTES,
                 native_step=1,
                 default_value=DEFAULT_WATER_BOOST_MINUTES,
             )

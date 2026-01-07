@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from homeassistant.core import HomeAssistant
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .common import HiveConfigEntry
 from .const import (
     DOMAIN,
     MODEL_SLR2,
 )
-from .common import HiveConfigEntry
-from .entity import HiveEntity, HiveEntityDescription
 from .coordinator import HiveCoordinator
+from .entity import HiveEntity, HiveEntityDescription
 
 
 @dataclass(frozen=True, kw_only=True)

@@ -4,20 +4,20 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from homeassistant.core import HomeAssistant
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
-from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
+from .common import HiveConfigEntry
 from .const import (
+    CONF_SHOW_WATER_SCHEDULE_MODE,
     DOMAIN,
     MODEL_OTR1,
     MODEL_SLR1,
-    CONF_SHOW_WATER_SCHEDULE_MODE,
 )
-from .common import HiveConfigEntry
-from .entity import HiveEntity, HiveEntityDescription
 from .coordinator import HiveCoordinator
+from .entity import HiveEntity, HiveEntityDescription
 
 
 @dataclass(frozen=True, kw_only=True)

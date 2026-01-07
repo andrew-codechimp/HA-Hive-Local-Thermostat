@@ -5,21 +5,21 @@ from typing import cast
 
 import voluptuous as vol
 
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import (
-    ServiceCall,
     HomeAssistant,
+    ServiceCall,
     ServiceResponse,
     callback,
 )
-from homeassistant.helpers import config_validation as cv
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
+from homeassistant.helpers import config_validation as cv
 
+from .common import HiveData
 from .const import (
     DOMAIN,
     MODEL_SLR2,
 )
-from .common import HiveData
 
 SERVICE_HEATING_BOOST = "boost_heating"
 SERVICE_WATER_BOOST = "boost_water"
