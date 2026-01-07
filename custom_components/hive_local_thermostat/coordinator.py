@@ -83,17 +83,17 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             parsed_data: dict[str, Any] = json.loads(payload)
 
-            # if self.model == MODEL_SLR2:
-            #     if "system_mode" in parsed_data:
-            #         LOGGER.error(
-            #             "Received data contains 'system_mode' for SLR2, check you have the correct model set"
-            #         )
-            #         return
-            # elif "system_mode_water" in parsed_data:
-            #     LOGGER.error(
-            #         "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
-            #     )
-            #     return
+            if self.model == MODEL_SLR2:
+                if "system_mode" in parsed_data:
+                    LOGGER.error(
+                        "Received data contains 'system_mode' for SLR2, check you have the correct model set"
+                    )
+                    return
+            elif "system_mode_water" in parsed_data:
+                LOGGER.error(
+                    "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
+                )
+                return
 
             if self.model == MODEL_SLR2:
                 self.boost_remaining_heat = cast(
