@@ -36,7 +36,7 @@ class HiveSensorEntityDescription(
     """Class describing Hive sensor entities."""
 
     icons_by_state: dict[str, str] | None = None
-    value_fn: Callable[[dict[str, Any]], str | int | float | None]
+    value_fn: Callable[[dict[str, Any]], str | int | float | None] | None = None
     running_state: bool = False
 
 
@@ -78,23 +78,11 @@ async def async_setup_entry(
                 key="boost_remaining_heat",
                 translation_key="boost_remaining_heat",
                 name=config_entry.title,
-                value_fn=lambda data: cast(
-                    int,
-                    data["temperature_setpoint_hold_duration_heat"]
-                    if data["system_mode_heat"] == "emergency_heating"
-                    else 0,
-                ),
             ),
             HiveSensorEntityDescription(
                 key="boost_remaining_water",
                 translation_key="boost_remaining_water",
                 name=config_entry.title,
-                value_fn=lambda data: cast(
-                    int,
-                    data["temperature_setpoint_hold_duration_water"]
-                    if data["system_mode_water"] == "emergency_heating"
-                    else 0,
-                ),
             ),
         ]
     else:
@@ -120,12 +108,6 @@ async def async_setup_entry(
                 translation_key="boost_remaining_heat",
                 name=config_entry.title,
                 suggested_display_precision=1,
-                value_fn=lambda data: cast(
-                    int,
-                    data["temperature_setpoint_hold_duration"]
-                    if data["system_mode"] == "emergency_heating"
-                    else 0,
-                ),
             ),
         ]
 
@@ -163,10 +145,13 @@ class HiveSensor(HiveEntity, SensorEntity):
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        mqtt_data = self.coordinator.data
 
         try:
-            new_value = self._func(mqtt_data)
+            if self._func is None:
+                new_value = getattr(self.coordinator, self.entity_description.key)
+            else:
+                mqtt_data = self.coordinator.data
+                new_value = self._func(mqtt_data)
         except KeyError:
             if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
                 new_value = 0

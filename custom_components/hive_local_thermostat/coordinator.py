@@ -50,8 +50,8 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.water_boost_duration: float = DEFAULT_WATER_BOOST_MINUTES
 
         # Last reported state values
-        self.heating_boost_remaining: int = 0
-        self.water_boost_remaining: int = 0
+        self.boost_remaining_heat: int = 0
+        self.boost_remaining_water: int = 0
 
     @property
     def topic_get(self) -> str:
@@ -94,20 +94,20 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             #     return
 
             if self.model == MODEL_SLR2:
-                self.heating_boost_remaining = cast(
+                self.boost_remaining_heat = cast(
                     int,
                     parsed_data["temperature_setpoint_hold_duration_heat"]
                     if parsed_data["system_mode_heat"] == "emergency_heating"
                     else 0,
                 )
-                self.water_boost_remaining = cast(
+                self.boost_remaining_water = cast(
                     int,
                     parsed_data["temperature_setpoint_hold_duration_water"]
                     if parsed_data["system_mode_water"] == "emergency_heating"
                     else 0,
                 )
             else:
-                self.heating_boost_remaining = cast(
+                self.boost_remaining_heat = cast(
                     int,
                     parsed_data["temperature_setpoint_hold_duration"]
                     if parsed_data["system_mode"] == "emergency_heating"
