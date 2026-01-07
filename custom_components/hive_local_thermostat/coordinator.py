@@ -88,7 +88,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return None
 
     @callback
-    def handle_mqtt_message(self, message: ReceiveMessage) -> None:  # noqa: PLR0912, PLR0915
+    def handle_mqtt_message(self, message: ReceiveMessage) -> None:
         """Handle received MQTT message."""
         topic = message.topic
         payload = message.payload
@@ -182,30 +182,33 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 return  # Exit to wait for next update with correct value
             self.boost_remaining_water = reported_boost_remaining_water
 
-            # Manage boost state tracking
-            if self.boost_remaining_heat > 0 and not self.boost_in_progress_heat:
-                self.boost_in_progress_heat = True
-                self.boost_started_heat = utcnow()
-                self.boost_started_duration_heat = self.boost_remaining_heat
-            else:
-                self.boost_in_progress_heat = False
-                self.boost_started_heat = None
-                self.boost_started_duration_heat = 0
-
-            if self.boost_remaining_water > 0 and not self.boost_in_progress_water:
-                self.boost_in_progress_water = True
-                self.boost_started_water = utcnow()
-                self.boost_started_duration_water = self.boost_remaining_water
-            else:
-                self.boost_in_progress_water = False
-                self.boost_started_water = None
-                self.boost_started_duration_water = 0
+            self.record_boost_state()
 
             self.async_set_updated_data(parsed_data)
         except json.JSONDecodeError:
             LOGGER.error("Failed to parse JSON from MQTT payload: %s", payload)
         except Exception as err:  # noqa: BLE001
             LOGGER.error("Error handling MQTT message: %s", err)
+
+    def record_boost_state(self) -> None:
+        """Record and track boost state for heating and water."""
+        if self.boost_remaining_heat > 0 and not self.boost_in_progress_heat:
+            self.boost_in_progress_heat = True
+            self.boost_started_heat = utcnow()
+            self.boost_started_duration_heat = self.boost_remaining_heat
+        else:
+            self.boost_in_progress_heat = False
+            self.boost_started_heat = None
+            self.boost_started_duration_heat = 0
+
+        if self.boost_remaining_water > 0 and not self.boost_in_progress_water:
+            self.boost_in_progress_water = True
+            self.boost_started_water = utcnow()
+            self.boost_started_duration_water = self.boost_remaining_water
+        else:
+            self.boost_in_progress_water = False
+            self.boost_started_water = None
+            self.boost_started_duration_water = 0
 
     async def _async_publish_set(self, payload: str) -> None:
         """Publish MQTT set message."""
