@@ -55,7 +55,6 @@ async def async_setup_entry(
                 key="running_state_heat",
                 translation_key="running_state_heat",
                 name=config_entry.title,
-                value_fn=lambda js: js["running_state_heat"],
                 running_state=True,
             ),
             HiveSensorEntityDescription(
