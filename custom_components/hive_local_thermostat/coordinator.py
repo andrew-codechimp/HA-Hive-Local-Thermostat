@@ -6,7 +6,7 @@ import json
 from asyncio import sleep
 from typing import Any, cast
 
-from homeassistant.components.climate.const import HVACMode
+from homeassistant.components.climate.const import HVACAction, HVACMode
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
 from homeassistant.core import HomeAssistant, callback
@@ -64,6 +64,19 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def topic_set(self) -> str:
         """Return the topic setter."""
         return self.topic + "/set"
+
+    @property
+    def hvac_action(self) -> HVACAction | None:
+        """Return the current HVAC action."""
+        if self.running_state_heat == "preheating":
+            return HVACAction.PREHEATING
+        if self.running_state_heat == "heating":
+            return HVACAction.HEATING
+        if self.running_state_heat == "idle":
+            return HVACAction.IDLE
+        if self.running_state_heat == "off":
+            return HVACAction.OFF
+        return None
 
     @callback
     def handle_mqtt_message(self, message: ReceiveMessage) -> None:

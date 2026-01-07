@@ -254,25 +254,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             self._attr_preset_mode = self._climate_preset(mqtt_data["system_mode"])
 
         # HVAC Action
-        self._attr_hvac_action = None
-        if self.coordinator.model == MODEL_SLR2:
-            if "running_state_heat" not in mqtt_data:
-                self._attr_hvac_action = HVACAction.PREHEATING
-            running_state_heat = mqtt_data["running_state_heat"]
-        else:
-            if "running_state" not in mqtt_data:
-                self._attr_hvac_action = HVACAction.PREHEATING
-            running_state_heat = mqtt_data["running_state"]
-
-        if not self._attr_hvac_action:
-            if running_state_heat == "idle":
-                self._attr_hvac_action = HVACAction.IDLE
-            if running_state_heat == "" or running_state_heat is None:
-                self._attr_hvac_action = HVACAction.PREHEATING
-            if running_state_heat == "heat":
-                self._attr_hvac_action = HVACAction.HEATING
-            if running_state_heat == "off":
-                self._attr_hvac_action = HVACAction.OFF
+        self._attr_hvac_action = self.coordinator.hvac_action
 
         # HVAC Mode
         self._attr_hvac_mode = None
