@@ -163,10 +163,24 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     boost_temperature = parsed_data["occupied_heating_setpoint_heat"]
                 else:
                     boost_temperature = parsed_data["occupied_heating_setpoint"]
+                LOGGER.warning(
+                    "Correcting reported boost remaining heat from %d to %d",
+                    reported_boost_remaining_heat,
+                    self.boost_remaining_heat,
+                )
                 self.async_heating_boost(self.boost_remaining_heat, boost_temperature)
+                return  # Exit to wait for next update with correct value
+            self.boost_remaining_heat = reported_boost_remaining_heat
 
             if reported_boost_remaining_water > MAXIMUM_BOOST_MINUTES:
+                LOGGER.warning(
+                    "Correcting reported boost remaining water from %d to %d",
+                    reported_boost_remaining_water,
+                    self.boost_remaining_water,
+                )
                 self.async_water_boost(self.boost_remaining_water)
+                return  # Exit to wait for next update with correct value
+            self.boost_remaining_water = reported_boost_remaining_water
 
             # Manage boost state tracking
             if self.boost_remaining_heat > 0 and not self.boost_in_progress_heat:
