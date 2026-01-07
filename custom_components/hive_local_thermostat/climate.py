@@ -213,7 +213,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             (k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE]
         )
 
-    def _handle_coordinator_update(self) -> None:  # noqa: C901, PLR0912, PLR0915
+    def _handle_coordinator_update(self) -> None:  # noqa: PLR0912
         """Handle updated data from the coordinator."""
         mqtt_data = self.coordinator.data
 
