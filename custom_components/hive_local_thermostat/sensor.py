@@ -37,7 +37,6 @@ class HiveSensorEntityDescription(
 
     icons_by_state: dict[str, str] | None = None
     value_fn: Callable[[dict[str, Any]], str | int | float | None] | None = None
-    running_state: bool = False
 
 
 async def async_setup_entry(
@@ -55,7 +54,6 @@ async def async_setup_entry(
                 key="running_state_heat",
                 translation_key="running_state_heat",
                 name=config_entry.title,
-                running_state=True,
             ),
             HiveSensorEntityDescription(
                 key="local_temperature_heat",
@@ -69,7 +67,6 @@ async def async_setup_entry(
                 key="running_state_water",
                 translation_key="running_state_water",
                 name=config_entry.title,
-                running_state=True,
             ),
             HiveSensorEntityDescription(
                 key="boost_remaining_heat",
@@ -88,7 +85,6 @@ async def async_setup_entry(
                 key="running_state_heat",
                 translation_key="running_state_heat",
                 name=config_entry.title,
-                running_state=True,
             ),
             HiveSensorEntityDescription(
                 key="local_temperature_heat",
@@ -153,11 +149,6 @@ class HiveSensor(HiveEntity, SensorEntity):
                 new_value = 0
             else:
                 new_value = ""
-
-        if self.entity_description.running_state and (
-            new_value == "" or new_value is None
-        ):
-            new_value = "preheating"
 
         if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
             new_value = show_temp(
