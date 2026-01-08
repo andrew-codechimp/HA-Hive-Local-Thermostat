@@ -157,8 +157,16 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
 
             # Handle boost fix on incorrect values
-            # TODO: calculate remaining time based on start
             if reported_boost_remaining_heat > MAXIMUM_BOOST_MINUTES:
+                # Calculate remaining boost time based on when it started
+                if self.boost_started_heat and self.boost_started_duration_heat > 0:
+                    elapsed = (utcnow() - self.boost_started_heat).total_seconds() / 60
+                    self.boost_remaining_heat = int(
+                        self.boost_started_duration_heat - elapsed
+                    )
+                else:
+                    self.boost_remaining_heat = 0
+
                 if self.model == MODEL_SLR2:
                     boost_temperature = parsed_data["occupied_heating_setpoint_heat"]
                 else:
@@ -173,6 +181,15 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.boost_remaining_heat = reported_boost_remaining_heat
 
             if reported_boost_remaining_water > MAXIMUM_BOOST_MINUTES:
+                # Calculate remaining boost time based on when it started
+                if self.boost_started_water and self.boost_started_duration_water > 0:
+                    elapsed = (utcnow() - self.boost_started_water).total_seconds() / 60
+                    self.boost_remaining_water = int(
+                        self.boost_started_duration_water - elapsed
+                    )
+                else:
+                    self.boost_remaining_water = 0
+
                 LOGGER.warning(
                     "Correcting reported boost remaining water from %d to %d",
                     reported_boost_remaining_water,
