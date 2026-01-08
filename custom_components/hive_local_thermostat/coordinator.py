@@ -160,13 +160,15 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 reported_boost_temperature = parsed_data["occupied_heating_setpoint"]
 
-            self.check_and_correct_heat_boost(
+            if self.correct_heat_boost(
                 reported_boost_remaining_heat, reported_boost_temperature
-            )
+            ):
+                return  # Correction made, exit to avoid state update loop
             self.record_heat_boost_state()
 
             if self.model == MODEL_SLR2:
-                self.check_and_correct_water_boost(reported_boost_remaining_water)
+                if self.correct_water_boost(reported_boost_remaining_water):
+                    return  # Correction made, exit to avoid state update loop
                 self.record_water_boost_state()
 
             self.async_set_updated_data(parsed_data)
@@ -175,7 +177,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception as err:  # noqa: BLE001
             LOGGER.error("Error handling MQTT message: %s", err)
 
-    def check_and_correct_heat_boost(
+    def correct_heat_boost(
         self, reported_boost_remaining_heat: int, reported_boost_temperature: float
     ) -> None:
         """Check and correct boost remaining heat if necessary."""
@@ -197,12 +199,11 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.async_heating_boost(
                 self.boost_remaining_heat, reported_boost_temperature
             )
-            return  # Exit to wait for next update with correct value
+            return True
         self.boost_remaining_heat = reported_boost_remaining_heat
+        return False
 
-    def check_and_correct_water_boost(
-        self, reported_boost_remaining_water: int
-    ) -> None:
+    def correct_water_boost(self, reported_boost_remaining_water: int) -> bool:
         """Check and correct boost remaining water if necessary."""
         if reported_boost_remaining_water > MAXIMUM_BOOST_MINUTES:
             # Calculate remaining boost time based on when it started
@@ -220,8 +221,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self.boost_remaining_water,
             )
             self.async_water_boost(self.boost_remaining_water)
-            return  # Exit to wait for next update with correct value
+            return True
         self.boost_remaining_water = reported_boost_remaining_water
+        return False
 
     def record_heat_boost_state(self) -> None:
         """Record and track boost state for heating."""
