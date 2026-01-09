@@ -21,9 +21,10 @@ from .const import (
     DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
     LOGGER,
-    MAXIMUM_BOOST_MINUTES,
     MODEL_SLR2,
 )
+
+BOOST_ERROR = 65000
 
 
 class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -92,8 +93,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Handle received MQTT message."""
         topic = message.topic
         payload = message.payload
-        LOGGER.debug("Coordinator received message: %s", topic)
-        LOGGER.debug("Payload: %s", payload)
+        LOGGER.debug("Received from %s payload: %s", topic, payload)
 
         if not payload:
             LOGGER.error(
@@ -181,7 +181,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self, reported_boost_remaining_heat: int, reported_boost_temperature: float
     ) -> None:
         """Check and correct boost remaining heat if necessary."""
-        if reported_boost_remaining_heat > MAXIMUM_BOOST_MINUTES:
+        if reported_boost_remaining_heat > BOOST_ERROR:
             # Calculate remaining boost time based on when it started
             if self.boost_started_heat and self.boost_started_duration_heat > 0:
                 elapsed = (utcnow() - self.boost_started_heat).total_seconds() / 60
@@ -205,7 +205,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def correct_water_boost(self, reported_boost_remaining_water: int) -> bool:
         """Check and correct boost remaining water if necessary."""
-        if reported_boost_remaining_water > MAXIMUM_BOOST_MINUTES:
+        if reported_boost_remaining_water > BOOST_ERROR:
             # Calculate remaining boost time based on when it started
             if self.boost_started_water and self.boost_started_duration_water > 0:
                 elapsed = (utcnow() - self.boost_started_water).total_seconds() / 60
