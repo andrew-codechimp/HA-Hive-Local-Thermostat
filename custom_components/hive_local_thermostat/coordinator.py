@@ -135,7 +135,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
     @callback
-    def handle_mqtt_message(self, message: ReceiveMessage) -> None:  # noqa: C901, PLR0912, PLR0915
+    def handle_mqtt_message(self, message: ReceiveMessage) -> None:  # noqa: PLR0912, PLR0915
         """Handle received MQTT message."""
         topic = message.topic
         payload = message.payload
@@ -159,16 +159,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             parsed_data: dict[str, Any] = json.loads(payload)
 
-            if self.model == MODEL_SLR2:
-                if "system_mode" in parsed_data:
-                    LOGGER.error(
-                        "Received data contains 'system_mode' for SLR2, check you have the correct model set"
-                    )
-                    return
-            elif "system_mode_water" in parsed_data:
-                LOGGER.error(
-                    "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
-                )
+            if not self.valid_data_for_model(self, parsed_data):
                 return
 
             if self.model == MODEL_SLR2:
@@ -284,6 +275,21 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             LOGGER.error("Failed to parse JSON from MQTT payload: %s", payload)
         except Exception as err:  # noqa: BLE001
             LOGGER.error("Error handling MQTT message: %s", err)
+
+    def valid_data_for_model(self, data: dict[str, Any]) -> bool:
+        """Check if data is valid for the current model."""
+        if self.model == MODEL_SLR2:
+            if "system_mode" in data:
+                LOGGER.error(
+                    "Received data contains 'system_mode' for SLR2, check you have the correct model set"
+                )
+                return False
+        elif "system_mode_water" in data:
+            LOGGER.error(
+                "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
+            )
+            return False
+        return True
 
     def correct_heat_boost(
         self, reported_boost_remaining_heat: int, reported_boost_temperature: float
