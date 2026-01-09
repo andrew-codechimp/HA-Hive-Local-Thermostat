@@ -46,17 +46,17 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     preset_mode: str | None = None
     hvac_mode: HVACMode | None = None
 
-    boost_in_progress_heat: bool = False
-    boost_in_progress_water: bool = False
-    boost_started_heat: datetime | None = None
-    boost_started_water: datetime | None = None
-    boost_started_duration_heat: int = 0
-    boost_started_duration_water: int = 0
-
-    boost_remaining_heat: int = 0
-    boost_remaining_water: int = 0
     running_state_heat: str = ""
     running_state_water: str = ""
+
+    heat_boost: bool = False
+    water_boost: bool = False
+    heat_boost_started: datetime | None = None
+    water_boost_started: datetime | None = None
+    heat_boost_started_duration: int = 0
+    water_boost_started_duration: int = 0
+    heat_boost_remaining: int = 0
+    water_boost_remaining: int = 0
 
     def __init__(  # noqa: PLR0913
         self,
@@ -117,16 +117,6 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Return the local temperature for heating."""
         return self.current_temperature
 
-    @property
-    def heat_boost(self) -> bool:
-        """Return if heat boost is active."""
-        return self.boost_in_progress_heat
-
-    @property
-    def water_boost(self) -> bool:
-        """Return if water boost is active."""
-        return self.boost_in_progress_water
-
     def climate_preset(self, mode: str) -> str:
         """Get the current preset."""
         return next(
@@ -144,8 +134,8 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.target_temperature = None
         self.preset_mode = None
         self.hvac_mode = None
-        self.boost_in_progress_heat = False
-        self.boost_in_progress_water = False
+        self.heat_boost = False
+        self.water_boost = False
 
         if not payload:
             LOGGER.error(
@@ -215,11 +205,11 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         self.hvac_mode = HVACMode.HEAT
                 if parsed_data["system_mode_heat"] == "emergency_heating":
                     self.hvac_mode = HVACMode.HEAT
-                    self.boost_in_progress_heat = True
+                    self.heat_boost = True
                 if parsed_data["system_mode_heat"] == "off":
                     self.hvac_mode = HVACMode.OFF
                 if parsed_data["system_mode_water"] == "emergency_heating":
-                    self.boost_in_progress_water = True
+                    self.water_boost = True
             else:
                 reported_boost_remaining_heat = cast(
                     int,
@@ -251,7 +241,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         self.hvac_mode = HVACMode.HEAT
                 if parsed_data["system_mode"] == "emergency_heating":
                     self.hvac_mode = HVACMode.HEAT
-                    self.boost_in_progress_heat = True
+                    self.heat_boost = True
                 if parsed_data["system_mode"] == "off":
                     self.hvac_mode = HVACMode.OFF
 
@@ -278,82 +268,82 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Check and correct boost remaining heat if necessary."""
         if reported_boost_remaining_heat > BOOST_ERROR:
             # Calculate remaining boost time based on when it started
-            if self.boost_started_heat and self.boost_started_duration_heat > 0:
-                elapsed = (utcnow() - self.boost_started_heat).total_seconds() / 60
-                self.boost_remaining_heat = int(
-                    self.boost_started_duration_heat - elapsed
+            if self.heat_boost_started and self.heat_boost_started_duration > 0:
+                elapsed = (utcnow() - self.heat_boost_started).total_seconds() / 60
+                self.heat_boost_remaining = int(
+                    self.heat_boost_started_duration - elapsed
                 )
             else:
-                self.boost_remaining_heat = 0
+                self.heat_boost_remaining = 0
 
             LOGGER.warning(
                 "Correcting reported boost remaining heat from %d to %d",
                 reported_boost_remaining_heat,
-                self.boost_remaining_heat,
+                self.heat_boost_remaining,
             )
             self.hass.async_create_task(
                 self.async_heating_boost(
-                    self.boost_remaining_heat, reported_boost_temperature
+                    self.heat_boost_remaining, reported_boost_temperature
                 )
             )
             return True
-        self.boost_remaining_heat = reported_boost_remaining_heat
+        self.heat_boost_remaining = reported_boost_remaining_heat
         return False
 
     def correct_water_boost(self, reported_boost_remaining_water: int) -> bool:
         """Check and correct boost remaining water if necessary."""
         if reported_boost_remaining_water > BOOST_ERROR:
             # Calculate remaining boost time based on when it started
-            if self.boost_started_water and self.boost_started_duration_water > 0:
-                elapsed = (utcnow() - self.boost_started_water).total_seconds() / 60
-                self.boost_remaining_water = int(
-                    self.boost_started_duration_water - elapsed
+            if self.water_boost_started and self.water_boost_started_duration > 0:
+                elapsed = (utcnow() - self.water_boost_started).total_seconds() / 60
+                self.water_boost_remaining = int(
+                    self.water_boost_started_duration - elapsed
                 )
             else:
-                self.boost_remaining_water = 0
+                self.water_boost_remaining = 0
 
             LOGGER.warning(
                 "Correcting reported boost remaining water from %d to %d",
                 reported_boost_remaining_water,
-                self.boost_remaining_water,
+                self.water_boost_remaining,
             )
             self.hass.async_create_task(
-                self.async_water_boost(self.boost_remaining_water)
+                self.async_water_boost(self.water_boost_remaining)
             )
             return True
-        self.boost_remaining_water = reported_boost_remaining_water
+        self.water_boost_remaining = reported_boost_remaining_water
         return False
 
     def record_heat_boost_state(self) -> None:
         """Record and track boost state for heating."""
-        if self.boost_remaining_heat > 0 and not self.boost_in_progress_heat:
-            self.boost_in_progress_heat = True
-            self.boost_started_heat = utcnow()
-            self.boost_started_duration_heat = self.boost_remaining_heat
+        if self.heat_boost_remaining > 0 and not self.heat_boost:
+            self.heat_boost = True
+            self.heat_boost_started = utcnow()
+            self.heat_boost_started_duration = self.heat_boost_remaining
         else:
-            self.boost_in_progress_heat = False
-            self.boost_started_heat = None
-            self.boost_started_duration_heat = 0
+            self.heat_boost = False
+            self.heat_boost_started = None
+            self.heat_boost_started_duration = 0
 
-        if self.boost_remaining_water > 0 and not self.boost_in_progress_water:
-            self.boost_in_progress_water = True
-            self.boost_started_water = utcnow()
-            self.boost_started_duration_water = self.boost_remaining_water
+        if self.water_boost_remaining > 0 and not self.water_boost:
+            self.water_boost = True
+            self.water_boost_started = utcnow()
+            self.water_boost_started_duration = self.water_boost_remaining
         else:
-            self.boost_in_progress_water = False
-            self.boost_started_water = None
-            self.boost_started_duration_water = 0
+            self.water_boost = False
+            self.water_boost_started = None
+            self.water_boost_started_duration = 0
 
     def record_water_boost_state(self) -> None:
         """Record and track boost state for water."""
-        if self.boost_remaining_water > 0 and not self.boost_in_progress_water:
-            self.boost_in_progress_water = True
-            self.boost_started_water = utcnow()
-            self.boost_started_duration_water = self.boost_remaining_water
+        if self.water_boost_remaining > 0 and not self.water_boost:
+            self.water_boost = True
+            self.water_boost_started = utcnow()
+            self.water_boost_started_duration = self.water_boost_remaining
         else:
-            self.boost_in_progress_water = False
-            self.boost_started_water = None
-            self.boost_started_duration_water = 0
+            self.water_boost = False
+            self.water_boost_started = None
+            self.water_boost_started_duration = 0
 
     async def _async_publish_set(self, payload: str) -> None:
         """Publish MQTT set message."""
@@ -372,9 +362,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             + r',"temperature_setpoint_hold_water":1}'
         )
 
-        self.boost_in_progress_water = True
-        self.boost_started_water = utcnow()
-        self.boost_started_duration_water = int(duration)
+        self.water_boost = True
+        self.water_boost_started = utcnow()
+        self.water_boost_started_duration = int(duration)
 
         await self._async_publish_set(payload)
 
@@ -423,9 +413,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 + r"}"
             )
 
-        self.boost_in_progress_heat = True
-        self.boost_started_heat = utcnow()
-        self.boost_started_duration_heat = int(duration)
+        self.heat_boost = True
+        self.heat_boost_started = utcnow()
+        self.heat_boost_started_duration = int(duration)
 
         await self._async_publish_set(payload)
 
