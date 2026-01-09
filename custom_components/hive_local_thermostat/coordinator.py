@@ -159,7 +159,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             parsed_data: dict[str, Any] = json.loads(payload)
 
-            if not self.valid_data_for_model(self, parsed_data):
+            if not self.valid_data_for_model(parsed_data):
                 return
 
             if self.model == MODEL_SLR2:
