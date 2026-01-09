@@ -100,6 +100,16 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return self.topic + "/set"
 
     @property
+    def boost_remaining_heat(self) -> int:
+        """Return the remaining boost time for heating."""
+        return self.heat_boost_remaining
+
+    @property
+    def boost_remaining_water(self) -> int:
+        """Return the remaining boost time for water."""
+        return self.water_boost_remaining
+
+    @property
     def hvac_action(self) -> HVACAction | None:
         """Return the current HVAC action."""
         if self.running_state_heat == "preheating":
