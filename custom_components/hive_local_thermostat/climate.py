@@ -24,11 +24,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .common import HiveConfigEntry
 from .const import (
-    CONF_SHOW_HEAT_SCHEDULE_MODE,
     DOMAIN,
     HIVE_BOOST,
     LOGGER,
-    MODEL_SLR2,
 )
 from .coordinator import HiveCoordinator
 from .entity import HiveEntity, HiveEntityDescription
@@ -46,8 +44,6 @@ class HiveClimateEntityDescription(
 ):
     """Class describing Hive sensor entities."""
 
-    show_schedule_mode: bool = True
-
 
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001
@@ -62,7 +58,6 @@ async def async_setup_entry(
         key="climate",
         translation_key="climate",
         name=config_entry.title,
-        show_schedule_mode=config_entry.options.get(CONF_SHOW_HEAT_SCHEDULE_MODE, True),
     )
 
     _entities = [
@@ -94,7 +89,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
 
-        if entity_description.show_schedule_mode:
+        if coordinator.show_heating_schedule_mode:
             self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.AUTO]
         else:
             self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT]
@@ -205,84 +200,14 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
 
-    def _climate_preset(self, mode: str) -> str:
-        """Get the current preset."""
-
-        return next(
-            (k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE]
-        )
-
-    def _handle_coordinator_update(self) -> None:  # noqa: PLR0912
+    def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        mqtt_data = self.coordinator.data
 
-        # Current Temperature
-        if self.coordinator.model == MODEL_SLR2:
-            if "local_temperature_heat" in mqtt_data:
-                self._attr_current_temperature = mqtt_data["local_temperature_heat"]
-        elif "local_temperature" in mqtt_data:
-            self._attr_current_temperature = mqtt_data["local_temperature"]
-
-        # Target Temperature
-        if self.coordinator.model == MODEL_SLR2:
-            if "occupied_heating_setpoint_heat" in mqtt_data:
-                if mqtt_data["occupied_heating_setpoint_heat"] == 1:
-                    self._attr_target_temperature = (
-                        self.coordinator.heating_frost_prevention
-                    )
-                else:
-                    self._attr_target_temperature = mqtt_data[
-                        "occupied_heating_setpoint_heat"
-                    ]
-        elif "occupied_heating_setpoint" in mqtt_data:
-            if mqtt_data["occupied_heating_setpoint"] == 1:
-                self._attr_target_temperature = (
-                    self.coordinator.heating_frost_prevention
-                )
-            else:
-                self._attr_target_temperature = mqtt_data["occupied_heating_setpoint"]
-
-        # Preset Mode
-        self._attr_preset_mode = None
-        if self.coordinator.model == MODEL_SLR2:
-            if "system_mode_heat" in mqtt_data:
-                self._attr_preset_mode = self._climate_preset(
-                    mqtt_data["system_mode_heat"]
-                )
-        elif "system_mode" in mqtt_data:
-            self._attr_preset_mode = self._climate_preset(mqtt_data["system_mode"])
-
-        # HVAC Action
+        self._attr_current_temperature = self.coordinator.current_temperature
+        self._attr_target_temperature = self.coordinator.target_temperature
+        self._attr_preset_mode = self.coordinator.preset_mode
         self._attr_hvac_action = self.coordinator.hvac_action
-
-        # HVAC Mode
-        self._attr_hvac_mode = None
-        if self.coordinator.model == MODEL_SLR2:
-            if mqtt_data["system_mode_heat"] == "heat":
-                if (
-                    mqtt_data["temperature_setpoint_hold_heat"] is False
-                    and self.entity_description.show_schedule_mode
-                ):
-                    self._attr_hvac_mode = HVACMode.AUTO
-                else:
-                    self._attr_hvac_mode = HVACMode.HEAT
-            if mqtt_data["system_mode_heat"] == "emergency_heating":
-                self._attr_hvac_mode = HVACMode.HEAT
-            if mqtt_data["system_mode_heat"] == "off":
-                self._attr_hvac_mode = HVACMode.OFF
-        else:
-            if mqtt_data["system_mode"] == "heat":
-                if (
-                    mqtt_data["temperature_setpoint_hold"] is False
-                    and self.entity_description.show_schedule_mode
-                ):
-                    self._attr_hvac_mode = HVACMode.AUTO
-                else:
-                    self._attr_hvac_mode = HVACMode.HEAT
-            if mqtt_data["system_mode"] == "emergency_heating":
-                self._attr_hvac_mode = HVACMode.HEAT
-            if mqtt_data["system_mode"] == "off":
-                self._attr_hvac_mode = HVACMode.OFF
+        self._attr_hvac_mode = self.coordinator.hvac_mode
 
         # Update HA state
         self.async_write_ha_state()

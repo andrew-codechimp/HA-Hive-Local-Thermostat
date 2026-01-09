@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import cast
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -36,7 +35,6 @@ class HiveSensorEntityDescription(
     """Class describing Hive sensor entities."""
 
     icons_by_state: dict[str, str] | None = None
-    value_fn: Callable[[dict[str, Any]], str | int | float | None] | None = None
 
 
 async def async_setup_entry(
@@ -62,7 +60,6 @@ async def async_setup_entry(
                 device_class=SensorDeviceClass.TEMPERATURE,
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 suggested_display_precision=1,
-                value_fn=lambda data: cast(float, data["local_temperature_heat"]),
             ),
             HiveSensorEntityDescription(
                 key="running_state_water",
@@ -94,7 +91,6 @@ async def async_setup_entry(
                 device_class=SensorDeviceClass.TEMPERATURE,
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 suggested_display_precision=1,
-                value_fn=lambda data: cast(float, data["local_temperature"]),
             ),
             HiveSensorEntityDescription(
                 key="boost_remaining_heat",
@@ -132,7 +128,6 @@ class HiveSensor(HiveEntity, SensorEntity):
             f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         )
         self._attr_has_entity_name = True
-        self._func = entity_description.value_fn
 
         super().__init__(entity_description, coordinator)
 
@@ -140,11 +135,7 @@ class HiveSensor(HiveEntity, SensorEntity):
         """Handle updated data from the coordinator."""
 
         try:
-            if self._func is None:
-                new_value = getattr(self.coordinator, self.entity_description.key)
-            else:
-                mqtt_data = self.coordinator.data
-                new_value = self._func(mqtt_data)
+            new_value = getattr(self.coordinator, self.entity_description.key)
         except KeyError:
             if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
                 new_value = 0

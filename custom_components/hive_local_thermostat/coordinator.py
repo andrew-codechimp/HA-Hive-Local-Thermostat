@@ -7,7 +7,12 @@ from asyncio import sleep
 from datetime import datetime
 from typing import Any, cast
 
-from homeassistant.components.climate.const import HVACAction, HVACMode
+from homeassistant.components.climate.const import (
+    PRESET_BOOST,
+    PRESET_NONE,
+    HVACAction,
+    HVACMode,
+)
 from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.mqtt.models import ReceiveMessage
 from homeassistant.core import HomeAssistant, callback
@@ -20,15 +25,26 @@ from .const import (
     DEFAULT_HEATING_BOOST_TEMPERATURE,
     DEFAULT_WATER_BOOST_MINUTES,
     DOMAIN,
+    HIVE_BOOST,
     LOGGER,
     MODEL_SLR2,
 )
+
+PRESET_MAP = {
+    PRESET_NONE: "",
+    PRESET_BOOST: HIVE_BOOST,
+}
 
 BOOST_ERROR = 65000
 
 
 class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Class to manage fetching Hive data from MQTT."""
+
+    current_temperature: float | None = None
+    target_temperature: float | None = None
+    preset_mode: str | None = None
+    hvac_mode: HVACMode | None = None
 
     boost_in_progress_heat: bool = False
     boost_in_progress_water: bool = False
@@ -42,8 +58,14 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     running_state_heat: str = ""
     running_state_water: str = ""
 
-    def __init__(
-        self, hass: HomeAssistant, entry_id: str, model: str, topic: str
+    def __init__(  # noqa: PLR0913
+        self,
+        hass: HomeAssistant,
+        entry_id: str,
+        model: str,
+        topic: str,
+        show_heat_schedule_mode: bool,  # noqa: FBT001
+        show_water_schedule_mode: bool,  # noqa: FBT001
     ) -> None:
         """Initialize the coordinator."""
         super().__init__(
@@ -54,6 +76,8 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.entry_id = entry_id
         self.model = model
         self.topic = topic
+        self.show_heating_schedule_mode = show_heat_schedule_mode
+        self.show_water_schedule_mode = show_water_schedule_mode
         self.data: dict[str, Any] = {}
 
         self.pre_boost_hvac_mode: HVACMode | None = None
@@ -88,12 +112,40 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return HVACAction.OFF
         return None
 
+    @property
+    def local_temperature_heat(self) -> float | None:
+        """Return the local temperature for heating."""
+        return self.current_temperature
+
+    @property
+    def heat_boost(self) -> bool:
+        """Return if heat boost is active."""
+        return self.boost_in_progress_heat
+
+    @property
+    def water_boost(self) -> bool:
+        """Return if water boost is active."""
+        return self.boost_in_progress_water
+
+    def climate_preset(self, mode: str) -> str:
+        """Get the current preset."""
+        return next(
+            (k for k, v in PRESET_MAP.items() if v == mode), PRESET_MAP[PRESET_NONE]
+        )
+
     @callback
-    def handle_mqtt_message(self, message: ReceiveMessage) -> None:
+    def handle_mqtt_message(self, message: ReceiveMessage) -> None:  # noqa: PLR0912, PLR0915
         """Handle received MQTT message."""
         topic = message.topic
         payload = message.payload
         LOGGER.debug("Received from %s payload: %s", topic, payload)
+
+        self.current_temperature = None
+        self.target_temperature = None
+        self.preset_mode = None
+        self.hvac_mode = None
+        self.boost_in_progress_heat = False
+        self.boost_in_progress_water = False
 
         if not payload:
             LOGGER.error(
@@ -130,6 +182,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if parsed_data["system_mode_water"] == "emergency_heating"
                     else 0,
                 )
+                reported_boost_temperature = parsed_data[
+                    "occupied_heating_setpoint_heat"
+                ]
                 self.running_state_heat = cast(
                     str,
                     parsed_data.get("running_state_heat")
@@ -142,9 +197,29 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if parsed_data.get("running_state_water")
                     else "preheating",
                 )
-                reported_boost_temperature = parsed_data[
-                    "occupied_heating_setpoint_heat"
-                ]
+                self.current_temperature = parsed_data["local_temperature_heat"]
+                if parsed_data["occupied_heating_setpoint_heat"] == 1:
+                    self.target_temperature = self.heating_frost_prevention
+                else:
+                    self.target_temperature = parsed_data[
+                        "occupied_heating_setpoint_heat"
+                    ]
+                self.preset_mode = self.climate_preset(parsed_data["system_mode_heat"])
+                if parsed_data["system_mode_heat"] == "heat":
+                    if (
+                        parsed_data["temperature_setpoint_hold_heat"] is False
+                        and self.show_heating_schedule_mode
+                    ):
+                        self.hvac_mode = HVACMode.AUTO
+                    else:
+                        self.hvac_mode = HVACMode.HEAT
+                if parsed_data["system_mode_heat"] == "emergency_heating":
+                    self.hvac_mode = HVACMode.HEAT
+                    self.boost_in_progress_heat = True
+                if parsed_data["system_mode_heat"] == "off":
+                    self.hvac_mode = HVACMode.OFF
+                if parsed_data["system_mode_water"] == "emergency_heating":
+                    self.boost_in_progress_water = True
             else:
                 reported_boost_remaining_heat = cast(
                     int,
@@ -152,13 +227,33 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if parsed_data["system_mode"] == "emergency_heating"
                     else 0,
                 )
+                reported_boost_temperature = parsed_data["occupied_heating_setpoint"]
                 self.running_state_heat = cast(
                     str,
                     parsed_data.get("running_state")
                     if parsed_data.get("running_state")
                     else "preheating",
                 )
-                reported_boost_temperature = parsed_data["occupied_heating_setpoint"]
+                self.current_temperature = parsed_data["local_temperature"]
+                if parsed_data["occupied_heating_setpoint"] == 1:
+                    self.target_temperature = self.heating_frost_prevention
+                else:
+                    self.target_temperature = parsed_data["occupied_heating_setpoint"]
+                self.preset_mode = self.climate_preset(parsed_data["system_mode"])
+
+                if parsed_data["system_mode"] == "heat":
+                    if (
+                        parsed_data["temperature_setpoint_hold"] is False
+                        and self.show_heating_schedule_mode
+                    ):
+                        self.hvac_mode = HVACMode.AUTO
+                    else:
+                        self.hvac_mode = HVACMode.HEAT
+                if parsed_data["system_mode"] == "emergency_heating":
+                    self.hvac_mode = HVACMode.HEAT
+                    self.boost_in_progress_heat = True
+                if parsed_data["system_mode"] == "off":
+                    self.hvac_mode = HVACMode.OFF
 
             if self.correct_heat_boost(
                 reported_boost_remaining_heat, reported_boost_temperature
@@ -179,7 +274,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def correct_heat_boost(
         self, reported_boost_remaining_heat: int, reported_boost_temperature: float
-    ) -> None:
+    ) -> bool:
         """Check and correct boost remaining heat if necessary."""
         if reported_boost_remaining_heat > BOOST_ERROR:
             # Calculate remaining boost time based on when it started
@@ -196,8 +291,10 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 reported_boost_remaining_heat,
                 self.boost_remaining_heat,
             )
-            self.async_heating_boost(
-                self.boost_remaining_heat, reported_boost_temperature
+            self.hass.async_create_task(
+                self.async_heating_boost(
+                    self.boost_remaining_heat, reported_boost_temperature
+                )
             )
             return True
         self.boost_remaining_heat = reported_boost_remaining_heat
@@ -220,7 +317,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 reported_boost_remaining_water,
                 self.boost_remaining_water,
             )
-            self.async_water_boost(self.boost_remaining_water)
+            self.hass.async_create_task(
+                self.async_water_boost(self.boost_remaining_water)
+            )
             return True
         self.boost_remaining_water = reported_boost_remaining_water
         return False

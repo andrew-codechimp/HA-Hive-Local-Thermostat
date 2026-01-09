@@ -11,7 +11,6 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from .common import HiveConfigEntry
 from .const import (
-    CONF_SHOW_WATER_SCHEDULE_MODE,
     DOMAIN,
     MODEL_OTR1,
     MODEL_SLR1,
@@ -42,11 +41,9 @@ async def async_setup_entry(
     if coordinator.model in [MODEL_SLR1, MODEL_OTR1]:
         return
 
-    if config_entry.options.get(CONF_SHOW_WATER_SCHEDULE_MODE, True):
-        show_schedule_mode = True
+    if coordinator.show_water_schedule_mode:
         water_modes = ["auto", "heat", "off", "boost"]
     else:
-        show_schedule_mode = False
         water_modes = ["heat", "off", "boost"]
 
     entity_descriptions = (
@@ -55,7 +52,6 @@ async def async_setup_entry(
             translation_key="system_mode_water",
             name=config_entry.title,
             options=water_modes,
-            show_schedule_mode=show_schedule_mode,
         ),
     )
 

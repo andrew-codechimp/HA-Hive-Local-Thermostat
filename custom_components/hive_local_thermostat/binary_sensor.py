@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -29,7 +27,6 @@ class HiveBinarySensorEntityDescription(
 ):
     """Class describing Hive binary sensor entities."""
 
-    value_fn: Callable[[dict[str, Any]], bool | None]
     running_state: bool = False
 
 
@@ -48,14 +45,12 @@ async def async_setup_entry(
                 key="heat_boost",
                 translation_key="heat_boost",
                 name=config_entry.title,
-                value_fn=lambda js: js["system_mode_heat"] == "emergency_heating",
                 running_state=True,
             ),
             HiveBinarySensorEntityDescription(
                 key="water_boost",
                 translation_key="water_boost",
                 name=config_entry.title,
-                value_fn=lambda js: js["system_mode_water"] == "emergency_heating",
                 running_state=True,
             ),
         ]
@@ -65,7 +60,6 @@ async def async_setup_entry(
                 key="heat_boost",
                 translation_key="heat_boost",
                 name=config_entry.title,
-                value_fn=lambda js: js["system_mode"] == "emergency_heating",
                 running_state=True,
             ),
         ]
@@ -98,16 +92,14 @@ class HiveBinarySensor(HiveEntity, BinarySensorEntity):
             f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         )
         self._attr_has_entity_name = True
-        self._func = entity_description.value_fn
 
         super().__init__(entity_description, coordinator)
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        mqtt_data = self.coordinator.data
 
         try:
-            new_value = self._func(mqtt_data)
+            new_value = getattr(self.coordinator, self.entity_description.key)
         except KeyError:
             new_value = None
 
