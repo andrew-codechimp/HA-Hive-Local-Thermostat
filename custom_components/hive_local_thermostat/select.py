@@ -91,20 +91,7 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        mqtt_data = self.coordinator.data
-
-        if mqtt_data["system_mode_water"] == "heat":
-            if mqtt_data["temperature_setpoint_hold_water"] is False:
-                if self.entity_description.show_schedule_mode:
-                    new_value = "auto"
-                else:
-                    new_value = "heat"
-            else:
-                new_value = "heat"
-        if mqtt_data["system_mode_water"] == "emergency_heating":
-            new_value = "boost"
-        if mqtt_data["system_mode_water"] == "off":
-            new_value = "off"
+        new_value = self.coordinator.water_mode
 
         if new_value not in self.options:
             msg = f"Invalid option for {self.entity_id}: {new_value}"

@@ -45,6 +45,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     target_temperature: float | None = None
     preset_mode: str | None = None
     hvac_mode: HVACMode | None = None
+    water_mode: str | None = None
 
     running_state_heat: str = ""
     running_state_water: str = ""
@@ -134,7 +135,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
     @callback
-    def handle_mqtt_message(self, message: ReceiveMessage) -> None:  # noqa: PLR0912, PLR0915
+    def handle_mqtt_message(self, message: ReceiveMessage) -> None:  # noqa: C901, PLR0912, PLR0915
         """Handle received MQTT message."""
         topic = message.topic
         payload = message.payload
@@ -146,6 +147,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.hvac_mode = None
         self.heat_boost = False
         self.water_boost = False
+        self.water_mode = None
 
         if not payload:
             LOGGER.error(
@@ -218,8 +220,19 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     self.heat_boost = True
                 if parsed_data["system_mode_heat"] == "off":
                     self.hvac_mode = HVACMode.OFF
+                if parsed_data["system_mode_water"] == "heat":
+                    if parsed_data["temperature_setpoint_hold_water"] is False:
+                        if self.show_water_schedule_mode:
+                            self.water_mode = "auto"
+                        else:
+                            self.water_mode = "heat"
+                    else:
+                        self.water_mode = "heat"
                 if parsed_data["system_mode_water"] == "emergency_heating":
+                    self.water_mode = "boost"
                     self.water_boost = True
+                if parsed_data["system_mode_water"] == "off":
+                    self.water_mode = "off"
             else:
                 reported_boost_remaining_heat = cast(
                     int,
@@ -365,6 +378,8 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     ) -> None:
         """Send water boost command."""
 
+        self.pre_boost_water_mode = self.water_mode
+
         duration = str(boost_duration_minutes or self.water_boost_duration)
         payload = (
             r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
@@ -402,6 +417,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         boost_temperature: float | None = None,
     ) -> None:
         """Send heating boost command."""
+
+        self.pre_boost_occupied_heating_setpoint_heat = self.target_temperature
+        self.pre_boost_hvac_mode = self.hvac_mode
 
         duration = str(int(boost_duration_minutes or self.heating_boost_duration))
         temperature = str(boost_temperature or self.heating_boost_temperature)
