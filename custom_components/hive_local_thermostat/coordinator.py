@@ -140,6 +140,13 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         payload = message.payload
         LOGGER.debug("Received from %s payload: %s", topic, payload)
 
+        if not payload:
+            LOGGER.error(
+                "Received empty payload on topic %s, check that you have the correct topic name",
+                topic,
+            )
+            return
+
         self.current_temperature = None
         self.target_temperature = None
         self.preset_mode = None
@@ -147,13 +154,6 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.heat_boost = False
         self.water_boost = False
         self.water_mode = None
-
-        if not payload:
-            LOGGER.error(
-                "Received empty payload on topic %s, check that you have the correct topic name",
-                topic,
-            )
-            return
 
         try:
             parsed_data: dict[str, Any] = json.loads(payload)
