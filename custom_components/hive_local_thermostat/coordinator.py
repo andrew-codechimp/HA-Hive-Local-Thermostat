@@ -57,7 +57,15 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     heat_boost_started_duration: int = 0
     water_boost_started_duration: int = 0
     heat_boost_remaining: int = 0
-    water_boost_remaining: int = 0
+
+    pre_boost_hvac_mode: HVACMode | None = None
+    pre_boost_occupied_heating_setpoint_heat: float | None = None
+
+    # Number entity values
+    heating_boost_duration: float = DEFAULT_HEATING_BOOST_MINUTES
+    heating_boost_temperature: float = DEFAULT_HEATING_BOOST_TEMPERATURE
+    heating_frost_prevention: float = DEFAULT_FROST_TEMPERATURE
+    water_boost_duration: float = DEFAULT_WATER_BOOST_MINUTES
 
     def __init__(  # noqa: PLR0913
         self,
@@ -80,15 +88,6 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.show_heating_schedule_mode = show_heat_schedule_mode
         self.show_water_schedule_mode = show_water_schedule_mode
         self.data: dict[str, Any] = {}
-
-        self.pre_boost_hvac_mode: HVACMode | None = None
-        self.pre_boost_occupied_heating_setpoint_heat: float | None = None
-
-        # Number entity values
-        self.heating_boost_duration: float = DEFAULT_HEATING_BOOST_MINUTES
-        self.heating_boost_temperature: float = DEFAULT_HEATING_BOOST_TEMPERATURE
-        self.heating_frost_prevention: float = DEFAULT_FROST_TEMPERATURE
-        self.water_boost_duration: float = DEFAULT_WATER_BOOST_MINUTES
 
     @property
     def topic_get(self) -> str:
