@@ -23,6 +23,8 @@ from .const import (
 
 SERVICE_HEATING_BOOST = "boost_heating"
 SERVICE_WATER_BOOST = "boost_water"
+SERVICE_HEATING_BOOST_CANCEL = "cancel_boost_heating"
+SERVICE_WATER_BOOST_CANCEL = "cancel_boost_water"
 
 SERVICE_DATA_HEATING_BOOST_MINUTES = "minutes_to_boost"
 SERVICE_DATA_HEATING_BOOST_TEMPERATURE = "temperature_to_boost"
@@ -83,9 +85,23 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     hass.services.async_register(
         DOMAIN,
+        SERVICE_HEATING_BOOST_CANCEL,
+        _async_heating_boost_cancel,
+        schema=SERVICE_BASE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
         SERVICE_WATER_BOOST,
         _async_water_boost,
         schema=SERVICE_WATER_BOOST_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_WATER_BOOST_CANCEL,
+        _async_water_boost_cancel,
+        schema=SERVICE_BASE_SCHEMA,
     )
 
 
@@ -115,6 +131,16 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
     return None
 
 
+async def _async_heating_boost_cancel(call: ServiceCall) -> ServiceResponse:
+    """Handle the service call to cancel heating boost."""
+    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+    coordinator = cast(HiveData, entry.runtime_data).coordinator
+
+    await coordinator.async_heating_boost_cancel()
+
+    return None
+
+
 async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
     """Handle the service call."""
     entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
@@ -135,5 +161,21 @@ async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
         )
 
     await coordinator.async_water_boost(boost_minutes)
+
+    return None
+
+
+async def _async_water_boost_cancel(call: ServiceCall) -> ServiceResponse:
+    """Handle the service call to cancel water boost."""
+    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+    coordinator = cast(HiveData, entry.runtime_data).coordinator
+
+    if coordinator.model != MODEL_SLR2:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="wrong_model",
+        )
+
+    await coordinator.async_water_boost_cancel()
 
     return None

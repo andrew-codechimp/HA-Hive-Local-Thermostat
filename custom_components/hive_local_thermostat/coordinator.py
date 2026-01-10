@@ -399,6 +399,16 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         await self._async_publish_set(payload)
 
+    async def async_water_boost_cancel(self) -> None:
+        """Cancel water boost command."""
+
+        if self.pre_boost_water_mode == "auto":
+            await self.async_water_scheduled()
+        elif self.pre_boost_water_mode == "heat":
+            await self.async_water_always_on()
+        else:
+            await self.async_water_always_off()
+
     async def async_water_scheduled(self) -> None:
         """Send water scheduled command."""
 
@@ -452,6 +462,21 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.heat_boost_started_duration = int(duration)
 
         await self._async_publish_set(payload)
+
+    async def async_heating_boost_cancel(self) -> None:
+        """Cancel heating boost command."""
+
+        if self.pre_boost_hvac_mode == HVACMode.AUTO:
+            await self.async_set_hvac_mode_auto()
+        elif self.pre_boost_hvac_mode == HVACMode.HEAT:
+            if self.pre_boost_occupied_heating_setpoint_heat is not None:
+                await self.async_set_hvac_mode_heat(
+                    self.pre_boost_occupied_heating_setpoint_heat
+                )
+            else:
+                await self.async_set_hvac_mode_heat(self.heating_frost_prevention)
+        else:
+            await self.async_set_hvac_mode_off()
 
     async def async_set_temperature(self, temperature: float) -> None:
         """Set temperature."""
