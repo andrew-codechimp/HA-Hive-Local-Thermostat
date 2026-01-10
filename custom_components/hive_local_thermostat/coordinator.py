@@ -135,7 +135,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
     @callback
-    def handle_mqtt_message(self, message: ReceiveMessage) -> None:  # noqa: PLR0912, PLR0915
+    def handle_mqtt_message(self, message: ReceiveMessage) -> None:  # noqa: C901, PLR0912, PLR0915
         """Handle received MQTT message."""
         topic = message.topic
         payload = message.payload
@@ -211,6 +211,12 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     self.heat_boost = True
                 if parsed_data["system_mode_heat"] == "off":
                     self.hvac_mode = HVACMode.OFF
+
+                if parsed_data["system_mode_heat"] != "emergency_heating":
+                    self.pre_boost_occupied_heating_setpoint_heat = (
+                        self.target_temperature
+                    )
+                    self.pre_boost_hvac_mode = self.hvac_mode
                 if parsed_data["system_mode_water"] == "heat":
                     if parsed_data["temperature_setpoint_hold_water"] is False:
                         if self.show_water_schedule_mode:
@@ -224,6 +230,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     self.water_boost = True
                 if parsed_data["system_mode_water"] == "off":
                     self.water_mode = "off"
+
+                if parsed_data["system_mode_water"] != "emergency_heating":
+                    self.pre_boost_water_mode = self.water_mode
             else:
                 reported_boost_remaining_heat = cast(
                     int,
@@ -258,6 +267,12 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     self.heat_boost = True
                 if parsed_data["system_mode"] == "off":
                     self.hvac_mode = HVACMode.OFF
+
+                if parsed_data["system_mode"] != "emergency_heating":
+                    self.pre_boost_occupied_heating_setpoint_heat = (
+                        self.target_temperature
+                    )
+                    self.pre_boost_hvac_mode = self.hvac_mode
 
             if self.correct_heat_boost(
                 reported_boost_remaining_heat, reported_boost_temperature
