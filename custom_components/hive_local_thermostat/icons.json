@@ -70,6 +70,12 @@
     },
     "boost_water": {
       "service": "mdi:rocket-launch"
+    },
+    "cancel_boost_heating": {
+      "service": "mdi:cancel"
+    },
+    "cancel_boost_water": {
+      "service": "mdi:cancel"
     }
   }
 }
