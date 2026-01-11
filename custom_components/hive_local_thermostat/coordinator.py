@@ -69,6 +69,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     heating_frost_prevention: float = DEFAULT_FROST_TEMPERATURE
     water_boost_duration: float = DEFAULT_WATER_BOOST_MINUTES
 
+    # Diagnostics
+    last_mqtt_payload: dict[str, Any] | None = None
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -159,6 +162,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         try:
             parsed_data: dict[str, Any] = json.loads(payload)
+
+            # Store last payload for diagnostics
+            self.last_mqtt_payload = parsed_data
 
             if not self.valid_data_for_model(parsed_data):
                 return
