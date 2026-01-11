@@ -116,7 +116,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Return the current HVAC action."""
         if self.running_state_heat == "preheating":
             return HVACAction.PREHEATING
-        if self.running_state_heat == "heating":
+        if self.running_state_heat == "heat":
             return HVACAction.HEATING
         if self.running_state_heat == "idle":
             return HVACAction.IDLE
