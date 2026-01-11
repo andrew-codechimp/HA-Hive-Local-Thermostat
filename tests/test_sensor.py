@@ -116,6 +116,16 @@ async def test_sensor_slr1_states(
             },
         ),
         (
+            "mqtt_slr2_off.json",
+            {
+                "running_state_heat": "off",
+                "current_temperature": "19.0",
+                "running_state_water": "off",
+                "heating_boost_remaining": "0",
+                "water_boost_remaining": "0",
+            },
+        ),
+        (
             "mqtt_slr2_water_boost.json",
             {
                 "running_state_heat": "idle",
