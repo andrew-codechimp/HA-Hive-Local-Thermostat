@@ -1,0 +1,12 @@
+{
+  "local_temperature_heat": 18.5,
+  "occupied_heating_setpoint_heat": 25.0,
+  "system_mode_heat": "emergency_heating",
+  "temperature_setpoint_hold_heat": true,
+  "temperature_setpoint_hold_duration_heat": 30,
+  "running_state_heat": "heat",
+  "system_mode_water": "heat",
+  "temperature_setpoint_hold_water": true,
+  "temperature_setpoint_hold_duration_water": 0,
+  "running_state_water": "idle"
+}

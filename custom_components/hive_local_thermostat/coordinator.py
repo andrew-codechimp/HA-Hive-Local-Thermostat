@@ -57,9 +57,11 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     heat_boost_started_duration: int = 0
     water_boost_started_duration: int = 0
     heat_boost_remaining: int = 0
+    water_boost_remaining: int = 0
 
     pre_boost_hvac_mode: HVACMode | None = None
     pre_boost_occupied_heating_setpoint_heat: float | None = None
+    pre_boost_water_mode: str | None = None
 
     # Number entity values
     heating_boost_duration: float = DEFAULT_HEATING_BOOST_MINUTES
@@ -67,7 +69,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     heating_frost_prevention: float = DEFAULT_FROST_TEMPERATURE
     water_boost_duration: float = DEFAULT_WATER_BOOST_MINUTES
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         hass: HomeAssistant,
         entry_id: str,
@@ -359,32 +361,35 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def record_heat_boost_state(self) -> None:
         """Record and track boost state for heating."""
-        if self.heat_boost_remaining > 0 and not self.heat_boost:
-            self.heat_boost = True
-            self.heat_boost_started = utcnow()
-            self.heat_boost_started_duration = self.heat_boost_remaining
-        else:
-            self.heat_boost = False
+        if self.heat_boost and self.heat_boost_remaining > 0:
+            # Boost is active, record the start time if not already recorded
+            if not self.heat_boost_started:
+                self.heat_boost_started = utcnow()
+                self.heat_boost_started_duration = self.heat_boost_remaining
+        elif not self.heat_boost:
+            # Boost is not active, clear tracking state
             self.heat_boost_started = None
             self.heat_boost_started_duration = 0
 
-        if self.water_boost_remaining > 0 and not self.water_boost:
-            self.water_boost = True
-            self.water_boost_started = utcnow()
-            self.water_boost_started_duration = self.water_boost_remaining
-        else:
-            self.water_boost = False
+        if self.water_boost and self.water_boost_remaining > 0:
+            # Water boost is active, record the start time if not already recorded
+            if not self.water_boost_started:
+                self.water_boost_started = utcnow()
+                self.water_boost_started_duration = self.water_boost_remaining
+        elif not self.water_boost:
+            # Water boost is not active, clear tracking state
             self.water_boost_started = None
             self.water_boost_started_duration = 0
 
     def record_water_boost_state(self) -> None:
         """Record and track boost state for water."""
-        if self.water_boost_remaining > 0 and not self.water_boost:
-            self.water_boost = True
-            self.water_boost_started = utcnow()
-            self.water_boost_started_duration = self.water_boost_remaining
-        else:
-            self.water_boost = False
+        if self.water_boost and self.water_boost_remaining > 0:
+            # Water boost is active, record the start time if not already recorded
+            if not self.water_boost_started:
+                self.water_boost_started = utcnow()
+                self.water_boost_started_duration = self.water_boost_remaining
+        elif not self.water_boost:
+            # Water boost is not active, clear tracking state
             self.water_boost_started = None
             self.water_boost_started_duration = 0
 
