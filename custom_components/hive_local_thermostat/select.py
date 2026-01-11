@@ -112,6 +112,8 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
 
     async def async_added_to_hass(self) -> None:
         """Restore last state when added."""
+        await super().async_added_to_hass()
+
         last_state = await self.async_get_last_state()
         if last_state:
             self._attr_current_option = last_state.state
