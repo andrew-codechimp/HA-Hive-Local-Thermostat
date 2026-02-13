@@ -1,0 +1,53 @@
+# serializer version: 1
+# name: test_binary_sensor_slr1_boost_snapshot
+  dict({
+    'binary_sensor.hive_thermostat_heating_boost': dict({
+      'attributes': dict({
+        'friendly_name': 'Hive Thermostat Heating boost',
+      }),
+      'state': 'on',
+    }),
+  })
+# ---
+# name: test_binary_sensor_slr1_snapshot
+  dict({
+    'binary_sensor.hive_thermostat_heating_boost': dict({
+      'attributes': dict({
+        'friendly_name': 'Hive Thermostat Heating boost',
+      }),
+      'state': 'off',
+    }),
+  })
+# ---
+# name: test_binary_sensor_slr2_boost_snapshot
+  dict({
+    'binary_sensor.hive_thermostat_slr2_heating_boost': dict({
+      'attributes': dict({
+        'friendly_name': 'Hive Thermostat SLR2 Heating boost',
+      }),
+      'state': 'off',
+    }),
+    'binary_sensor.hive_thermostat_slr2_water_boost': dict({
+      'attributes': dict({
+        'friendly_name': 'Hive Thermostat SLR2 Water boost',
+      }),
+      'state': 'on',
+    }),
+  })
+# ---
+# name: test_binary_sensor_slr2_snapshot
+  dict({
+    'binary_sensor.hive_thermostat_slr2_heating_boost': dict({
+      'attributes': dict({
+        'friendly_name': 'Hive Thermostat SLR2 Heating boost',
+      }),
+      'state': 'off',
+    }),
+    'binary_sensor.hive_thermostat_slr2_water_boost': dict({
+      'attributes': dict({
+        'friendly_name': 'Hive Thermostat SLR2 Water boost',
+      }),
+      'state': 'off',
+    }),
+  })
+# ---

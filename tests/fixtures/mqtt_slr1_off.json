@@ -1,0 +1,8 @@
+{
+  "local_temperature": 19.5,
+  "occupied_heating_setpoint": 1.0,
+  "system_mode": "off",
+  "temperature_setpoint_hold": false,
+  "temperature_setpoint_hold_duration": 0,
+  "running_state": "off"
+}

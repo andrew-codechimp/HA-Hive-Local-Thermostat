@@ -144,6 +144,16 @@
                 }
             }
         },
+        "cancel_boost_heating": {
+            "name": "Cancel heating boost",
+            "description": "Cancels the heating boost.",
+            "fields": {
+                "config_entry_id": {
+                    "name": "Hive Thermostat",
+                    "description": "Select the Hive Thermostat to cancel the boost."
+                }
+            }
+        },
         "boost_water": {
             "name": "Boost water",
             "description": "Boost the water.",
@@ -155,6 +165,16 @@
                 "minutes_to_boost": {
                     "name": "Minutes",
                     "description": "Number of minutes to boost (or use default if omitted)."
+                }
+            }
+        },
+        "cancel_boost_water": {
+            "name": "Cancel water boost",
+            "description": "Cancels the water boost.",
+            "fields": {
+                "config_entry_id": {
+                    "name": "Hive Thermostat",
+                    "description": "Select the Hive Thermostat to cancel the boost."
                 }
             }
         }

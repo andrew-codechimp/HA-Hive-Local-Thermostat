@@ -5,31 +5,26 @@ from typing import cast
 
 import voluptuous as vol
 
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import (
-    ServiceCall,
     HomeAssistant,
+    ServiceCall,
     ServiceResponse,
     callback,
 )
-from homeassistant.helpers import config_validation as cv
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
-from homeassistant.components.mqtt import client as mqtt_client
+from homeassistant.helpers import config_validation as cv
 
+from .common import HiveData
 from .const import (
     DOMAIN,
-    LOGGER,
-    CONF_MODEL,
     MODEL_SLR2,
-    CONF_MQTT_TOPIC,
-    DEFAULT_WATER_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_MINUTES,
-    DEFAULT_HEATING_BOOST_TEMPERATURE,
 )
-from .common import HiveData
 
 SERVICE_HEATING_BOOST = "boost_heating"
 SERVICE_WATER_BOOST = "boost_water"
+SERVICE_HEATING_BOOST_CANCEL = "cancel_boost_heating"
+SERVICE_WATER_BOOST_CANCEL = "cancel_boost_water"
 
 SERVICE_DATA_HEATING_BOOST_MINUTES = "minutes_to_boost"
 SERVICE_DATA_HEATING_BOOST_TEMPERATURE = "temperature_to_boost"
@@ -37,17 +32,21 @@ SERVICE_DATA_WATER_BOOST_MINUTES = "minutes_to_boost"
 
 ATTR_CONFIG_ENTRY_ID = "config_entry_id"
 
-SERVICE_HEATING_BOOST_SCHEMA = vol.Schema(
+SERVICE_BASE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_CONFIG_ENTRY_ID): str,
+    }
+)
+
+SERVICE_HEATING_BOOST_SCHEMA = SERVICE_BASE_SCHEMA.extend(
+    {
         vol.Optional(SERVICE_DATA_HEATING_BOOST_MINUTES): cv.positive_int,
         vol.Optional(SERVICE_DATA_HEATING_BOOST_TEMPERATURE): cv.positive_float,
     }
 )
 
-SERVICE_WATER_BOOST_SCHEMA = vol.Schema(
+SERVICE_WATER_BOOST_SCHEMA = SERVICE_BASE_SCHEMA.extend(
     {
-        vol.Required(ATTR_CONFIG_ENTRY_ID): str,
         vol.Optional(SERVICE_DATA_WATER_BOOST_MINUTES): cv.positive_int,
     }
 )
@@ -73,18 +72,6 @@ def async_get_entry(hass: HomeAssistant, config_entry_id: str) -> ConfigEntry:
     return entry
 
 
-def get_entity_value(
-    hass: HomeAssistant, entry_id: str, entity_key: str, default: float
-) -> float:
-    """Get an entities value store in runtime data."""
-    # Get the config entry from hass
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.entry_id == entry_id:
-            runtime_data = cast(HiveData, entry.runtime_data)
-            return runtime_data.entity_values.get(entity_key, default)
-    return default
-
-
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
     """Set up the services for the hive_local_thermostat integration."""
@@ -98,26 +85,36 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     hass.services.async_register(
         DOMAIN,
+        SERVICE_HEATING_BOOST_CANCEL,
+        _async_heating_boost_cancel,
+        schema=SERVICE_BASE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
         SERVICE_WATER_BOOST,
         _async_water_boost,
         schema=SERVICE_WATER_BOOST_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_WATER_BOOST_CANCEL,
+        _async_water_boost_cancel,
+        schema=SERVICE_BASE_SCHEMA,
     )
 
 
 async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
     """Handle the service call."""
     entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+    coordinator = cast(HiveData, entry.runtime_data).coordinator
 
     boost_minutes = cast(
         int,
         call.data.get(
             SERVICE_DATA_HEATING_BOOST_MINUTES,
-            get_entity_value(
-                call.hass,
-                entry.entry_id,
-                "heating_boost_duration",
-                DEFAULT_HEATING_BOOST_MINUTES,
-            ),
+            coordinator.heating_boost_duration,
         ),
     )
 
@@ -125,37 +122,21 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
         float,
         call.data.get(
             SERVICE_DATA_HEATING_BOOST_TEMPERATURE,
-            get_entity_value(
-                call.hass,
-                entry.entry_id,
-                "heating_boost_temperature",
-                DEFAULT_HEATING_BOOST_TEMPERATURE,
-            ),
+            coordinator.heating_boost_temperature,
         ),
     )
 
-    model = entry.options[CONF_MODEL]
-    mqtt_topic = entry.options[CONF_MQTT_TOPIC]
+    await coordinator.async_heating_boost(boost_minutes, boost_temperature)
 
-    if model == MODEL_SLR2:
-        payload = (
-            r'{"system_mode_heat":"emergency_heating","temperature_setpoint_hold_duration_heat":'
-            + str(boost_minutes)
-            + r',"temperature_setpoint_hold_heat":1,"occupied_heating_setpoint_heat":'
-            + str(boost_temperature)
-            + r"}"
-        )
-    else:
-        payload = (
-            r'{"system_mode":"emergency_heating","temperature_setpoint_hold_duration":'
-            + str(boost_minutes)
-            + r',"temperature_setpoint_hold":1,"occupied_heating_setpoint":'
-            + str(boost_temperature)
-            + r"}"
-        )
+    return None
 
-    LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
-    await mqtt_client.async_publish(call.hass, mqtt_topic + "/set", payload)
+
+async def _async_heating_boost_cancel(call: ServiceCall) -> ServiceResponse:
+    """Handle the service call to cancel heating boost."""
+    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+    coordinator = cast(HiveData, entry.runtime_data).coordinator
+
+    await coordinator.async_heating_boost_cancel()
 
     return None
 
@@ -163,36 +144,38 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
 async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
     """Handle the service call."""
     entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+    coordinator = cast(HiveData, entry.runtime_data).coordinator
 
     boost_minutes = cast(
         int,
         call.data.get(
             SERVICE_DATA_WATER_BOOST_MINUTES,
-            get_entity_value(
-                call.hass,
-                entry.entry_id,
-                "water_boost_duration",
-                DEFAULT_WATER_BOOST_MINUTES,
-            ),
+            coordinator.water_boost_duration,
         ),
     )
 
-    model = entry.options[CONF_MODEL]
-    mqtt_topic = entry.options[CONF_MQTT_TOPIC]
-
-    if model == MODEL_SLR2:
-        payload = (
-            r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
-            + str(boost_minutes)
-            + r',"temperature_setpoint_hold_water":1}'
-        )
-
-        LOGGER.debug("Sending to %s/set message %s", mqtt_topic, payload)
-        await mqtt_client.async_publish(call.hass, mqtt_topic + "/set", payload)
-    else:
+    if coordinator.model != MODEL_SLR2:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="wrong_model",
         )
+
+    await coordinator.async_water_boost(boost_minutes)
+
+    return None
+
+
+async def _async_water_boost_cancel(call: ServiceCall) -> ServiceResponse:
+    """Handle the service call to cancel water boost."""
+    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
+    coordinator = cast(HiveData, entry.runtime_data).coordinator
+
+    if coordinator.model != MODEL_SLR2:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="wrong_model",
+        )
+
+    await coordinator.async_water_boost_cancel()
 
     return None

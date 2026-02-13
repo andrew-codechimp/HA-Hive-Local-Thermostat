@@ -6,31 +6,31 @@ https://github.com/andrew-codechimp/HA_Hive_Local_Thermostat
 
 from __future__ import annotations
 
-import json
 from asyncio import sleep
 
 from awesomeversion.awesomeversion import AwesomeVersion
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.const import (
     Platform,
     __version__ as HA_VERSION,  # noqa: N812
 )
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.components.mqtt import client as mqtt_client
-from homeassistant.components.mqtt.models import ReceiveMessage
 
+from .common import HiveConfigEntry, HiveData
 from .const import (
+    CONF_MODEL,
+    CONF_MQTT_TOPIC,
+    CONF_SHOW_HEAT_SCHEDULE_MODE,
+    CONF_SHOW_WATER_SCHEDULE_MODE,
     DOMAIN,
     LOGGER,
-    CONF_MODEL,
-    MODEL_SLR2,
     MIN_HA_VERSION,
-    CONF_MQTT_TOPIC,
+    MODEL_SLR2,
 )
-from .common import HiveData, HiveConfigEntry
-from .entity import HiveEntity
+from .coordinator import HiveCoordinator
 from .services import async_setup_services
 
 PLATFORMS_SLR1: list[Platform] = [
@@ -81,65 +81,42 @@ async def async_setup(
 async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     """Set up this integration using UI."""
 
-    platforms = get_platforms(entry.options[CONF_MODEL])
+    coordinator = HiveCoordinator(
+        hass,
+        entry.entry_id,
+        entry.options[CONF_MODEL],
+        entry.options[CONF_MQTT_TOPIC],
+        entry.options.get(CONF_SHOW_HEAT_SCHEDULE_MODE, True),
+        entry.options.get(CONF_SHOW_WATER_SCHEDULE_MODE, True),
+    )
 
-    entry.runtime_data = HiveData(platforms=platforms, entities={}, entity_values={})
+    platforms = get_platforms(coordinator.model)
+
+    entry.runtime_data = HiveData(
+        platforms=platforms,
+        coordinator=coordinator,
+    )
 
     await hass.config_entries.async_forward_entry_setups(entry, platforms)
 
-    @callback
-    async def mqtt_message_received(message: ReceiveMessage) -> None:
-        """Handle received MQTT message."""
-        topic = message.topic
-        payload = message.payload
-        LOGGER.debug("Received message: %s", topic)
-        LOGGER.debug("Payload: %s", payload)
-
-        if not payload:
-            LOGGER.error(
-                "Received empty payload on topic %s, check that you have the correct topic name",
-                topic,
-            )
-            return
-
-        parsed_data = json.loads(payload)
-
-        # if entry.options[CONF_MODEL] == MODEL_SLR2:
-        #     if "system_mode_heat" not in parsed_data:
-        #         LOGGER.error(
-        #             "Received data does not contain 'system_mode_heat' for SLR2, check you have the correct model set"
-        #         )
-        #         return
-        # else:
-        #     if "system_mode_water" in parsed_data:
-        #         LOGGER.error(
-        #             "Received data contains 'system_mode_water' for SLR1/OTR1, check you have the correct model set"
-        #         )
-        #         return
-
-        for platform in get_platforms(entry.options[CONF_MODEL]):
-            if platform in entry.runtime_data.entities:
-                entity: HiveEntity
-                for entity in entry.runtime_data.entities[platform]:
-                    entity.process_update(parsed_data)
-
-    topic = entry.options[CONF_MQTT_TOPIC]
-
     LOGGER.debug(
         "Subscribing to MQTT topic: %s, will parse platforms for %s",
-        topic,
-        entry.options[CONF_MODEL],
+        coordinator.topic,
+        coordinator.model,
     )
 
+    # Subscribe to MQTT and have the coordinator handle messages
     entry.async_on_unload(
-        await mqtt_client.async_subscribe(hass, topic, mqtt_message_received, 1)
+        await mqtt_client.async_subscribe(
+            hass, coordinator.topic, coordinator.handle_mqtt_message, 1
+        )
     )
 
     # Send an initial message to get the current state
     await sleep(2)
     payload = r'{"system_mode":""}'
-    LOGGER.debug("Sending to %s/get message %s", topic, payload)
-    await mqtt_client.async_publish(hass, topic + "/get", payload)
+    LOGGER.debug("Sending to %s/get message %s", coordinator.topic, payload)
+    await mqtt_client.async_publish(hass, coordinator.topic_get, payload)
 
     entry.async_on_unload(entry.add_update_listener(config_entry_update_listener))
 

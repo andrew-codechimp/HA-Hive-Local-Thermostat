@@ -1,0 +1,8 @@
+{
+  "local_temperature": 18.5,
+  "occupied_heating_setpoint": 25.0,
+  "system_mode": "emergency_heating",
+  "temperature_setpoint_hold": true,
+  "temperature_setpoint_hold_duration": 30,
+  "running_state": "heat"
+}

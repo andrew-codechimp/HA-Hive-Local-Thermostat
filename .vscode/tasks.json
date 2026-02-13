@@ -6,6 +6,140 @@
             "type": "shell",
             "command": "scripts/develop",
             "problemMatcher": []
+        },
+        {
+            "label": "Lint (Full)",
+            "type": "shell",
+            "command": "scripts/lint",
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Ruff Check",
+            "type": "shell",
+            "command": "source .venv/bin/activate && ruff check custom_components/hive_local_thermostat",
+            "problemMatcher": {
+                "owner": "ruff",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.+):(\\d+):(\\d+):\\s+(\\w+):\\s+(.+)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Ruff Check (Fix)",
+            "type": "shell",
+            "command": "source .venv/bin/activate && ruff check custom_components/hive_local_thermostat --fix",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Ruff Format",
+            "type": "shell",
+            "command": "source .venv/bin/activate && ruff format custom_components/hive_local_thermostat",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Mypy",
+            "type": "shell",
+            "command": "source .venv/bin/activate && mypy custom_components/hive_local_thermostat",
+            "problemMatcher": {
+                "owner": "mypy",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.+):(\\d+):\\s+(\\w+):\\s+(.+)\\s+\\[(.+)\\]$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "message": 4,
+                    "code": 5
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Pytest",
+            "type": "shell",
+            "command": "source .venv/bin/activate && pytest",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Pytest (Coverage)",
+            "type": "shell",
+            "command": "source .venv/bin/activate && pytest --cov --cov-report=term --cov-report=html",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Pytest (Sensors Only)",
+            "type": "shell",
+            "command": "source .venv/bin/activate && pytest tests/test_sensor.py -v",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Pytest (Update Snapshots)",
+            "type": "shell",
+            "command": "source .venv/bin/activate && pytest --snapshot-update",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
         }
     ],
     "configurations": [

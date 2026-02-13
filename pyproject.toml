@@ -30,7 +30,12 @@ dev = [
     "colorlog",
     "homeassistant==2025.4.0",
     "mypy",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-homeassistant-custom-component",
     "ruff",
+    "syrupy",
 ]
 
 [tool.uv]
@@ -85,14 +90,21 @@ ignore = [
   "TC006",   # Add quotes to type expression in typing.cast()
   "TRY003",  # Avoid specifying long messages outside the exception class
   "TRY400",  # Use `logging.exception` instead of `logging.error`
+  "FIX002", # Allow TODO
+  "TD002", # Missing TODO auther
+  "TD003", # Missing TODO link
+  "TC002", # Move third-party import into a type-checking block
+  "PLR0913", # Too many arguments in function call
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["ARG001", "ANN001", "PLR2004"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 25
 
 [tool.ruff.lint.isort]
-length-sort = true
+length-sort = false
 section-order = [
   "future",
   "standard-library",
@@ -141,4 +153,35 @@ files = ["custom_components/hive_local_thermostat"]
 exclude = [
     "^config/",
     "^scripts/",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = [
+    "--strict-markers",
+    "--cov=custom_components.hive_local_thermostat",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "asyncio: mark test as async",
+]
+
+[tool.coverage.run]
+source = ["custom_components/hive_local_thermostat"]
+omit = [
+    "tests/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if TYPE_CHECKING:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
 ]

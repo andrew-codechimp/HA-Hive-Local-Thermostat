@@ -2,29 +2,20 @@
 
 from __future__ import annotations
 
-from typing import Any
 from dataclasses import dataclass
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import (
-    Platform,
-)
-from homeassistant.components.mqtt import client as mqtt_client
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
-from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
+from .common import HiveConfigEntry
 from .const import (
     DOMAIN,
-    LOGGER,
-    CONF_MODEL,
     MODEL_OTR1,
     MODEL_SLR1,
-    CONF_MQTT_TOPIC,
-    DEFAULT_WATER_BOOST_MINUTES,
-    CONF_SHOW_WATER_SCHEDULE_MODE,
 )
-from .common import HiveConfigEntry
+from .coordinator import HiveCoordinator
 from .entity import HiveEntity, HiveEntityDescription
 
 
@@ -45,14 +36,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
-    if config_entry.options[CONF_MODEL] in [MODEL_SLR1, MODEL_OTR1]:
+    coordinator = config_entry.runtime_data.coordinator
+
+    if coordinator.model in [MODEL_SLR1, MODEL_OTR1]:
         return
 
-    if config_entry.options.get(CONF_SHOW_WATER_SCHEDULE_MODE, True):
-        show_schedule_mode = True
+    if coordinator.show_water_schedule_mode:
         water_modes = ["auto", "heat", "off", "boost"]
     else:
-        show_schedule_mode = False
         water_modes = ["heat", "off", "boost"]
 
     entity_descriptions = (
@@ -60,24 +51,19 @@ async def async_setup_entry(
             key="system_mode_water",
             translation_key="system_mode_water",
             name=config_entry.title,
-            topic=config_entry.options[CONF_MQTT_TOPIC],
-            entry_id=config_entry.entry_id,
-            model=config_entry.options[CONF_MODEL],
             options=water_modes,
-            show_schedule_mode=show_schedule_mode,
         ),
     )
 
     _entities = [
         HiveSelect(
             entity_description=entity_description,
+            coordinator=coordinator,
         )
         for entity_description in entity_descriptions
     ]
 
     async_add_entities(sensorEntity for sensorEntity in _entities)
-
-    config_entry.runtime_data.entities[Platform.SELECT] = _entities
 
 
 class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
@@ -88,6 +74,7 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
     def __init__(
         self,
         entity_description: HiveSelectEntityDescription,
+        coordinator: HiveCoordinator,
     ) -> None:
         """Initialize the sensor class."""
 
@@ -96,28 +83,15 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
             f"{DOMAIN}_{entity_description.name}_{entity_description.key}".lower()
         )
         self._attr_has_entity_name = True
-        self._topic = entity_description.topic
         self._attr_current_option = None
         if entity_description.options:
             self._attr_options = entity_description.options
 
-        super().__init__(entity_description)
+        super().__init__(entity_description, coordinator)
 
-    def process_update(self, mqtt_data: dict[str, Any]) -> None:
-        """Update the state of the sensor."""
-
-        if mqtt_data["system_mode_water"] == "heat":
-            if mqtt_data["temperature_setpoint_hold_water"] is False:
-                if self.entity_description.show_schedule_mode:
-                    new_value = "auto"
-                else:
-                    new_value = "heat"
-            else:
-                new_value = "heat"
-        if mqtt_data["system_mode_water"] == "emergency_heating":
-            new_value = "boost"
-        if mqtt_data["system_mode_water"] == "off":
-            new_value = "off"
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        new_value = self.coordinator.water_mode
 
         if new_value not in self.options:
             msg = f"Invalid option for {self.entity_id}: {new_value}"
@@ -125,11 +99,6 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
 
         self._attr_current_option = new_value
         self.async_write_ha_state()
-
-        if (
-            self.hass is not None
-        ):  # this is a hack to get around the fact that the entity is not yet initialized at first
-            self.async_schedule_update_ha_state()
 
     @property
     def options(self) -> list[str]:
@@ -143,6 +112,8 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
 
     async def async_added_to_hass(self) -> None:
         """Restore last state when added."""
+        await super().async_added_to_hass()
+
         last_state = await self.async_get_last_state()
         if last_state:
             self._attr_current_option = last_state.state
@@ -154,26 +125,13 @@ class HiveSelect(HiveEntity, SelectEntity, RestoreEntity):
             raise ValueError(msg)
 
         if option == "auto":
-            payload = r'{"system_mode_water":"heat","temperature_setpoint_hold_water":"0","temperature_setpoint_hold_duration_water":"0"}'
+            await self.coordinator.async_water_scheduled()
         elif option == "heat":
-            payload = (
-                r'{"system_mode_water":"heat","temperature_setpoint_hold_water":1}'
-            )
+            await self.coordinator.async_water_always_on()
         elif option == "boost":
-            payload = (
-                r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
-                + str(
-                    self.get_entity_value(
-                        "water_boost_duration", DEFAULT_WATER_BOOST_MINUTES
-                    )
-                )
-                + r',"temperature_setpoint_hold_water":1}'
-            )
+            await self.coordinator.async_water_boost()
         elif option == "off":
-            payload = r'{"system_mode_water":"off","temperature_setpoint_hold_water":0}'
-
-        LOGGER.debug("Sending to %s/set message %s", self._topic, payload)
-        await mqtt_client.async_publish(self.hass, self._topic + "/set", payload)
+            await self.coordinator.async_water_always_off()
 
         self._attr_current_option = option
         self.async_write_ha_state()

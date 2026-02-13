@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
 from collections.abc import Mapping
+from typing import Any, cast
 
 import voluptuous as vol
 
-from homeassistant.core import callback
 from homeassistant.const import CONF_NAME
+from homeassistant.core import callback
 from homeassistant.helpers import selector
 from homeassistant.helpers.schema_config_entry_flow import (
+    SchemaConfigFlowHandler,
     SchemaFlowFormStep,
     SchemaFlowMenuStep,
-    SchemaConfigFlowHandler,
     SchemaOptionsFlowHandler,
 )
 
