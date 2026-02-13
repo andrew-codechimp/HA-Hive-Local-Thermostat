@@ -332,10 +332,11 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 reported_boost_remaining_heat,
                 self.heat_boost_remaining,
             )
-            self.hass.async_create_task(
+            self.config_entry.async_create_task(
+                self.hass,
                 self.async_heating_boost(
                     self.heat_boost_remaining, reported_boost_temperature
-                )
+                ),
             )
             return True
         self.heat_boost_remaining = reported_boost_remaining_heat
@@ -358,8 +359,8 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 reported_boost_remaining_water,
                 self.water_boost_remaining,
             )
-            self.hass.async_create_task(
-                self.async_water_boost(self.water_boost_remaining)
+            self.config_entry.async_create_task(
+                self.hass, self.async_water_boost(self.water_boost_remaining)
             )
             return True
         self.water_boost_remaining = reported_boost_remaining_water
