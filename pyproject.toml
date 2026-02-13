@@ -95,6 +95,7 @@ ignore = [
   "TD003", # Missing TODO link
   "TC002", # Move third-party import into a type-checking block
   "PLR0913", # Too many arguments in function call
+  "FURB110", # Replace ternary `if` expression with `or` operator
 ]
 
 [tool.ruff.lint.per-file-ignores]
