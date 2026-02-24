@@ -301,9 +301,9 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def valid_data_for_model(self, data: dict[str, Any]) -> bool:
         """Check if data is valid for the current model."""
         if self.model == MODEL_SLR2:
-            if "system_mode" in data:
+            if "system_mode_water" not in data:
                 LOGGER.error(
-                    "Received data contains 'system_mode' for SLR2, check you have the correct model set"
+                    "Received data does not contain 'system_mode_water' for SLR2, check you have the correct model set"
                 )
                 return False
         elif "system_mode_water" in data:
