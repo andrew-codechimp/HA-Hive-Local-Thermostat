@@ -1,4 +1,4 @@
-# HA-Hive-Local-Thermostat
+# Hive Local Thermostat
 
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
