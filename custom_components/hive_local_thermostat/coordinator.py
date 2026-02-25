@@ -414,7 +414,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self.pre_boost_water_mode = self.water_mode
 
-        duration = str(boost_duration_minutes or self.water_boost_duration)
+        duration = str(int(boost_duration_minutes or self.water_boost_duration))
         payload = (
             r'{"system_mode_water":"emergency_heating","temperature_setpoint_hold_duration_water":'
             + duration
