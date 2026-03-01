@@ -154,6 +154,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if hvac_mode := kwargs.get(ATTR_HVAC_MODE):
             self._hvac_mode_set_from_temperature = True
             await self.async_set_hvac_mode(hvac_mode)
+            return
 
         if temperature:
             await self.coordinator.async_set_temperature(temperature)
@@ -173,16 +174,23 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         if hvac_mode == HVACMode.AUTO:
             await self.coordinator.async_set_hvac_mode_auto()
         if hvac_mode == HVACMode.HEAT:
+            if self._hvac_mode_set_from_temperature:
+                assert self._attr_target_temperature is not None
+                await self.coordinator.async_set_hvac_mode_heat(
+                    self._attr_target_temperature, self._hvac_mode_set_from_temperature
+                )
+
+                self._hvac_mode_set_from_temperature = False
+                self.async_write_ha_state()
+                return
+
             if self.coordinator.pre_boost_occupied_heating_setpoint_heat:
                 await self.coordinator.async_set_hvac_mode_heat(
                     self.coordinator.pre_boost_occupied_heating_setpoint_heat,
                     self._hvac_mode_set_from_temperature,
                 )
             else:
-                if (
-                    not self._hvac_mode_set_from_temperature
-                    and self._attr_current_temperature
-                ):
+                if self._attr_current_temperature:
                     # Get the current temperature and round down to nearest .5
                     self._attr_target_temperature = (
                         floor((self._attr_current_temperature) * 2) / 2
