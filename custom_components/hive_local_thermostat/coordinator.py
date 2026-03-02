@@ -524,6 +524,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             payload = r'{"system_mode":"off","temperature_setpoint_hold":"0"}'
 
+        self.hvac_mode = HVACMode.OFF
         await self._async_publish_set(payload)
 
         await sleep(0.5)
@@ -551,6 +552,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             payload = r'{"system_mode":"heat","temperature_setpoint_hold":"0","temperature_setpoint_hold_duration":"0"}'
 
+        self.hvac_mode = HVACMode.AUTO
         await self._async_publish_set(payload)
 
     async def async_set_hvac_mode_heat(
@@ -585,6 +587,7 @@ class HiveCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 + r"}"
             )
 
+        self.hvac_mode = HVACMode.HEAT
         await self._async_publish_set(payload)
 
         if not set_from_temperature:

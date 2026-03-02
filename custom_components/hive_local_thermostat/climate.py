@@ -97,9 +97,6 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         self._attr_preset_modes = list(PRESET_MAP.keys())
         self._attr_preset_mode = None
 
-        # Setting the new TURN_ON / TURN_OFF features isn't enough to make stop the
-        # warning message about not setting them
-        self._enable_turn_on_off_backwards_compatibility = False
         self._attr_supported_features = (
             ClimateEntityFeature.TURN_OFF
             | ClimateEntityFeature.TURN_ON
@@ -207,6 +204,15 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
 
         # Write updated temperature to HA state to avoid flapping (MQTT confirmation is slow)
         self.async_write_ha_state()
+
+    async def async_turn_on(self) -> None:
+        """Set the HVAC State to on."""
+        assert self._attr_target_temperature is not None
+        await self.coordinator.async_set_hvac_mode_heat(self._attr_target_temperature)
+
+    async def async_turn_off(self) -> None:
+        """Set the HVAC State to off."""
+        await self.coordinator.async_set_hvac_mode_off()
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""

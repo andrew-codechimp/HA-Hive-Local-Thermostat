@@ -7,7 +7,16 @@ logger:
   logs:
     custom_components.hive_local_thermostat: debug
 
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
 debugpy:
    start: true
    wait: false
    port: 5678
+
+input_boolean:
+  climate_room_requesting_heating:
+    name: Requesting heating
+    initial: off
