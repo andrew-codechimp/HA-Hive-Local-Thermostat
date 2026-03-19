@@ -12,10 +12,10 @@ classifiers = [
   "Framework :: AsyncIO",
   "Intended Audience :: Developers",
   "Natural Language :: English",
-  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: 3",
 ]
-requires-python = "==3.13.2"
+requires-python = "==3.14.2"
 dependencies = [] # Use dev for all dependencies
 
 [project.urls]
@@ -28,7 +28,7 @@ Changelog = "https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat/releas
 [dependency-groups]
 dev = [
     "colorlog",
-    "homeassistant==2025.4.0",
+    "homeassistant==2026.3.0",
     "mypy",
     "pytest",
     "pytest-asyncio",
@@ -36,6 +36,19 @@ dev = [
     "pytest-homeassistant-custom-component",
     "ruff",
     "syrupy",
+    "hassil",
+    "home_assistant_intents",
+    "mutagen",
+    "pymicro_vad",
+    "pyspeex_noise",
+    "PyTurboJPEG",
+    "aiodhcpwatcher",
+    "aiousbwatcher",
+    "async-upnp-client",
+    "go2rtc-client",
+    "ha-ffmpeg",
+    "paho-mqtt",
+    "av",
 ]
 
 [tool.uv]
@@ -128,7 +141,7 @@ voluptuous = "vol"
 # Specify the target platform details in config, so your developers are
 # free to run mypy on Windows, Linux, or macOS and get consistent
 # results.
-python_version = "3.13"
+python_version = "3.14"
 platform = "linux"
 
 # show error messages from unrelated files

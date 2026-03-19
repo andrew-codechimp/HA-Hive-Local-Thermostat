@@ -9,11 +9,24 @@ if [[ ! -d "${PWD}/config" ]]; then
     uv run hass --config "${PWD}/config" --script ensure_config
 fi
 
-# Set the path to custom_components
-## This let's us have the structure we want <root>/custom_components/integration_battery_types
-## while at the same time have Home Assistant configuration inside <root>/config
-## without resulting to symlinks.
-export PYTHONPATH="${PYTHONPATH:-}:${PWD}/custom_components"
+# Home Assistant discovers custom integrations from <config>/custom_components.
+# Keep a symlink to avoid duplicating source files.
+mkdir -p "${PWD}/config/custom_components"
+touch "${PWD}/config/custom_components/__init__.py"
+
+SOURCE_INTEGRATION_DIR="${PWD}/custom_components/hive_local_thermostat"
+CONFIG_INTEGRATION_DIR="${PWD}/config/custom_components/hive_local_thermostat"
+
+if [[ ! -d "${SOURCE_INTEGRATION_DIR}" ]]; then
+    echo "Missing source integration directory: ${SOURCE_INTEGRATION_DIR}" >&2
+    exit 1
+fi
+
+if [[ -L "${CONFIG_INTEGRATION_DIR}" || -e "${CONFIG_INTEGRATION_DIR}" ]]; then
+    rm -rf "${CONFIG_INTEGRATION_DIR}"
+fi
+
+ln -s "${SOURCE_INTEGRATION_DIR}" "${CONFIG_INTEGRATION_DIR}"
 
 # Start Home Assistant
 uv run hass --config "${PWD}/config" --debug

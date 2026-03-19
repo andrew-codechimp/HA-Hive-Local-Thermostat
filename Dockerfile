@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:trixie-slim
+FROM ghcr.io/astral-sh/uv:trixie
 
 # Create vscode user
 RUN useradd -m -s /bin/bash vscode \
