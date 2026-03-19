@@ -5,7 +5,6 @@ from typing import cast
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -13,9 +12,9 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import config_validation as cv, service
 
-from .common import HiveData
+from .common import HiveConfigEntry
 from .const import (
     DOMAIN,
     MODEL_SLR2,
@@ -55,23 +54,6 @@ SERVICE_WATER_BOOST_SCHEMA = SERVICE_BASE_SCHEMA.extend(
 _LOGGER = logging.getLogger(__name__)
 
 
-def async_get_entry(hass: HomeAssistant, config_entry_id: str) -> ConfigEntry:
-    """Get the Hive Local Thermostat config entry."""
-    if not (entry := hass.config_entries.async_get_entry(config_entry_id)):
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="integration_not_found",
-            translation_placeholders={"target": DOMAIN},
-        )
-    if entry.state is not ConfigEntryState.LOADED:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="not_loaded",
-            translation_placeholders={"target": entry.title},
-        )
-    return entry
-
-
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
     """Set up the services for the hive_local_thermostat integration."""
@@ -107,8 +89,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
 async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
     """Handle the service call."""
-    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
-    coordinator = cast(HiveData, entry.runtime_data).coordinator
+    entry: HiveConfigEntry = service.async_get_config_entry(
+        call.hass, DOMAIN, call.data[ATTR_CONFIG_ENTRY_ID]
+    )
+    coordinator = entry.runtime_data.coordinator
 
     boost_minutes = cast(
         int,
@@ -133,8 +117,10 @@ async def _async_heating_boost(call: ServiceCall) -> ServiceResponse:
 
 async def _async_heating_boost_cancel(call: ServiceCall) -> ServiceResponse:
     """Handle the service call to cancel heating boost."""
-    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
-    coordinator = cast(HiveData, entry.runtime_data).coordinator
+    entry: HiveConfigEntry = service.async_get_config_entry(
+        call.hass, DOMAIN, call.data[ATTR_CONFIG_ENTRY_ID]
+    )
+    coordinator = entry.runtime_data.coordinator
 
     await coordinator.async_heating_boost_cancel()
 
@@ -143,8 +129,10 @@ async def _async_heating_boost_cancel(call: ServiceCall) -> ServiceResponse:
 
 async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
     """Handle the service call."""
-    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
-    coordinator = cast(HiveData, entry.runtime_data).coordinator
+    entry: HiveConfigEntry = service.async_get_config_entry(
+        call.hass, DOMAIN, call.data[ATTR_CONFIG_ENTRY_ID]
+    )
+    coordinator = entry.runtime_data.coordinator
 
     boost_minutes = cast(
         int,
@@ -167,8 +155,10 @@ async def _async_water_boost(call: ServiceCall) -> ServiceResponse:
 
 async def _async_water_boost_cancel(call: ServiceCall) -> ServiceResponse:
     """Handle the service call to cancel water boost."""
-    entry = async_get_entry(call.hass, call.data[ATTR_CONFIG_ENTRY_ID])
-    coordinator = cast(HiveData, entry.runtime_data).coordinator
+    entry: HiveConfigEntry = service.async_get_config_entry(
+        call.hass, DOMAIN, call.data[ATTR_CONFIG_ENTRY_ID]
+    )
+    coordinator = entry.runtime_data.coordinator
 
     if coordinator.model != MODEL_SLR2:
         raise ServiceValidationError(

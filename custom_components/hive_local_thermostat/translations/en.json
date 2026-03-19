@@ -180,12 +180,6 @@
         }
     },
     "exceptions": {
-        "not_loaded": {
-            "message": "{target} is not loaded."
-        },
-        "integration_not_found": {
-            "message": "Integration \"{target}\" not found in registry."
-        },
         "wrong_model": {
             "message": "This device does not support this action."
         }
