@@ -1,19 +1,15 @@
-# Hive Local Thermostat
-
-[![GitHub Release][releases-shield]][releases]
-[![GitHub Activity][commits-shield]][commits]
-[![Downloads][download-latest-shield]]()
-[![HACS Installs][hacs-installs-shield]]()
-[![License][license-shield]](LICENSE)
-[![hacs][hacsbadge]][hacs]
+# Hive Local Thermostat (RETIRED)
 
 Local Hive Thermostat MQTT integration for Home Assistant
 
-_Please :star: this repo if you find it useful_
+## This integration is retired and there will be no further updates
 
-_If you want to show your support please_
+Due to moving to a new heating system I no longer have a Hive thermostat and am unable to maintain this integration.
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/codechimp)
+I am leaving the issues open so that the community can hopefully provide support, I will not be able to make any changes and test them.
+
+If anyone would like to take over maintaining this integration please reach out and I will put a link to your forked repo here.
+
 
 To use this integration your Hive thermostat receiver must be added to [Zigbee2MQTT](https://www.zigbee2mqtt.io/supported-devices/#v=Hive) and an MQTT broker and the MQTT integration within Home Assistant must be correctly configured. It is important to follow the pairing steps within the Zigbee2MQTT documentation, the thermostat remote control must be paired directly to the thermostat receiver.
 
@@ -46,8 +42,6 @@ This project is not endorsed by, directly affiliated with, maintained, authorize
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=andrew-codechimp&repository=HA-Hive-Local-Thermostat&category=Integration)
 
 Restart Home Assistant
-
-In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Hive Local Thermostat"
 
 ### Manual Installation
 
