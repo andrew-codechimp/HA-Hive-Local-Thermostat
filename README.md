@@ -2,7 +2,7 @@
 
 Local Hive Thermostat MQTT integration for Home Assistant
 
-## This integration is retired and there will be no further updates
+## ⚠️ This integration is retired and there will be no further updates
 
 Due to moving to a new heating system I no longer have a Hive thermostat and am unable to maintain this integration.
 
